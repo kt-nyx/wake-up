@@ -13,7 +13,7 @@ using UnityEngine;
 using Verse;
 
 // Explicitly selected fixture-only create/tick/save/reload check. This assembly
-// is never shipped with RLO. It runs after the independently measured menu,
+// is never shipped with Wake-Up. It runs after the independently measured menu,
 // uses native game APIs and exits normally. It drives no UI and imports no save.
 public sealed class FixtureGameplaySmoke : MonoBehaviour
 {
@@ -104,11 +104,11 @@ public sealed class FixtureGameplaySmoke : MonoBehaviour
 
     private static void CheckSettingsRoundTrip()
     {
-        Type? type = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(a=>a.GetName().Name=="RimWorldLoadingOptimizer.RimWorld")
-            ?.GetType("RimWorldLoadingOptimizer.RimWorld.OptimizerMod");
+        Type? type = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(a=>a.GetName().Name=="WakeUp")
+            ?.GetType("WakeUp.WakeUpMod");
         if (type == null) return; // Physically absent control.
         Mod mod = LoadedModManager.GetMod(type);
-        Type settingsType = type.Assembly.GetType("RimWorldLoadingOptimizer.RimWorld.OptimizerSettings",true)!;
+        Type settingsType = type.Assembly.GetType("WakeUp.WakeUpSettings",true)!;
         var get = AccessTools.Method(typeof(Mod),"GetSettings").MakeGenericMethod(settingsType);
         object settings = get.Invoke(mod,null);
         FieldInfo field = settingsType.GetField("PngCache")!;

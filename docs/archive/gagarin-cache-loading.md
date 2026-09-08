@@ -1,4 +1,6 @@
 > Historical snapshot, preserved during the 2026-09-06 cleanup. This is evidence, not current operating instructions or a claim about the cleaned product. See [current state](../current-state.md) and [results](../results.md).
+
+> Recorded identifiers, commands and private artifact paths below retain their pre-Wake-Up spelling; they are historical evidence.
 > Original: `records/implementation/OP7_GAGARIN_CACHE_LOADING.md` at `f886277ace5ed9b71fb044e69b57cb2cee5269f3`. Former branches, runtime files, commands and local paths below may no longer exist. Unretained local links are written as historical paths; recover their originals through the [history index](README.md).
 
 # Gagarin existing-cache loading improvement
@@ -65,7 +67,7 @@ Only exact supplier callbacks and this assembly's known diagnostics are allowed.
 Hooks are checked again at cache entry. Failed installation removes this
 integration's patches. Missing/unsupported supplier admission is independent of
 the existing startup searches. Nothing in this class needs Gagarin to resolve
-RLO's assembly or construct its Mod.
+Wake-Up's assembly or construct its Mod.
 
 ## Measurements and costs
 

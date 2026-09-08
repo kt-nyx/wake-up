@@ -44,12 +44,13 @@ class ReleaseTests(unittest.TestCase):
                 p.verify_input(root, receipt, "abc")
 
     def test_brand_change_preserves_dependency_and_incompatibility(self):
-        product = dict(displayName="Future Name & More", packageId="kt.nyx.startupfixes",
+        product = dict(displayName="Future Name & More", packageId="kt.nyx.wakeup",
                        author="kt-nyx", version="0.2.0", sourceUrl="https://example.com/source")
         root = ET.fromstring(p.about_bytes(product, (p.REPO / "release/About.xml").read_bytes()))
         self.assertEqual(root.findtext("name"), product["displayName"])
         self.assertEqual(root.findtext("modDependencies/li/packageId"), "zetrith.prepatcher")
         self.assertEqual(root.findtext("incompatibleWith/li"), "local.rimworldloadingoptimizer.op7validation")
+        self.assertIn("kt.nyx.startupfixes", [node.text for node in root.findall("incompatibleWith/li")])
 
 
 if __name__ == "__main__":

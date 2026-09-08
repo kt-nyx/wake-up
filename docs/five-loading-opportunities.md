@@ -1,5 +1,7 @@
 # Five loading opportunities: investigation and integration
 
+> Recorded identifiers, commands and private artifact paths below retain their pre-Wake-Up spelling; they are historical evidence.
+
 > Dated qualification record. Identities, activation defaults, permissions and proposed next steps describe this investigation, not the current release. See [current state](current-state.md), [support policy](user-guide.md#supported-build-policy) and [results](results.md) for current decisions.
 
 The owner authorizes investigation, implementation, matched live testing and integration of useful improvements in five specific areas. Testing uses the existing isolated fixture while another game may run. Character Editor remains excluded; the smaller qualified selections and their established memory admission limits are retained. No larger test is admitted merely to rescue a weak result.
@@ -109,7 +111,7 @@ The final source removes all temporary type probes, segment reuse, XML extension
 
 ## Environment and evidence boundaries
 
-The current smaller fixtures reuse the dependency-checked, sorted selections from the [benchmark campaign](feature-benchmark-campaign.md). The industrial selection contains 30 content packages, plus Loading Progress, RLO and the independent observer in its final comparison. Character Editor, EyePatch and the diagnostic development mod remain excluded. All game/profile/cache operations stay within `.rlo-test-instance`; runtime-written fixture files are restored from verified frozen bytes after capture. No normal Steam, Workshop, profile, save or cache state is changed.
+The current smaller fixtures reuse the dependency-checked, sorted selections from the [benchmark campaign](feature-benchmark-campaign.md). The industrial selection contains 30 content packages, plus Loading Progress, Wake-Up and the independent observer in its final comparison. Character Editor, EyePatch and the diagnostic development mod remain excluded. All game/profile/cache operations stay within `.rlo-test-instance`; runtime-written fixture files are restored from verified frozen bytes after capture. No normal Steam, Workshop, profile, save or cache state is changed.
 
 The host is a Ryzen 9 7950X3D with 32 GiB RAM and RTX 4080 SUPER. Game content is the frozen 1.6.4871 rev574 development fixture under its reviewed `gog-rev573` binary contract. The manifest SHA-256 is `b9b53c8b666ae4d44cb02dc9d84b9ed6441d57b444b115ee1e38009529350f5d`. The run records retain exact package, game, observer, order, settings, cache and resource identities. The fixture uses below-normal CPU priority in all arms. Fresh caches refer to application caches; operating-system caches are not flushed.
 

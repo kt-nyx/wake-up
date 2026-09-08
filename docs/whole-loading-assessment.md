@@ -1,5 +1,7 @@
 # Whole loading assessment — 2026-09-07
 
+> Recorded identifiers, commands and private artifact paths below retain their pre-Wake-Up spelling; they are historical evidence.
+
 > Dated qualification record. Identities, activation defaults, permissions and proposed next steps describe this investigation, not the current release. See [current state](current-state.md), [support policy](user-guide.md#supported-build-policy) and [results](results.md) for current decisions.
 
 The full suite shortened representative startup by **17.0–17.2% with fresh supplier caches** and **10.5–11.5% with warm caches**, after a temporary Loading Progress compatibility fix made all retained improvements reachable. A separate experiment combining unnecessary progress-repaint stops reduced two warm launches from roughly **14½ minutes to 7 minutes 43 seconds and 4 minutes**. The slower trial remains part of the result; texture-loading variability prevents a single reliable percentage for that experiment.
@@ -14,7 +16,7 @@ The deliverable is this report. The accepted runtime and its exact package are r
 
 ## Workload, identities and comparison rules
 
-All launches use the single private `.rlo-test-instance`, its frozen representative order, normal texture-source selection, the independent menu observer and normal automatic exit. The representative absent arm has 315 active entries, including the observer; the candidate adds RLO for 316. The existing `astryl.moderndevtools` exclusion remains unchanged. Ordinary Steam/Workshop/profile/save/cache state was not modified; the Deck was not contacted. There was no UI automation, global cache eviction, security change, push or publication.
+All launches use the single private `.rlo-test-instance`, its frozen representative order, normal texture-source selection, the independent menu observer and normal automatic exit. The representative absent arm has 315 active entries, including the observer; the candidate adds Wake-Up for 316. The existing `astryl.moderndevtools` exclusion remains unchanged. Ordinary Steam/Workshop/profile/save/cache state was not modified; the Deck was not contacted. There was no UI automation, global cache eviction, security change, push or publication.
 
 | Identity | Value |
 |---|---|
@@ -46,7 +48,7 @@ The original Workshop file was read only and matched frozen SHA-256 `6c74ade7594
 
 | Capture | Runtime/condition | Menu seconds | Interpretation |
 |---|---|---:|---|
-| `whole-f01-absent` | RLO physically absent; fresh supplier cache | 1370.030664 | Slow first observation; not a steady-state control |
+| `whole-f01-absent` | Wake-Up physically absent; fresh supplier cache | 1370.030664 | Slow first observation; not a steady-state control |
 | `whole-f02-suite` | Accepted package; all switches selected; fresh cache | 924.260737 | Normal startup, but not a fully active suite |
 | `whole-p01-bridge-frames` | Initial bridge, fresh cache, frame probe | 941.783656 | Diagnostic/activation evidence; not an ordinary timing arm |
 
@@ -62,7 +64,7 @@ The bridge checks Loading Progress's exact DLL, module identity and relevant loa
 
 ### Fresh supplier-cache construction
 
-These four timing-only runs used the same comparison package identity; RLO was physically parked for the absent arms. The cache was freshly constructed on every launch. Probe and repaint coalescing were off.
+These four timing-only runs used the same comparison package identity; Wake-Up was physically parked for the absent arms. The cache was freshly constructed on every launch. Probe and repaint coalescing were off.
 
 | Order | Capture | Mode | Independent menu seconds |
 |---:|---|---|---:|
@@ -121,7 +123,7 @@ These are instrumented scopes, not a complete account of every function called i
 
 The median finishing-phase gap was 253.246 ms; 2,429 of the 2,677 gaps were between 200 and 300 ms (10th/90th percentiles 216.260 / 266.834 ms). That regular spacing is consistent with a low frame cadence in this background workload, but the probe does not identify a driver limit, graphics wait or other specific cause. The fixture records `runInBackground=true`; no foreground focus or external frame-rate setting was changed.
 
-The probe began during RLO construction and stopped at loaded data plus an empty native event queue. Its 858.874-second covered interval does not include all bootstrap work or the actual menu endpoint. That stopping condition was too early for the entire-loading question. The later version uses native Windows counters, observes the first menu drawing calls and continues until the independent observer's menu signal. It can separate late drawing work from an unexplained remainder without changing the observer.
+The probe began during Wake-Up construction and stopped at loaded data plus an empty native event queue. Its 858.874-second covered interval does not include all bootstrap work or the actual menu endpoint. That stopping condition was too early for the entire-loading question. The later version uses native Windows counters, observes the first menu drawing calls and continues until the independent observer's menu signal. It can separate late drawing work from an unexplained remainder without changing the observer.
 
 This differs from the earlier unexplained-delay investigation: that smaller workload did not use this Loading Progress replacement loop. Its absence of long gaps did not establish that the representative path had no frame-related delay.
 
@@ -172,7 +174,7 @@ The first timing candidate saved **408.987363 seconds (46.93%)** against `whole-
 
 ### Other costs and limits
 
-The following matched fresh-cache observations show where the suite changes work. Loading Progress's per-mod values are sums within the named category. The RLO patch timer covers the complete original patch method, so its 21.201 seconds is slightly larger than the suite's 20.822-second per-mod patch sum. Worker-thread registration time is deliberately excluded from the main-thread row.
+The following matched fresh-cache observations show where the suite changes work. Loading Progress's per-mod values are sums within the named category. The Wake-Up patch timer covers the complete original patch method, so its 21.201 seconds is slightly larger than the suite's 20.822-second per-mod patch sum. Worker-thread registration time is deliberately excluded from the main-thread row.
 
 | Measured scope, seconds | Absent `whole-f03` | Suite `whole-f04` |
 |---|---:|---:|
@@ -222,7 +224,7 @@ The first absent run sampled about 6.35% aggregate host CPU use and retained at 
 
 **Evidence and limits:** the extended `whole-p02-coalesce-verify` trace measures 64.176 seconds from the old loaded/empty-queue condition to the real menu endpoint. Its first observed menu-drawing call takes 64.053 seconds, including 61.656 seconds of calling-thread CPU. This locates substantial late CPU work, but does not establish how much uses the shared type-name API. No part of that entire minute should be called predicted savings. Keeping indexes longer also retains memory and requires continued assembly-generation and hook invalidation.
 
-The existing type receipt's reason text says `constructor-to-menu-ready`, but [its actual completion condition](../src/RimWorldLoadingOptimizer.RimWorld/TypeSearch/TypeLookupRuntime.cs) is earlier. Its receipt must not substitute for the independent observer's menu endpoint.
+The existing type receipt's reason text says `constructor-to-menu-ready`, but [its actual completion condition](../src/WakeUp/TypeSearch/TypeLookupRuntime.cs) is earlier. Its receipt must not substitute for the independent observer's menu endpoint.
 
 **Smallest useful test:** count and time ordinary shared type-search calls between the old cutoff and the first completed menu repaint. Stop if their eligible cost is small. This differs from the removed CharacterEditor-specific optimization and from the rejected Harmony emission rewrite.
 

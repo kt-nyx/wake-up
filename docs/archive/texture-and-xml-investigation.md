@@ -1,4 +1,6 @@
 > Historical snapshot, preserved during the 2026-09-06 cleanup. This is evidence, not current operating instructions or a claim about the cleaned product. See [current state](../current-state.md) and [results](../results.md).
+
+> Recorded identifiers, commands and private artifact paths below retain their pre-Wake-Up spelling; they are historical evidence.
 > Original: `records/implementation/OP7_TEXTURE_XML_NEXT.md` at `54bee10c3e806bed346a31a1fb4ac470f68ef5e0`. Former branches, runtime files, commands and local paths below may no longer exist. Unretained local links are written as historical paths; recover their originals through the [history index](README.md).
 
 # Texture read-ahead and remaining XML work
@@ -327,7 +329,7 @@ original thread; worker buffers remain owned until the original upload returns.
 
 All six full completed runs r01–r06 passed automatic acceptance, exited zero
 through the observer's normal shutdown, and retained 316 loaded mods (314 frozen
-originals plus RLO and the observer), 47,388 definitions and 14,748 patch
+originals plus Wake-Up and the observer), 47,388 definitions and 14,748 patch
 operations. Both combined XML files and all four MissileGirl reports have
 identical captured hashes across r01–r07, including the failed repeat's completed
 XML output. R07 has no completed Loading Progress content-count receipt.

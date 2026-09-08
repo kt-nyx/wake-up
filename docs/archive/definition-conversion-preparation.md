@@ -1,4 +1,6 @@
 > Historical snapshot, preserved during the 2026-09-06 cleanup. This is evidence, not current operating instructions or a claim about the cleaned product. See [current state](../current-state.md) and [results](../results.md).
+
+> Recorded identifiers, commands and private artifact paths below retain their pre-Wake-Up spelling; they are historical evidence.
 > Original: `records/implementation/OP7_DEF_CONVERSION_PREPARATION.md` at `54bee10c3e806bed346a31a1fb4ac470f68ef5e0`. Former branches, runtime files, commands and local paths below may no longer exist. Unretained local links are written as historical paths; recover their originals through the [history index](README.md).
 
 # XML-to-definition preparation investigation
@@ -186,7 +188,7 @@ would not unlock a demonstrated large independent operation here.
 Useful checkpoints: d638d11 (diagnostics), d278a55 (bounded prototype and focused
 data checks), e642b14 (worker BCL-hook admission; final deployed/tested package).
 Focused final verification passes 16 managed checks and all 36 fixture Python
-checks via `python scripts/op7_fixture.py test --test-filter
+checks via `python scripts/fixture.py test --test-filter
 'FullyQualifiedName~ScalarXmlPreparationTests|FullyQualifiedName~GameBuildContractTests|FullyQualifiedName~IndexedXmlRuntimeTests'`.
 The earlier broad attempt was stopped; do not call it a full-suite pass.
 

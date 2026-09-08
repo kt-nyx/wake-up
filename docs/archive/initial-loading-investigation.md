@@ -1,4 +1,6 @@
 > Historical snapshot, preserved during the 2026-09-06 cleanup. This is evidence, not current operating instructions or a claim about the cleaned product. See [current state](../current-state.md) and [results](../results.md).
+
+> Recorded identifiers, commands and private artifact paths below retain their pre-Wake-Up spelling; they are historical evidence.
 > Original: `records/implementation/OP7_PERFORMANCE_INVESTIGATION.md` at `f886277ace5ed9b71fb044e69b57cb2cee5269f3`. Former branches, runtime files, commands and local paths below may no longer exist. Unretained local links are written as historical paths; recover their originals through the [history index](README.md).
 
 # OP7 loading performance investigation
@@ -42,15 +44,15 @@ before commit. These are hypotheses for the historical slowdown until timed.
 
 ## Measurement method under development
 
-Compare the full selected frozen order with the RLO package physically parked
-outside game/Mods against the same order plus RLO. Separate full diagnostic
+Compare the full selected frozen order with the Wake-Up package physically parked
+outside game/Mods against the same order plus Wake-Up. Separate full diagnostic
 snapshots from timing-only observation. Start in the activation subset, then
 use all 315 original enabled packages for representative comparisons.
 
 External elapsed measurements end at Unity's startup asset-cleanup log block;
 they exclude time sitting at the menu. Confirm usable menu separately. Treat
 this as an observed cleanup endpoint, not an exact first-frame measurement.
-Record RLO stage times separately. Alternate comparable repetitions. A clean
+Record Wake-Up stage times separately. Alternate comparable repetitions. A clean
 fixture profile means cold application caches, not a cold Windows filesystem
 cache; do not clear system or normal-game caches to manufacture cold results.
 
@@ -102,13 +104,13 @@ resolution, parser constructor, indexed results and complete joins. Vanilla
 already uses two background threads plus the calling thread. Both experiments
 processed 1572 files across ten nonempty groups, including Core. Four workers
 saved only 30 ms in XML loading in the first pair; eight were slower. Neither
-demonstrates an end-to-end improvement over RLO absent. Definition construction
+demonstrates an end-to-end improvement over Wake-Up absent. Definition construction
 (`ParseAndProcessXML`) took about 1.07 seconds, substantially longer than raw
 XML loading in this small profile.
 
 Direction: discontinue the metadata catalog as a performance candidate unless
 it can remove real work. Measure the complete frozen representative profile
-with RLO absent, then instrument it and compare the smaller concurrency change.
+with Wake-Up absent, then instrument it and compare the smaller concurrency change.
 Do not optimize unmeasured stages or describe reduced diagnostic overhead as
 a product speedup over absence.
 
@@ -131,7 +133,7 @@ impact tracking and automatic saving of `profile/StartupImpactData.xml`.
 through the AbstractFilesystem.ClearAllCache completion observer. It excludes
 earlier process/Prepatcher startup and the subsequent report write. It also
 records per-stage/per-mod metrics and counts. This common instrumentation is
-present with RLO absent and enabled; it is used alongside external timing and
+present with Wake-Up absent and enabled; it is used alongside external timing and
 menu verification rather than adding another measurement mod.
 
 
@@ -314,7 +316,7 @@ baseline variation. Main-menu confirmation at05:00:53.371UTC was delayed by
 the debug overlay/focus; that is an upper bound, not exact loading time.
 Explicitly activating the game window before Escape fixed dismissal. Repeated
 absent/candidate runs must use prompt menu observation and comparable caches.
-`perf-r05-absent` now repeats the full profile with RLO physically parked.
+`perf-r05-absent` now repeats the full profile with Wake-Up physically parked.
 
 Source review identified one compatibility repair before the next candidate:
 Harmony publishes patch state after rebuilding its method wrapper, so checking
@@ -327,7 +329,7 @@ until the timed absent run closes.
 
 ## Repetition rejects the initial DDS performance claim
 
-`perf-r05-absent` completed with RLO physically absent. Its texture total was
+`perf-r05-absent` completed with Wake-Up physically absent. Its texture total was
 11.041s, its Loading Progress partial interval338.931s, and first cleanup
 350.8322s. That is comparable to, slightly faster than, buffered r04's
 12.209s/348.956s/361.4763s. The first slow mapped runs versus buffered r04
@@ -407,7 +409,7 @@ profile. t07 definition lookup actually served111hits/27native fallbacks with
 p01 Character Editor safely refused `character-editor-not-active` because
 Root.Start runs before the completed active-mod list. Its small profile DID
 include Character Editor and created1628objects/12turrets. New search strategies
-now defer admission to the existing OptimizerMod constructor, when the active
+now defer admission to the existing WakeUpMod constructor, when the active
 mod list/assemblies exist. This also makes the optional CE worker discoverable
 for definition lookup. Repeating activation is required before full measurement.
 

@@ -15,17 +15,17 @@ From a source checkout or extracted source archive, set the paths for your own
 copies, then restore and build:
 
 ```powershell
-$env:RLO_RIMWORLD_MANAGED_DIR = 'C:\your-game-copy\RimWorldWin64_Data\Managed'
-$env:RLO_PREPATCHER_ASSEMBLIES_DIR = 'C:\your-prepatcher-copy\Assemblies'
-$env:RLO_REFERENCE_TARGET = 'gog-rev573'
+$env:WAKE_UP_RIMWORLD_MANAGED_DIR = 'C:\your-game-copy\RimWorldWin64_Data\Managed'
+$env:WAKE_UP_PREPATCHER_ASSEMBLIES_DIR = 'C:\your-prepatcher-copy\Assemblies'
+$env:WAKE_UP_REFERENCE_TARGET = 'gog-rev573'
 dotnet restore --locked-mode
 dotnet build --configuration Release --no-restore
-dotnet test tests/RimWorldLoadingOptimizer.RimWorld.Tests -c Release --no-build
+dotnet test tests/WakeUp.Tests -c Release --no-build
 python -m unittest discover -s tests -p 'test_*.py'
 ```
 
 These commands do not launch the game. Runtime output is under
-`artifacts/bin/RimWorldLoadingOptimizer.RimWorld/Release/net472/`.
+`artifacts/bin/WakeUp/Release/net472/`.
 Tests require the separately obtained references; no public CI runner is
 expected to download or possess the game. Python packaging checks run without it.
 
@@ -37,6 +37,6 @@ that archive without its Git history, pass
 the informational version. A public snapshot commit can differ from that build
 revision; neither implies a different source file automatically.
 
-The maintainer's `scripts/op7_fixture.py` controls an existing private fixture
+The maintainer's `scripts/fixture.py` controls an existing private fixture
 at a fixed path. It is included for transparency and maintenance, not as a
 general installer or a prerequisite for contributors.

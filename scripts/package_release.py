@@ -16,7 +16,7 @@ import zipfile
 REPO = Path(__file__).resolve().parents[1]
 LEGAL = ("LICENSE", "LICENSE.md", "LICENSE-EXCEPTION.md", "LICENSE-DOCS", "NOTICE",
          "THIRD_PARTY_NOTICES.md", "CONTRIBUTING.md", "WORKSHOP_CONTRIBUTION_TERMS.md", "DCO")
-INPUT_FILES = {"About/About.xml", "Assemblies/RimWorldLoadingOptimizer.RimWorld.dll"}
+INPUT_FILES = {"About/About.xml", "Assemblies/WakeUp.dll"}
 PRIVATE = {".rlo-test-instance", "artifacts", ".collector", "runs", ".git", "__pycache__"}
 
 
@@ -85,12 +85,12 @@ def make_bundle(package):
     require(re.fullmatch(r"[a-z0-9]+(?:\.[a-z0-9]+)+", product["packageId"]), "Invalid public package ID")
     require(not package.is_symlink(), "Symlink package is not supported")
     package = package.resolve()
-    allowed = (REPO / "artifacts/op7-fixture-package").resolve()
+    allowed = (REPO / "artifacts/fixture-package").resolve()
     require(package.is_relative_to(allowed), "Use a build from this checkout's package output")
     receipt = json.loads(package.with_suffix(".json").read_text(encoding="utf-8"))
     verify_input(package, receipt, revision)
     files = {"About/About.xml": about_bytes(product, (REPO / "release/About.xml").read_bytes()),
-             "Assemblies/RimWorldLoadingOptimizer.RimWorld.dll": (package / "Assemblies/RimWorldLoadingOptimizer.RimWorld.dll").read_bytes(),
+             "Assemblies/WakeUp.dll": (package / "Assemblies/WakeUp.dll").read_bytes(),
              "Source/source.zip": source_zip(revision),
              "Source/source-revision.txt": (revision + "\n").encode()}
     for name in LEGAL:

@@ -2,7 +2,7 @@
 <ModMetaData>
   <packageId>local.fixture.menuobserver</packageId>
   <name>Fixture Menu Observer</name>
-  <author>RimWorld Loading Optimizer contributors</author>
+  <author>Wake-Up contributors</author>
   <supportedVersions><li>1.6</li></supportedVersions>
   <modDependencies><li><packageId>brrainz.harmony</packageId><displayName>Harmony</displayName><steamWorkshopUrl>steam://url/CommunityFilePage/2009463077</steamWorkshopUrl></li></modDependencies>
   <loadAfter><li>brrainz.harmony</li></loadAfter>

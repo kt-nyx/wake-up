@@ -1,7 +1,9 @@
 > Historical snapshot, preserved during the 2026-09-06 cleanup. This is evidence, not current operating instructions or a claim about the cleaned product. See [current state](../current-state.md) and [results](../results.md).
+
+> Recorded identifiers, commands and private artifact paths below retain their pre-Wake-Up spelling; they are historical evidence.
 > Original: `LICENSING_AND_CONTRIBUTION_PLAN.md` at `f886277ace5ed9b71fb044e69b57cb2cee5269f3`. Former branches, runtime files, commands and local paths below may no longer exist. Unretained local links are written as historical paths; recover their originals through the [history index](README.md).
 
-# RimWorld Loading Optimizer: Licensing and Contribution Assessment
+# Wake-Up: Licensing and Contribution Assessment
 
 Date: 2026-08-25  
 Status: licensing direction approved; exact linking/Workshop terms require pre-publication review  

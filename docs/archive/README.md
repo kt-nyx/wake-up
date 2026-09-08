@@ -51,7 +51,7 @@ Useful omitted history:
 
 ## Observer history
 
-The independent observer passed the small `menu-auto-03-absent` live test on 2026-09-05, with RLO physically absent: menu 9.262180 seconds, normal exit code zero at 10.983 seconds process lifetime, `automaticTestPassed=true`. The deployed observer source was `f26270bc6fe7c7ad29664ce9a84aff50527a9b16`.
+The independent observer passed the small `menu-auto-03-absent` live test on 2026-09-05, with Wake-Up physically absent: menu 9.262180 seconds, normal exit code zero at 10.983 seconds process lifetime, `automaticTestPassed=true`. The deployed observer source was `f26270bc6fe7c7ad29664ce9a84aff50527a9b16`.
 
 Two prior failures were fixed: the launcher and Unity Mono originally used different clock origins, and an attempted gameplay-only unsaved-progress check dereferenced state absent at startup. Both processes now use the raw Windows counter; the shutdown guard checks startup state and absence of a loaded game. Those failures were not automatic successes. The complete original account is `validation/menu-observer/README.md` at `0fe0302d12121c04602030d5e9b414a7385ba698`. This validates the observation/exit workflow, not an optimizer speedup.
 

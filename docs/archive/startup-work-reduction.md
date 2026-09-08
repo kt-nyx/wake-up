@@ -1,4 +1,6 @@
 > Historical snapshot, preserved during the 2026-09-06 cleanup. This is evidence, not current operating instructions or a claim about the cleaned product. See [current state](../current-state.md) and [results](../results.md).
+
+> Recorded identifiers, commands and private artifact paths below retain their pre-Wake-Up spelling; they are historical evidence.
 > Original: `records/implementation/OP7_STARTUP_WORK_REDUCTION.md` at `54bee10c3e806bed346a31a1fb4ac470f68ef5e0`. Former branches, runtime files, commands and local paths below may no longer exist. Unretained local links are written as historical paths; recover their originals through the [history index](README.md).
 
 # Startup work beyond the accepted searches
@@ -16,7 +18,7 @@ supplier from the fixture. Its exact identity is Modern Dev Tools,
 declares it a required dependency. The new `exclude-mod` command physically
 parks it outside game/Mods, records the exclusion and preserves the immutable
 snapshot. `restore-mod` reverses this. Neither operation changes normal mods.
-Current representative selection is 314 original packages, plus RLO and the
+Current representative selection is 314 original packages, plus Wake-Up and the
 independent observer. All new comparisons retain that same selection; removing
 this mod is not counted as an optimizer improvement.
 
@@ -85,7 +87,7 @@ one obsolete method and avoided 4,096 patch-info reads. Report CPU fell from
 overall startup gain. Do not assign the whole 18.483-second menu difference or
 15.906-second process CPU difference to it. Sampler CPU was 5.375/5.250 seconds;
 minimum free physical memory was 591/355 MB, respectively.
-Both record 316 loaded packages including RLO/observer, 47,388 definitions and
+Both record 316 loaded packages including Wake-Up/observer, 47,388 definitions and
 14,748 patch operations. XML Extensions reports 16,878 operations and zero
 failures in both. Reported symbol, terrain, animal, landform, building and weapon
 counts also match. After removing time/address noise, the kinds and counts of

@@ -1,5 +1,7 @@
 > Historical evidence. Package identities, activation defaults and next steps below describe their dated investigations. Use [current state](../current-state.md) and [results and decisions](../results.md) for the current product.
 
+> Recorded identifiers, commands and private artifact paths below retain their pre-Wake-Up spelling; they are historical evidence.
+
 # Historical development checkpoints
 
 These records preserve earlier package identities and activation defaults. See [current state](../current-state.md) for the current product.
@@ -67,7 +69,7 @@ Processed-PNG caching remains retained from the preceding [PNG investigation](in
 | Giddy-Up riding-offset preparation | Read only the texture column used by the original riding-height calculation | Candidate startup searches plus `--giddy-textures on`; default off; exact optional supplier |
 | Processed-PNG cache | Reuse validated finished texture data to avoid repeated PNG decoding, mip generation and compression | Candidate `startup-searches` plus `--png cache`; default off; supported Direct3D 11 compute-compression path |
 
-Ordinary launches use the [in-game settings](../user-guide.md). Searches and supported optional improvements default on; PNG caching defaults off. The activation column above lists the independent fixture controls, which override normal settings when explicitly supplied. Baseline mode records the relevant original path; absent mode physically removes RLO from game discovery. Unsupported game, supplier, query, graphics or patch conditions retain the original path. See [architecture](../architecture.md) and [development](../development.md).
+Ordinary launches use the [in-game settings](../user-guide.md). Searches and supported optional improvements default on; PNG caching defaults off. The activation column above lists the independent fixture controls, which override normal settings when explicitly supplied. Baseline mode records the relevant original path; absent mode physically removes Wake-Up from game discovery. Unsupported game, supplier, query, graphics or patch conditions retain the original path. See [architecture](../architecture.md) and [development](../development.md).
 
 PNG cache hits still read and hash the full current source and complete cached payload. Separate texture objects preserve original format, mip levels and sampler behavior. Storage is capped at 512 MiB with 8 MiB entries and capture stops before exceeding the budget. First construction requires GPU readback and can substantially lengthen startup. Changed sources/settings cause misses. The normal expanded source selection loaded zero PNGs; the measured PNG saving used the explicit qualification-only selection of existing PNG siblings in both arms. It does not convert textures, weaken source validation, make an individual mod mandatory or establish arbitrary gameplay compatibility.
 
@@ -132,3 +134,8 @@ The [texture implementation investigation](investigation-results.md#2026-09-07-t
 Future investigation remains open-ended. Read the [recorded decisions](investigation-results.md#experiments-that-did-not-justify-promotion) before revisiting related routes; confirmed failures, inconclusive measurements and untested conditions remain distinct. The validated-pack design needs a materially different way to remove its measured validation cost before reopening. Quiet-host and larger-workload texture behavior remains untested. Large XML representation rewrites and other persistent asset cache designs remain unproven, not universally disproved.
 
 The historical Windows MVP phase, OP7, remains incomplete; the next phase, OP8, is inactive. The qualified development target remains the exact pinned GOG game and frozen dependencies. Type lookup can admit a known historical Steam identity, while XML lookup and Gagarin require GOG; that admission is not evidence of current Steam or reduced-product qualification. Normal user activation, an exact development support policy and focused new-colony/save-reload coverage are now implemented. Broader supported-game/dependency coverage, prolonged gameplay qualification and the previously approved licensing work remain unfinished. This is not a release-ready or cross-platform-qualified package.
+
+
+## Final pre-rename cleanup bundle
+
+The final pre-rename cleanup build was `f14ec1bf5575f4150b612720c86f67cad137bf76`, packaged as `artifacts/releases/0.1.0-dev-f14ec1bf5575f4150b612720c86f67cad137bf76/RimWorldLoadingOptimizer-0.1.0-dev.zip` (SHA-256 `022d653388bf7d4e80ae7bf04662296f8166bebc9e6b22c726d1ae3d54c10b9c`). Its DLL hash is `d3fde1b42fa9804f5b4cb39adf376867b23e5aca243377f2d3b23905db1c3538`; the release copy is unchanged from the build. Build: zero warnings/errors. No deployment or live launch. The archive includes the matching source; this build record was added afterward. The [public source repository](https://github.com/kt-nyx/wake-up) excludes private investigation Git ancestry. The deployed/live-tested identity below is separate from this distributable.

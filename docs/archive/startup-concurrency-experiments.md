@@ -1,4 +1,6 @@
 > Historical snapshot, preserved during the 2026-09-06 cleanup. This is evidence, not current operating instructions or a claim about the cleaned product. See [current state](../current-state.md) and [results](../results.md).
+
+> Recorded identifiers, commands and private artifact paths below retain their pre-Wake-Up spelling; they are historical evidence.
 > Original: `records/implementation/OP7_STARTUP_CONCURRENCY.md` at `54bee10c3e806bed346a31a1fb4ac470f68ef5e0`. Former branches, runtime files, commands and local paths below may no longer exist. Unretained local links are written as historical paths; recover their originals through the [history index](README.md).
 
 # Startup concurrency investigation
@@ -117,7 +119,7 @@ I/O from scheduling delays; standard permission-blocked CPU profiling was not re
 - Evidence: artifacts/startup-concurrency/expanded-final-content.json, per-run
   summaries, thread-examples.json, final-checks.log and frozen canonical captures.
 - Runtime prototypes, selectors and tests remain opt-in reproducible experiments;
-  none is enabled by installing RLO normally. No public release/default promotion.
+  none is enabled by installing Wake-Up normally. No public release/default promotion.
 - Continue in this checkout/branch only. Read prepared.json before operations;
   commit with the tracked hooks. Existing 12 stashes and other branches remain.
 - A further trial should identify a cost large enough to repay preparation and

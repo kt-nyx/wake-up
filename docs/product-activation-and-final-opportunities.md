@@ -1,5 +1,7 @@
 # Normal activation and final bounded investigations
 
+> Recorded identifiers, commands and private artifact paths below retain their pre-Wake-Up spelling; they are historical evidence.
+
 > Dated qualification record. Identities, activation defaults, permissions and proposed next steps describe this investigation, not the current release. See [current state](current-state.md), [support policy](user-guide.md#supported-build-policy) and [results](results.md) for current decisions.
 
 The owner authorized all three recommendations on September 7, 2026: make the retained improvements usable and supportable, complete the deferred HugsLib warning-report comparison, and assess remaining loading costs on the latest combined build using a meaningful larger workload.
@@ -16,7 +18,7 @@ Validation and final outcomes are recorded here as the work completes. Source ch
 
 ## HugsLib decision
 
-Prototype package `f3e29168c5691f616f31b07bb92cb4af392259fd` passed 89 managed and 32 fixture checks, with no skipped tests or build warnings/errors. `close-q02-hugs` exercised the filter on the sorted 99-content-package mixed selection plus RLO/observer: 1,766 patch-record reads avoided, 8.065 ms report, no exception. No obsolete methods were present in this captured workload; existing physical-supplier tests separately exercised actual obsolete warnings and preserved owner/method order, including the optional Performance Optimizer prefix.
+Prototype package `f3e29168c5691f616f31b07bb92cb4af392259fd` passed 89 managed and 32 fixture checks, with no skipped tests or build warnings/errors. `close-q02-hugs` exercised the filter on the sorted 99-content-package mixed selection plus Wake-Up/observer: 1,766 patch-record reads avoided, 8.065 ms report, no exception. No obsolete methods were present in this captured workload; existing physical-supplier tests separately exercised actual obsolete warnings and preserved owner/method order, including the optional Performance Optimizer prefix.
 
 `close-q03-control` exercised the original report with a restored, actually used Gagarin cache on the same package/content. Its original report cost only 181.011 ms (156.250 ms calling-thread CPU) within 99.484978 seconds to the completed menu. The preceding fresh-cache qualification took 192.930482 seconds and is not a matched speed comparison. Both exited normally and preserved the available loading data within their respective qualifications.
 
@@ -26,16 +28,16 @@ The original report's complete measured cost is below 0.2% of this cached startu
 
 Runtime/package **`4422f6222a54c365618e154de66ba88ee048ab6f`** adds ordinary settings-based activation to the retained implementations. The mod list now displays the product name. The [user guide](user-guide.md) explains installation, restart-required settings, optional features, PNG cache costs and the exact supported-build policy. The development package ID is preserved so this change does not create duplicate mod identities. No normal installation or public distribution was performed.
 
-The final retained runtime passes **80 managed checks**, with zero skips, and **32 fixture checks** (29 main fixture checks and the unchanged three Gagarin fixture checks). Product and observer builds have zero warnings/errors. The earlier normal-activation qualification `close-q01-user` reached the menu in 25.344176 seconds without any RLO command-line selectors. It exercised searches and optional supplier absence; it is a startup check, not a speed comparison.
+The final retained runtime passes **80 managed checks**, with zero skips, and **32 fixture checks** (29 main fixture checks and the unchanged three Gagarin fixture checks). Product and observer builds have zero warnings/errors. The earlier normal-activation qualification `close-q01-user` reached the menu in 25.344176 seconds without any Wake-Up command-line selectors. It exercised searches and optional supplier absence; it is a startup check, not a speed comparison.
 
 The new observer checks are fixture-only and explicitly selected. Routine comparisons retain the original menu endpoint and one-second normal-exit behavior. Gameplay smoke starts after that endpoint and gets a separate result, a bounded ten-minute exit allowance and no performance claim. It drives native game APIs, not UI automation. The observer package is **`67732e254161c610041490fe22e2e5ce4e048b93`**, separate from the shipped runtime.
 
 | Capture | Scope | Outcome |
 |---|---|---|
-| `close-g01-absent` | 33 content packages plus observer, RLO physically absent | Created a 75×75 colony with three colonists, advanced 600 ticks, saved, reloaded the same map and colonist identities, advanced 60 more ticks; normal exit and both automatic/gameplay success |
-| `close-g02-user` | Same content with normal RLO activation, no RLO selectors | Same create/tick/save/reload checks passed; settings persisted through the native settings writer/loader and the original value was restored; normal exit and both success flags |
+| `close-g01-absent` | 33 content packages plus observer, Wake-Up physically absent | Created a 75×75 colony with three colonists, advanced 600 ticks, saved, reloaded the same map and colonist identities, advanced 60 more ticks; normal exit and both automatic/gameplay success |
+| `close-g02-user` | Same content with normal Wake-Up activation, no Wake-Up selectors | Same create/tick/save/reload checks passed; settings persisted through the native settings writer/loader and the original value was restored; normal exit and both success flags |
 
-Both saves recorded tick 601; both completed at tick 663 after reload and further ticking. The available captured XML, seeded settings, content order and scanned messages match between arms. Existing baseline dependency-inspection and small-map scatter warnings remain; they are not new RLO failures. Candidate receipts show 3,827 object/40 turret presets, actual lookup reuse, all 1,359 Giddy-Up readbacks using the retained path, matching previously qualified offset hash, no feature errors and released temporary state. Loading Progress suppression and search activation also occurred. Extra Gagarin reuse correctly fell back for the known Loading Progress hook.
+Both saves recorded tick 601; both completed at tick 663 after reload and further ticking. The available captured XML, seeded settings, content order and scanned messages match between arms. Existing baseline dependency-inspection and small-map scatter warnings remain; they are not new Wake-Up failures. Candidate receipts show 3,827 object/40 turret presets, actual lookup reuse, all 1,359 Giddy-Up readbacks using the retained path, matching previously qualified offset hash, no feature errors and released temporary state. Loading Progress suppression and search activation also occurred. Extra Gagarin reuse correctly fell back for the known Loading Progress hook.
 
 The comparison helper initially assumed an absent mod would have a Character Editor receipt. It stopped after successful gameplay capture and restoration; the offline comparison was corrected to compare data available in both arms. No game rerun or successful-result fabrication was needed. Raw gameplay/settings receipts and `artifacts/product-closeout/gameplay-comparison.json` preserve this distinction.
 
@@ -43,7 +45,7 @@ This is meaningful new-colony/save-reload coverage, not mounted combat, every pr
 
 ## Remaining loading cost on the combined build
 
-The sorted mixed workload contains **99 content packages**, including the optional suppliers, plus RLO and the observer. Both observations use normal settings activation, native texture selection and the narrow fixture menu/late-type probe. No new optimization is enabled by that probe.
+The sorted mixed workload contains **99 content packages**, including the optional suppliers, plus Wake-Up and the observer. Both observations use normal settings activation, native texture selection and the narrow fixture menu/late-type probe. No new optimization is enabled by that probe.
 
 | Observation | Fresh application cache: `close-r01-user` | Restored Gagarin cache: `close-r02-user-warm` |
 |---|---:|---:|
@@ -52,7 +54,7 @@ The sorted mixed workload contains **99 content packages**, including the option
 | Type-name searches after the existing cutoff | 0 | 0 |
 | Giddy-Up complete offset calls, seconds | 17.797331 | 0.774269 |
 
-**These are not a speed comparison.** Besides different application-cache conditions, the foreground game process inventory changed during the warm observation. Its comparison helper correctly refused scoring after successful normal capture and restoration. Keep the warm result as a startup/cache/eligibility observation only; do not attribute its shorter time to RLO or to a single cache effect. Project Wingman and other applications were never controlled by this task.
+**These are not a speed comparison.** Besides different application-cache conditions, the foreground game process inventory changed during the warm observation. Its comparison helper correctly refused scoring after successful normal capture and restoration. Keep the warm result as a startup/cache/eligibility observation only; do not attribute its shorter time to Wake-Up or to a single cache effect. Project Wingman and other applications were never controlled by this task.
 
 Both observations passed normal automatic startup. Captured XML, Character Editor preset hashes and Giddy-Up offset hashes match. Searches and established optional improvements executed; the known Gagarin/Loading Progress bridge remained refused, preserving ordinary supplier caching. At least 10.69 GiB physical memory remained available in the stable fresh observation and 10.48 GiB in the changed-environment warm observation.
 

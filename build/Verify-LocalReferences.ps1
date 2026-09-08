@@ -97,13 +97,13 @@ if ($DefinitionsOnly) {
     return
 }
 
-$managedDir = $env:RLO_RIMWORLD_MANAGED_DIR
-$prepatcherDir = $env:RLO_PREPATCHER_ASSEMBLIES_DIR
+$managedDir = $env:WAKE_UP_RIMWORLD_MANAGED_DIR
+$prepatcherDir = $env:WAKE_UP_PREPATCHER_ASSEMBLIES_DIR
 if ([string]::IsNullOrWhiteSpace($managedDir)) {
-    Fail 'RLO_RIMWORLD_MANAGED_DIR is not set'
+    Fail 'WAKE_UP_RIMWORLD_MANAGED_DIR is not set'
 }
 if ([string]::IsNullOrWhiteSpace($prepatcherDir)) {
-    Fail 'RLO_PREPATCHER_ASSEMBLIES_DIR is not set'
+    Fail 'WAKE_UP_PREPATCHER_ASSEMBLIES_DIR is not set'
 }
 
 $managedDir = (Resolve-Path -LiteralPath $managedDir).Path
@@ -111,8 +111,8 @@ $prepatcherDir = (Resolve-Path -LiteralPath $prepatcherDir).Path
 
 # The fixture workflow explicitly selects the owner-approved GOG development
 # reference. GameBuildContract separately authenticates either reviewed runtime.
-# Historical OP2/OP7 workflows keep their exact Steam reference by default.
-$referenceTarget = $env:RLO_REFERENCE_TARGET
+# An unspecified target retains the historical reviewed Steam reference.
+$referenceTarget = $env:WAKE_UP_REFERENCE_TARGET
 $gameVersion = '1.6.9676.17735'
 $gameSha = '5CF1B5BE399D5B1C9C56CA72C9D35B4ECF307FEACF5859D04AC5A1AA5926356A'
 if ($referenceTarget -eq 'gog-rev573') {
@@ -120,7 +120,7 @@ if ($referenceTarget -eq 'gog-rev573') {
     $gameSha = '4A170804FBFEFABDB620D8914E584E58F822A58C6E304DCB76A67003588DAB28'
 }
 elseif (-not [string]::IsNullOrWhiteSpace($referenceTarget) -and $referenceTarget -ne 'steam-rev590') {
-    Fail ('unknown RLO_REFERENCE_TARGET: ' + $referenceTarget)
+    Fail ('unknown WAKE_UP_REFERENCE_TARGET: ' + $referenceTarget)
 }
 
 $verified = @(

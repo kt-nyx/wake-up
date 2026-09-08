@@ -1,10 +1,10 @@
 {
-  "displayName": "RimWorld Loading Optimizer",
-  "folderName": "RimWorldLoadingOptimizer",
-  "packageId": "kt.nyx.startupfixes",
+  "displayName": "Wake-Up: Loading Optimizations",
+  "folderName": "wake-up",
+  "packageId": "kt.nyx.wakeup",
   "version": "0.1.0-dev",
   "author": "kt-nyx",
-  "sourceUrl": "https://github.com/kt-nyx/rimworld-loading-optimizer",
+  "sourceUrl": "https://github.com/kt-nyx/wake-up",
   "status": "development",
   "steamQualified": false
 }

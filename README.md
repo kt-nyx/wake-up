@@ -1,6 +1,6 @@
-# RimWorld Loading Optimizer
+# Wake-Up: Loading Optimizations
 
-RimWorld Loading Optimizer provides targeted startup improvements. It accelerates supported XML definition/template and Harmony type searches, with optional improvements for Gagarin, Character Editor, Loading Progress, Giddy-Up and processed PNG textures. The [results and decisions](docs/results.md) page summarizes what is retained and why.
+Wake-Up provides targeted startup improvements. It accelerates supported XML definition/template and Harmony type searches, with optional improvements for Gagarin, Character Editor, Loading Progress, Giddy-Up and processed PNG textures. The [results and decisions](docs/results.md) page summarizes what is retained and why.
 
 The XML search feature builds a temporary lookup table (an index) from the active mod XML when needed. It finds a definition's `defName` or a template's `Name` directly, then lets the normal XML engine evaluate the rest of the query. Relevant changes invalidate the affected index; patch completion releases it. No prebuilt modlist data or persistent XML cache is shipped.
 
@@ -13,7 +13,7 @@ This is an unpublished development package. Ordinary launches now use in-game se
 - [Results and decisions](docs/results.md): demonstrated benefits, failed experiments and unresolved questions.
 - [Historical evidence](docs/archive/README.md): curated detailed records and recovery pointers.
 
-The implementation is in [src/RimWorldLoadingOptimizer.RimWorld](src/RimWorldLoadingOptimizer.RimWorld); focused checks are in [tests](tests). Private game files, packages and raw evidence are excluded from Git. Read [AGENTS.md](AGENTS.md) before agent work.
+The implementation is in [src/WakeUp](src/WakeUp); focused checks are in [tests](tests). Private game files, packages and raw evidence are excluded from Git. Read [AGENTS.md](AGENTS.md) before agent work.
 
 Licensing: [GPL-3.0-or-later with linking permission](LICENSE.md) for original code; CC BY-SA 4.0 for original documentation. See [notices](NOTICE), [contributing](CONTRIBUTING.md), and [source-build instructions](docs/source-build.md). Final release copy is pending.
 

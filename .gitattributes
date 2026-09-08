@@ -7,4 +7,4 @@
 *.json text eol=lf
 # The original runtime files were tracked byte-for-byte. Do not create a
 # whole-file line-ending diff while making focused code changes.
-src/RimWorldLoadingOptimizer.RimWorld/*.cs -text
+src/WakeUp/*.cs -text

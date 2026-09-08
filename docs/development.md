@@ -22,25 +22,43 @@ git -c core.hooksPath=.githooks commit -m "Describe the completed change"
 
 The only fixture is `.rlo-test-instance` at the checkout root. It contains private copies of the game, frozen mods, an isolated profile and captured results. Do not create another fixture or write normal Steam, Workshop, profile, save or cache state. Do not refresh the frozen collection merely to prepare another run. Routine preparation checks existing metadata; full content audits are a separate operation for a specific drift question.
 
+## Naming and retained historical identities
+
+The formal title is **Wake-Up: Loading Optimizations**; ordinary prose and the
+settings menu use **Wake-Up**. The repository and release folder are `wake-up`.
+C# projects, namespaces and the runtime DLL use `WakeUp`; build environment
+variables start with `WAKE_UP_` and development arguments with `--wake-up-`.
+Diagnostics and processed textures live under the game's `WakeUp` data folder.
+
+The existing checkout path and `.rlo-test-instance` location remain fixed.
+Private fixture package IDs, directory names and v1 record schemas retain their
+original spelling so frozen inventories, rollback transactions and captures
+remain valid. Historical reports retain recorded commands and artifact paths;
+they are not current invocation examples. Public packaging also names the two
+old package IDs solely to warn against installing duplicate copies.
+
+The renamed source requires a newly built/deployed candidate and observer for
+future fixture runs. Old captures remain evidence of their recorded builds.
+
 ## Build and offline checks
 
 The repository pins .NET SDK `10.0.400` in [global.json](../global.json). The existing fixture supplies the reviewed GOG `Assembly-CSharp.dll` and frozen Harmony references. Do not substitute a convenient installed game DLL. Run from the checkout:
 
 ```powershell
-python scripts/op7_fixture.py test
-python scripts/op7_fixture.py build
+python scripts/fixture.py test
+python scripts/fixture.py build
 ```
 
-`test` restores locked dependencies, builds, runs the focused managed tests and all Python fixture/release checks without launching the game. An optional `--test-filter` narrows managed checks while retaining fixture safety checks. `build` requires committed build inputs and creates a revision-labelled package and adjacent JSON receipt under `artifacts/op7-fixture-package/`. It checks the selected references, packaged source revision and file identities. If that revision already has a package, use the existing package or a new committed source revision; do not overwrite its evidence.
+`test` restores locked dependencies, builds, runs the focused managed tests and all Python fixture/release checks without launching the game. An optional `--test-filter` narrows managed checks while retaining fixture safety checks. `build` requires committed build inputs and creates a revision-labelled package and adjacent JSON receipt under `artifacts/fixture-package/`. It checks the selected references, packaged source revision and file identities. If that revision already has a package, use the existing package or a new committed source revision; do not overwrite its evidence.
 
-The package contains only `About/About.xml` and `Assemblies/RimWorldLoadingOptimizer.RimWorld.dll`. It does not contain Core, Harmony or Gagarin DLLs. The local package declares Prepatcher as a dependency for the reviewed environment. This packaging does not establish a public support matrix.
+The package contains only `About/About.xml` and `Assemblies/WakeUp.dll`. It does not contain Core, Harmony or Gagarin DLLs. The local package declares Prepatcher as a dependency for the reviewed environment. This packaging does not establish a public support matrix.
 
 ## Explicit deployment and preparation
 
 Building does not deploy. Use the exact path returned by a successful build, then check that deployment itself exits successfully:
 
 ```powershell
-python scripts/op7_fixture.py deploy --package <package-path-returned-by-build>
+python scripts/fixture.py deploy --package <package-path-returned-by-build>
 ```
 
 Before preparing a series, read `.rlo-test-instance/candidate.json`: `sourceRevision` must equal the intended package revision. After preparation, require the same revision in `.rlo-test-instance/results/<label>/run.json` under `candidate.sourceRevision`. A receipt or log file existing is not proof that a deployment command succeeded. The tool refuses old packages containing the retired Core DLL.
@@ -48,20 +66,20 @@ Before preparing a series, read `.rlo-test-instance/candidate.json`: `sourceRevi
 Build and deploy the separate menu observer after its source changes, or if the fixture does not yet have its matching package:
 
 ```powershell
-python scripts/op7_fixture.py build-menu-observer
-python scripts/op7_fixture.py deploy-menu-observer --package <observer-package-path-returned-by-build>
+python scripts/fixture.py build-menu-observer
+python scripts/fixture.py deploy-menu-observer --package <observer-package-path-returned-by-build>
 ```
 
 Prepare a unique label. This example enables the two searches in the small activation lane:
 
 ```powershell
-python scripts/op7_fixture.py prepare --mode candidate --strategy startup-searches --lane activation --label next-s01-candidate --menu-observer --exit-after-menu-ready
-python scripts/op7_fixture.py verify-prepared --label next-s01-candidate
+python scripts/fixture.py prepare --mode candidate --strategy startup-searches --lane activation --label next-s01-candidate --menu-observer --exit-after-menu-ready
+python scripts/fixture.py verify-prepared --label next-s01-candidate
 ```
 
 The supported lanes are `activation` (small official content with the required bootstrap environment), `xml-expanded` (the documented frozen XML-heavy selection encoded by the tool) and `representative` (the frozen enabled order, subject to recorded exclusions). There is no current `presets`, medium or full CLI lane: older records used earlier selectors. Representative is the large comparison route; its use still depends on current workload authorization.
 
-`--mode absent` physically parks RLO outside game discovery and preserves the comparison content order. `--mode baseline` keeps the selected original-path timers. `--mode candidate` enables the selected supported optimization. The strategy defaults to `startup-searches`; `def-lookup` and `type-lookup` permit isolated comparisons. Preparation defaults to timing observation, the independent menu observer and normal automatic exit. It also records the fixture-only background-loading preference.
+`--mode absent` physically parks Wake-Up outside game discovery and preserves the comparison content order. `--mode baseline` keeps the selected original-path timers. `--mode candidate` enables the selected supported optimization. The strategy defaults to `startup-searches`; `def-lookup` and `type-lookup` permit isolated comparisons. Preparation defaults to timing observation, the independent menu observer and normal automatic exit. It also records the fixture-only background-loading preference.
 
 Explicit fixture controls default Gagarin off; ordinary user settings default it on. `--gagarin-cache timing`, `on` or `verify` requires candidate startup searches. Preparation resets the application profile from its frozen seed. For a matching Gagarin cache-hit comparison, `--foreign-cache-from <successful-captured-label>` restores only the captured MissileGirl cache after checking content, package and observer compatibility. Inspect `foreignCacheFrom` and `restoredCacheKinds` in the run record; do not infer a cache hit from preparation alone. Actual supplier and optimization receipts must confirm it. Do not mix verification mode into only one timed arm.
 
@@ -74,18 +92,18 @@ If ordinary startup rewrites an inventoried mod file, `restore-runtime-file --pa
 Live testing requires the owner's authorization for the task and workload. Given that authorization, the prepared label is launched with:
 
 ```powershell
-python scripts/op7_fixture.py launch --label next-s01-candidate --authorize-live-launch
+python scripts/fixture.py launch --label next-s01-candidate --authorize-live-launch
 ```
 
 The launcher rechecks the prepared identity, profile, package and order. It waits for actual process exit and captures evidence before returning. Do not build, deploy, switch branches or start another run during a measurement. Do not use UI automation or interfere with another application. A label in an old document is historical; the authoritative selection is the current `prepared.json` and its matching run record.
 
 The observer marks menu readiness after the first completed main-menu repaint. Both the launcher and observer use the Windows high-resolution counter, so polling delay does not inflate the reported elapsed time. The observer writes `profile/FixtureMenuObserver/menu-ready.json` and logs its event. One second later it requests the game's normal shutdown from an update callback, only while still at the startup menu with no game loaded. The one-second delay and shutdown time are excluded from loading time.
 
-Inspect the captured `results/<label>/run.json`, profile log and relevant RLO receipts. A routine automatic success requires a valid `menuReadyObservation`, actual normal exit code zero and `automaticTestPassed=true`. Use `menuReadyObservation.elapsedSeconds`, not process lifetime, for complete startup. Installation or activation refusal is not a candidate result.
+Inspect the captured `results/<label>/run.json`, profile log and relevant Wake-Up receipts. A routine automatic success requires a valid `menuReadyObservation`, actual normal exit code zero and `automaticTestPassed=true`. Use `menuReadyObservation.elapsedSeconds`, not process lifetime, for complete startup. Installation or activation refusal is not a candidate result.
 
 The existing bounded failure handling stops a run sequence when there is no menu signal after 30 minutes or no process exit within 60 seconds after the menu event. It records failure and leaves the process for investigation. Do not start another launch while it remains alive. Preserve evidence before any necessary forced closure, verify that the exact process belongs to this fixture, and treat forced exit as failure. Use the tool's `capture` action for a verified exited run if automatic capture did not complete; do not fabricate a success or overwrite an existing capture.
 
-For authorized manual inspection use `--no-exit-after-menu-ready`, then wait for a normal-exit report. The normal automatic mode requires no human closure report. The observer works with RLO absent and must match between ordinary comparison arms. Its historical small-profile qualification is described in the [history index](archive/README.md#observer-history).
+For authorized manual inspection use `--no-exit-after-menu-ready`, then wait for a normal-exit report. The normal automatic mode requires no human closure report. The observer works with Wake-Up absent and must match between ordinary comparison arms. Its historical small-profile qualification is described in the [history index](archive/README.md#observer-history).
 
 ## PNG qualification and cache reuse
 
@@ -95,13 +113,13 @@ The following feature switches are explicit fixture controls, not ordinary user-
 
 ## Character Editor preset preparation
 
-`--character-presets on` enables optional startup preset lookup reuse in candidate `startup-searches`; `timing` measures the original preset construction with the same receipts, and default `off` installs nothing. The runtime selector is `--rlo-character-presets=on`. Character Editor is not a required package or assembly reference. Only the inspected 1.6.3.3 assembly, full file hash, module identity, method bodies and unmodified relevant patch chain are admitted. Updated or absent suppliers retain ordinary loading. This does not pin a Workshop subscription or change supplier files.
+`--character-presets on` enables optional startup preset lookup reuse in candidate `startup-searches`; `timing` measures the original preset construction with the same receipts, and default `off` installs nothing. The runtime selector is `--wake-up-character-presets=on`. Character Editor is not a required package or assembly reference. Only the inspected 1.6.3.3 assembly, full file hash, module identity, method bodies and unmodified relevant patch chain are admitted. Updated or absent suppliers retain ordinary loading. This does not pin a Workshop subscription or change supplier files.
 
 The original preset constructors and public dictionary getter remain intact. Only the first startup object/turret creation scopes may reuse the original lookup dictionary; later calls, changed definition lists, nested/cross-thread calls and foreign patches use fresh original lookups. Reuse ends at the loaded menu. Inspect `character-presets.jsonl` for scope counts, preset-content hashes, actual hits, no exceptions and zero retained entries after completion.
 
 ## Loading Progress repaint pauses
 
-`--loading-progress coalesce` enables the optional startup repaint improvement in candidate mode; default `off` leaves it disabled. The runtime command-line selector is `--rlo-loading-progress=coalesce`. It supports the frozen Loading Progress 0.14.0 identity, preserves the native loading time budget and disables coalescing at the loaded menu. Missing or unknown Loading Progress versions and interfering patches use ordinary loading. Progress can update less frequently within the existing budget. Inspect `repaint-coalescing.jsonl` for installation and a completed receipt with suppressed pauses and no refusals. This does not enable Gagarin XML reuse through Loading Progress; the separately tested XML bridge was not retained.
+`--loading-progress coalesce` enables the optional startup repaint improvement in candidate mode; default `off` leaves it disabled. The runtime command-line selector is `--wake-up-loading-progress=coalesce`. It supports the frozen Loading Progress 0.14.0 identity, preserves the native loading time budget and disables coalescing at the loaded menu. Missing or unknown Loading Progress versions and interfering patches use ordinary loading. Progress can update less frequently within the existing budget. Inspect `repaint-coalescing.jsonl` for installation and a completed receipt with suppressed pauses and no refusals. This does not enable Gagarin XML reuse through Loading Progress; the separately tested XML bridge was not retained.
 
 ## Giddy-Up riding-offset preparation
 
@@ -125,10 +143,10 @@ The approved licensing direction is implemented in [LICENSE.md](../LICENSE.md): 
 
 ## Normal activation and post-startup qualification
 
-`prepare --mode candidate --activation user` includes the installed product and isolated save-data path but supplies no RLO feature selectors. The mod reads its ordinary settings, including defaults when no file exists. This mode refuses simultaneous feature-selector overrides, preventing mislabeled comparisons. Explicit fixture controls continue to bypass normal settings.
+`prepare --mode candidate --activation user` includes the installed product and isolated save-data path but supplies no Wake-Up feature selectors. The mod reads its ordinary settings, including defaults when no file exists. This mode refuses simultaneous feature-selector overrides, preventing mislabeled comparisons. Explicit fixture controls continue to bypass normal settings.
 
 The separate observer supports `--residual-probe` for bounded first-menu-call and post-cutoff type-search observation. This is a qualification arm, not an ordinary timing comparison. It adds no diagnostic code to the product package.
 
-`--gameplay-smoke` explicitly selects a fixture-only small new-colony/tick/save/reload check after the independent menu timestamp. It also checks normal settings persistence when RLO is present. It uses native game APIs, never UI automation or a normal-user save. The observer writes `FixtureMenuObserver/gameplay-smoke.json`, and launch records `gameplayTestPassed` separately from `automaticTestPassed`; both must pass. Failure is captured and rejected even when the process exits zero. This explicit mode allows ten minutes after menu readiness for gameplay and normal exit; routine startup comparisons retain the sixty-second limit and ordinary automatic exit. Do not count gameplay-smoke menu timings as scored speed comparisons. A nine-minute in-game timeout attempts normal shutdown and writes failure evidence.
+`--gameplay-smoke` explicitly selects a fixture-only small new-colony/tick/save/reload check after the independent menu timestamp. It also checks normal settings persistence when Wake-Up is present. It uses native game APIs, never UI automation or a normal-user save. The observer writes `FixtureMenuObserver/gameplay-smoke.json`, and launch records `gameplayTestPassed` separately from `automaticTestPassed`; both must pass. Failure is captured and rejected even when the process exits zero. This explicit mode allows ten minutes after menu readiness for gameplay and normal exit; routine startup comparisons retain the sixty-second limit and ordinary automatic exit. Do not count gameplay-smoke menu timings as scored speed comparisons. A nine-minute in-game timeout attempts normal shutdown and writes failure evidence.
 
 Existing frozen seeds remain unchanged. Generated saves and settings belong only to the fixture capture, and the next ordinary preparation resets its profile from those seeds. These checks qualify a focused scenario; they do not establish arbitrary combat, long-running colony behavior or a public support matrix.

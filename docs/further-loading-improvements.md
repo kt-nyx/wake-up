@@ -1,5 +1,7 @@
 # Further loading improvements: Giddy-Up texture preparation
 
+> Recorded identifiers, commands and private artifact paths below retain their pre-Wake-Up spelling; they are historical evidence.
+
 > Dated qualification record. Identities, activation defaults, permissions and proposed next steps describe this investigation, not the current release. See [current state](current-state.md), [support policy](user-guide.md#supported-build-policy) and [results](results.md) for current decisions.
 
 Giddy-Up now prepares animal riding offsets using only the center image column it actually reads. The final build saves **0.45-0.51 seconds (1.6-1.8%)** on the small sorted combat/races/genes selection plus Giddy-Up, with accepted searches already enabled. Medians are 28.070793 versus 27.588108 seconds: **1.72% shorter startup on this workload**, not a general modlist average.
@@ -25,7 +27,7 @@ Relevant Harmony prefix, postfix, transpiler and finalizer hooks are checked at 
 
 ## Final matched measurements
 
-All final timing captures use package `818c7efa7cd032ae209db95ae6f0fbc2385746a1`, the same 31 content entries (33 including RLO and the independent observer), dependency-checked author/community order, seeded settings, native texture selection and fresh application caches. Gagarin's normal cache creation remains present. Extra RLO Gagarin reuse, PNG caching, Character Editor and Loading Progress modes are off in both arms. Controls retain accepted search behavior and observe Giddy-Up's original path with matching diagnostics. These are incremental feature comparisons, not absent-RLO comparisons.
+All final timing captures use package `818c7efa7cd032ae209db95ae6f0fbc2385746a1`, the same 31 content entries (33 including Wake-Up and the independent observer), dependency-checked author/community order, seeded settings, native texture selection and fresh application caches. Gagarin's normal cache creation remains present. Extra Wake-Up Gagarin reuse, PNG caching, Character Editor and Loading Progress modes are off in both arms. Controls retain accepted search behavior and observe Giddy-Up's original path with matching diagnostics. These are incremental feature comparisons, not absent-Wake-Up comparisons.
 
 Windows file caches were not flushed; forward/reverse controls address warming. Background game inventory was checked before and after each launch, with no other game found. Initial available memory was about 19 GiB; final scored runs retained at least 14.73 GiB. Only the fixture used below-normal CPU priority. This does not mean the rest of Windows was inactive.
 

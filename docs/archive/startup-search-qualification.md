@@ -1,4 +1,6 @@
 > Historical snapshot, preserved during the 2026-09-06 cleanup. This is evidence, not current operating instructions or a claim about the cleaned product. See [current state](../current-state.md) and [results](../results.md).
+
+> Recorded identifiers, commands and private artifact paths below retain their pre-Wake-Up spelling; they are historical evidence.
 > Original: `records/implementation/OP7_STARTUP_SEARCH_CLOSEOUT.md` at `f886277ace5ed9b71fb044e69b57cb2cee5269f3`. Former branches, runtime files, commands and local paths below may no longer exist. Unretained local links are written as historical paths; recover their originals through the [history index](README.md).
 
 # OP7 startup search investigation closeout
@@ -66,7 +68,7 @@ now the fixture workflow default strategy; it has not been released.
 ## How the comparison is controlled
 
 Every representative comparison uses the frozen 315 enabled packages, plus
-RimWorld Loading Optimizer (RLO) where tested. In absent runs, RLO is physically
+Wake-Up (Wake-Up) where tested. In absent runs, Wake-Up is physically
 outside the game's Mods directory and is omitted from both mod order and
 command line. Runs that retain the original code with added timers help locate
 the cost of individual stages; they do not replace absent comparisons.
@@ -90,7 +92,7 @@ observation intervals are reported rather than treated as exact timings.
 
 No builds, tests, large hashes or asset scans run alongside measured launches.
 The frozen Loading Progress instrumentation stays identical in every full run;
-RLO timing-only mode omits the earlier detailed diagnostic pipeline. Additional
+Wake-Up timing-only mode omits the earlier detailed diagnostic pipeline. Additional
 texture-loader profiling is off. Timers for individual stages and creation
 calls are separately identified.
 
@@ -102,7 +104,7 @@ cleanup mean fell from **352.039 s to 165.456 s (53.0%)**. These endpoints exclu
 late mod initialization; the separate menu observations show the practical
 loading improvement as well.
 
-| Fresh application-cache run | RLO | Loading Progress | Cleanup | Usable menu observation bounds |
+| Fresh application-cache run | Wake-Up | Loading Progress | Cleanup | Usable menu observation bounds |
 | --- | --- | ---: | ---: | ---: |
 | r05 | Physically absent | 338.931 s | 350.832 s | 437.230-478.070 s |
 | r13 | Physically absent | 340.987 s | 353.245 s | 475.312-491.461 s |
@@ -118,7 +120,7 @@ The improvement also repeats with Gagarin's XML cache already available. The
 warm Loading Progress mean fell from **234.885 s to 125.761 s (46.5%)**; cleanup
 fell from **246.959 s to 138.699 s (43.8%)**. All four runs confirmed a cache hit.
 
-| Warm application-cache run | RLO | Loading Progress | Cleanup | Usable menu observation bounds |
+| Warm application-cache run | Wake-Up | Loading Progress | Cleanup | Usable menu observation bounds |
 | --- | --- | ---: | ---: | ---: |
 | r07 | Physically absent | 236.208 s | 248.440 s | 356.731-386.776 s |
 | r16 | Physically absent | 233.563 s | 245.479 s | 367.513-379.801 s |
@@ -174,7 +176,7 @@ higher (7.9-8.8%). Original-code timing r11 peaked at 8,567,468,032 bytes.
 These are process peaks affected by garbage collection and allocation timing,
 not measurements of index allocation alone. The machine has 32 GiB RAM.
 
-Warm process peaks varied more: 9,583,181,824 and 8,832,831,488 bytes with RLO,
+Warm process peaks varied more: 9,583,181,824 and 8,832,831,488 bytes with Wake-Up,
 versus 8,591,478,784 bytes in absent r16 (about 2.8-11.5% higher). This variation
 is a reason not to claim one precise memory cost from process peaks alone.
 

@@ -1,5 +1,7 @@
 # Retained-feature benchmark campaign
 
+> Recorded identifiers, commands and private artifact paths below retain their pre-Wake-Up spelling; they are historical evidence.
+
 > Dated qualification record. Identities, activation defaults, permissions and proposed next steps describe this investigation, not the current release. See [current state](current-state.md), [support policy](user-guide.md#supported-build-policy) and [results](results.md) for current decisions.
 
 Started 2026-09-07 from local main `1282ae3` on `codex/feature-benchmarks`. The owner requests reliable measurements of retained features, Loading Progress's effect and interaction, and several internally compatible modlists. No new runtime features are being developed. Representative live tests are authorized for this campaign; the owner will play another game during testing.
@@ -20,9 +22,9 @@ Tests run sequentially in the background without altering the owner's game, focu
 
 Selection JSON and full package/order/metadata receipts are private ignored evidence under `artifacts/feature-benchmarks/selections/`. Each selection is bound to the frozen manifest and copied into its run receipt. Cache reuse requires the exact selected active order. Dependencies must be present, explicit author ordering honored and declared incompatible pairs absent. Startup logs qualify loading behavior; sorting alone does not prove arbitrary gameplay compatibility.
 
-The selections share one installed frozen library; unselected packages remain installed but disabled, except the explicitly parked exclusions and absent RLO. Thus common installed-mod discovery overhead remains in these results. They measure different enabled modlists within the same library, not separate minimal installations or independently sampled player collections.
+The selections share one installed frozen library; unselected packages remain installed but disabled, except the explicitly parked exclusions and absent Wake-Up. Thus common installed-mod discovery overhead remains in these results. They measure different enabled modlists within the same library, not separate minimal installations or independently sampled player collections.
 
-| Selection | Frozen entries before observer/RLO | Intended composition |
+| Selection | Frozen entries before observer/Wake-Up | Intended composition |
 |---|---:|---|
 | quality | 36 | Quality-of-life and UI; more code relative to new assets |
 | industry | 30 | Industrial systems, furniture, storage and music; assets and initialization |
@@ -33,7 +35,7 @@ The selections share one installed frozen library; unselected packages remain in
 | mixed | 95 | Moderate mixed collection combining the three themes plus visual/world content |
 | mixed-lp | 96 | Identical mixed collection plus Loading Progress |
 
-These are composition hypotheses, not measured bottleneck labels. Qualifying observations will establish which feature executes and which parts dominate. All lists retain the same official expansions, Harmony/Prepatcher and Gagarin supplier. Gagarin is present even with RLO absent, so its own cache benefit is not credited to RLO.
+These are composition hypotheses, not measured bottleneck labels. Qualifying observations will establish which feature executes and which parts dominate. All lists retain the same official expansions, Harmony/Prepatcher and Gagarin supplier. Gagarin is present even with Wake-Up absent, so its own cache benefit is not credited to Wake-Up.
 
 The supplementary visual list was specified and dependency-sorted before its first launch, after the mixed list proved too memory-intensive for comfortable concurrent use. It will be reported regardless of whether it benefits. The original four-list headline remains quality, industry, biocombat and mixed; visual is supplementary. A completed subset must be explicitly named and must not silently stand in for the original cohort.
 
@@ -63,7 +65,7 @@ The author metadata declared Way Better Romance incompatible with the selected N
 
 ## Comparisons and analysis fixed before timing
 
-Compare a collection in four configurations: Loading Progress on/off crossed with RLO absent/full retained suite. The original plan used mixed; qualification memory pressure moved the first comparison to industry before scored runs. This distinguishes Loading Progress's direct effect from its interaction with RLO. The independent observer is unchanged in all four. Fresh-cache construction and warm supplier reuse form separate comparisons. The Loading Progress interaction is the change in RLO's saving between its on/off environments, reported in seconds as well as percentages.
+Compare a collection in four configurations: Loading Progress on/off crossed with Wake-Up absent/full retained suite. The original plan used mixed; qualification memory pressure moved the first comparison to industry before scored runs. This distinguishes Loading Progress's direct effect from its interaction with Wake-Up. The independent observer is unchanged in all four. Fresh-cache construction and warm supplier reuse form separate comparisons. The Loading Progress interaction is the change in Wake-Up's saving between its on/off environments, reported in seconds as well as percentages.
 
 Then compare absent versus retained suite across the four Loading Progress-free lists. Use a qualifying first launch for each needed configuration before the scored series; report those first observations separately rather than treating Windows's first file reads as the repeat baseline. Start with three paired observations in alternating forward/reverse order for each cache condition. If an arm's range exceeds 10% of its median or direction changes, extend by two pairs and report unresolved variation rather than removing inconvenient successful samples. A failure or changed workload stops the affected series for diagnosis. Qualification failures are retained and do not count as performance successes.
 
@@ -85,4 +87,4 @@ The original 309-entry mixed selection's first absent/Loading-Progress-off quali
 
 The mixed campaign slot was reduced to 95 entries, combining the three smaller themes with visual/world content; its Loading Progress variant has 96. This is a resource-driven design change before any scored results, not removal of an inconvenient successful time. The smaller quality list is qualified first to confirm resource headroom. The original large list requires a separate lower-pressure session; no large-list average is claimed by this campaign.
 
-The 95-entry absent qualification `fb-q04-mixed-absent` completed normally in 407.169272 seconds without scanned loading exceptions or unresolved references, but briefly reached only 1.215 GiB available memory. Its repeated measurements are held while the owner chooses between larger testing after gaming and a campaign limited to comfortably concurrent workloads. Quality and industry qualified with substantially more headroom. The first Loading Progress interaction series therefore uses industry versus industry-lp, whose content/order differs only by Loading Progress. All four fresh and warm configurations match available XML/settings/error checks. Their qualification times are not scored. The fresh scored comparison triggered the planned two-pair extension because the small RLO difference changed direction.
+The 95-entry absent qualification `fb-q04-mixed-absent` completed normally in 407.169272 seconds without scanned loading exceptions or unresolved references, but briefly reached only 1.215 GiB available memory. Its repeated measurements are held while the owner chooses between larger testing after gaming and a campaign limited to comfortably concurrent workloads. Quality and industry qualified with substantially more headroom. The first Loading Progress interaction series therefore uses industry versus industry-lp, whose content/order differs only by Loading Progress. All four fresh and warm configurations match available XML/settings/error checks. Their qualification times are not scored. The fresh scored comparison triggered the planned two-pair extension because the small Wake-Up difference changed direction.

@@ -5,9 +5,9 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies.net472" PrivateAssets="all" />
-    <Reference Include="Assembly-CSharp" HintPath="$(RLO_RIMWORLD_MANAGED_DIR)/Assembly-CSharp.dll" Private="false" />
-    <Reference Include="0Harmony" HintPath="$(RLO_PREPATCHER_ASSEMBLIES_DIR)/0Harmony.dll" Private="false" />
-    <Reference Include="UnityEngine.CoreModule" HintPath="$(RLO_RIMWORLD_MANAGED_DIR)/UnityEngine.CoreModule.dll" Private="false" />
-    <Reference Include="UnityEngine.IMGUIModule" HintPath="$(RLO_RIMWORLD_MANAGED_DIR)/UnityEngine.IMGUIModule.dll" Private="false" />
+    <Reference Include="Assembly-CSharp" HintPath="$(WAKE_UP_RIMWORLD_MANAGED_DIR)/Assembly-CSharp.dll" Private="false" />
+    <Reference Include="0Harmony" HintPath="$(WAKE_UP_PREPATCHER_ASSEMBLIES_DIR)/0Harmony.dll" Private="false" />
+    <Reference Include="UnityEngine.CoreModule" HintPath="$(WAKE_UP_RIMWORLD_MANAGED_DIR)/UnityEngine.CoreModule.dll" Private="false" />
+    <Reference Include="UnityEngine.IMGUIModule" HintPath="$(WAKE_UP_RIMWORLD_MANAGED_DIR)/UnityEngine.IMGUIModule.dll" Private="false" />
   </ItemGroup>
 </Project>

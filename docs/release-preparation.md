@@ -1,8 +1,8 @@
 # Release preparation
 
 The product is ready for release packaging, not yet qualified for a Steam
-Workshop launch. Primary user-facing copy, preview art and the final name remain
-owner decisions. This preparation does not publish a binary or create a Workshop
+Workshop launch. Final user-facing copy and preview art remain pending.
+This preparation does not publish a binary or create a Workshop
 item. The source repository may be public independently of binary qualification.
 
 ## Product identity
@@ -14,14 +14,17 @@ changing the tested runtime's namespaces, assembly name, settings type, cache
 paths, diagnostic names or patch-owner identifiers.
 
 The template leaves generated identity fields empty. Edit the JSON values, not
-duplicate copies of them in XML. The current in-game display label remains in
-`OptimizerMod`; naming work will update that label separately. The DLL's stable
+duplicate copies of them in XML. The short in-game display label is `Wake-Up`,
+defined in `WakeUpMod`. The formal title is **Wake-Up: Loading Optimizations**.
+The DLL's stable
 assembly version and the distribution version are separate identifiers.
 
-The public package ID is `kt.nyx.startupfixes`, deliberately independent of the
-eventual brand. Keep this ID stable after publication. The private fixture keeps
+The public package ID is `kt.nyx.wakeup`. Keep this ID stable after publication.
+The repository and distribution folder use `wake-up`; the assembly and C#
+namespace use `WakeUp`. The private fixture keeps
 its existing local validation ID and two-file contract. Release metadata flags
-that old package as incompatible: remove/disable the old local copy before
+that old package and the pre-rename `kt.nyx.startupfixes` bundle as incompatible:
+remove/disable either old copy before
 installing the public package. This is a menu warning, not an automatic migration
 or duplicate-assembly protection. Never install both copies together.
 
@@ -30,9 +33,9 @@ or duplicate-assembly protection. Never install both copies together.
 Commit the intended inputs, run the existing offline checks, and build once:
 
 ```powershell
-python scripts/op7_fixture.py test
-python scripts/op7_fixture.py build
-python scripts/package_release.py --package artifacts/op7-fixture-package/<revision>
+python scripts/fixture.py test
+python scripts/fixture.py build
+python scripts/package_release.py --package artifacts/fixture-package/<revision>
 ```
 
 The last command requires a clean tracked tree and the package for the current
@@ -83,7 +86,7 @@ permission review; our exception cannot extend another author's rights.
 
 1. Qualify the exact intended Steam game/dependency environment and the generated
    public package, including ordinary activation, settings and focused gameplay.
-2. Finalize the name, README, Workshop description and preview art. Preserve the
+2. Finalize the README, Workshop description and preview art. Preserve the
    disclaimer in NOTICE on or alongside the published content.
 3. Set the release version/status and `steamQualified` only from actual evidence;
    review supported versions and feature limitations against that evidence.
@@ -114,4 +117,21 @@ It passed 81 managed checks with the same optional supplier skip, all 35 Python
 checks, and a build with zero warnings/errors. All 41 tracked Markdown files
 decoded correctly and their 262 local links resolved to tracked material.
 The source-inclusive bundle was regenerated and verified; its exact identity
-is in [current state](current-state.md). No deployment or live test occurred.
+is in [archived checkpoints](archive/development-checkpoints.md#final-pre-rename-cleanup-bundle).
+No deployment or live test occurred.
+
+## Wake-Up rename verification, 2026-09-08
+
+The `5ab28547cc9e002e89f39dd15bd41733f9294398` source revision builds `WakeUp.dll`
+and a `wake-up` distribution folder with the formal title, public package ID,
+new source URL and matching source archive. Project references, test namespaces,
+settings identity, diagnostic/cache paths, patch owners, build variables and
+development selectors use the new naming. The fixture tool is `scripts/fixture.py`.
+
+All 81 managed and 35 Python checks passed, with one optional supplier check
+skipped. The runtime and independent observer built without warnings/errors;
+the public ZIP passed payload verification. All tracked Markdown links resolved.
+[Current state](current-state.md) records the package hashes. No deployment,
+game launch or new Steam qualification occurred. The fixed private fixture
+contracts and historical evidence retain the original spellings described in
+[development](development.md#naming-and-retained-historical-identities).

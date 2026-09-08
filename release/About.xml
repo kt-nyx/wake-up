@@ -17,7 +17,10 @@
     </li>
   </modDependencies>
   <loadAfter><li>zetrith.prepatcher</li><li>brrainz.harmony</li></loadAfter>
-  <incompatibleWith><li>local.rimworldloadingoptimizer.op7validation</li></incompatibleWith>
+  <incompatibleWith>
+    <li>local.rimworldloadingoptimizer.op7validation</li>
+    <li>kt.nyx.startupfixes</li>
+  </incompatibleWith>
   <description>Development build: targeted startup improvements with optional integrations. Current qualification covers the exact recorded Windows/GOG environment; Steam qualification and final release copy are pending. Settings changes require restart. Unsupported implementations keep ordinary behavior. Do not enable alongside the old local validation package.
 
 Original code: GNU GPL v3 or later with the included linking permission. Original documentation: CC BY-SA 4.0. Matching source and notices are included.
