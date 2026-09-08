@@ -1,5 +1,16 @@
 # Current state
 
+**0.2.1 supplier compatibility candidate, 2026-09-08:** Four optional supplier
+integrations now discover and validate their required functions without whole-DLL
+version/MVID/hash restrictions. Loading Progress repaint and PNG checks are
+independent. The existing original-path and conflicting-patch fallbacks remain;
+Harmony stays pinned. Offline tests passed 106 managed checks (one existing
+optional supplier fixture skip) and 35 Python checks. Windows live testing with
+automatic close and a subsequent release are owner-authorized and pending.
+No Deck launch or deployment is part of this task. See
+[supplier compatibility](supplier-forward-compatibility.md). The SDK pin advances
+to the installed 10.0.401 patch release for reproducible local builds.
+
 **Unreleased forward compatibility, 2026-09-08:** At the owner's request, runtime
 admission no longer pins the game assembly version, MVID or full file hash.
 Future Windows and native Linux builds attempt each feature's existing method,

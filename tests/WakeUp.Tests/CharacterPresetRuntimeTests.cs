@@ -19,17 +19,6 @@ namespace WakeUp.Tests;
 [TestFixture]
 public sealed class CharacterPresetRuntimeTests
 {
-    [Test]
-    public void SupplierPinRejectsChangedBytesEvenWithUnchangedVersion()
-    {
-        var mvid = new Guid("3db27871-e2d8-425d-98d1-a758fe85d3bd");
-        Assert.That(CharacterPresetRuntime.MatchesSupplierIdentity("1.6.3.3", mvid, CharacterPresetRuntime.SupplierSha256), Is.True);
-        Assert.That(CharacterPresetRuntime.MatchesSupplierIdentity("1.6.3.4", mvid, CharacterPresetRuntime.SupplierSha256), Is.False);
-        Assert.That(CharacterPresetRuntime.MatchesSupplierIdentity("1.6.3.3", Guid.Empty, CharacterPresetRuntime.SupplierSha256), Is.False);
-        Assert.That(CharacterPresetRuntime.MatchesSupplierIdentity("1.6.3.3", mvid, new string('0', 64)), Is.False);
-        Assert.That(CharacterPresetRuntime.MatchesSupplierIdentity(null, mvid, CharacterPresetRuntime.SupplierSha256), Is.False);
-    }
-
     private sealed class SamplePreset
     {
         public readonly SortedDictionary<int, string> dicParams = new() { [1] = "first", [2] = "second" };
@@ -172,7 +161,6 @@ public sealed class CharacterPresetRuntimeTests
         if (!File.Exists(path))
             Assert.Ignore("Character Editor is not available beside these game references.");
         Assembly supplier = Assembly.LoadFrom(path);
-        Assert.That(CharacterPresetRuntime.ValidateSupplier(supplier, path), Is.True);
         Assert.That(CharacterPresetRuntime.ValidateBodies(supplier, out string reason), Is.True, reason);
     }
 

@@ -15,15 +15,6 @@ namespace WakeUp.Tests;
 [TestFixture]
 public sealed class GiddyTextureRuntimeTests
 {
-    [Test]
-    public void ExactIdentityRejectsSameVersionModifiedOrUpdatedSupplier()
-    {
-        Assert.That(GiddyTextureRuntime.MatchesSupplierIdentity("2.2.5.0", GiddyTextureRuntime.SupplierMvid, GiddyTextureRuntime.SupplierSha256), Is.True);
-        Assert.That(GiddyTextureRuntime.MatchesSupplierIdentity("2.2.5.0", GiddyTextureRuntime.SupplierMvid, new string('0', 64)), Is.False);
-        Assert.That(GiddyTextureRuntime.MatchesSupplierIdentity("2.2.5.0", Guid.Empty, GiddyTextureRuntime.SupplierSha256), Is.False);
-        Assert.That(GiddyTextureRuntime.MatchesSupplierIdentity("1.0.0.0", GiddyTextureRuntime.SupplierMvid, GiddyTextureRuntime.SupplierSha256), Is.False);
-    }
-
     [TestCase(HarmonyPatchType.Prefix)]
     [TestCase(HarmonyPatchType.Postfix)]
     [TestCase(HarmonyPatchType.Transpiler)]
@@ -63,7 +54,6 @@ public sealed class GiddyTextureRuntimeTests
         string managed = Environment.GetEnvironmentVariable("WAKE_UP_RIMWORLD_MANAGED_DIR")!;
         string path = Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(managed))!, "Mods", "3674332861", "1.6", "Assemblies", "GiddyUpCore.dll");
         Assembly supplier = Assembly.LoadFrom(path);
-        Assert.That(GiddyTextureRuntime.ValidateSupplier(supplier, path), Is.True);
         Assert.That(GiddyTextureRuntime.ValidateBodies(supplier), Is.True);
         var body = PatchProcessor.GetOriginalInstructions(AccessTools.Method(supplier.GetType("GiddyUp.TextureUtility"), "SetDrawOffset"));
         Assert.That(InstructionComparison.SameInstructions(body, PatchProcessor.GetOriginalInstructions(AccessTools.Method(supplier.GetType("GiddyUp.TextureUtility"), "SetDrawOffset"))), Is.True);

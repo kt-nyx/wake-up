@@ -5,7 +5,6 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Security.Cryptography;
 using HarmonyLib;
 using UnityEngine;
 using Verse;
@@ -45,10 +44,8 @@ internal static class RepaintCoalescer
             if (!LoadingProgressCompatibility.TryInitialize())
                 throw new InvalidOperationException("unsupported-loading-framework");
             Assembly assembly = LoadingProgressCompatibility.FrameworkAssembly!;
-            Type type = assembly.GetType("ilyvion.LoadingProgress.LongEventHandler_UpdateCurrentEnumeratorEvent_Patches", true)!;
-            MethodInfo stop = AccessTools.Method(type, "ShouldStopEarly"), transpiler = AccessTools.Method(type, "Transpiler");
-            Check(stop, "F730D86E32A29B82094522F639001E913AFC08F598CE52F896D4B4E99E7E0086");
-            Check(transpiler, "D290D5CA89BF383968ACA32D5CA595C51B89783144482484660B3444791A295B");
+            var methods = SupplierMethodContract.ResolveAll(assembly, SupplierContracts.Repaint);
+            MethodInfo stop = (MethodInfo)methods["ShouldStopEarly"], transpiler = (MethodInfo)methods["Transpiler"];
             if (!PublishedPatchGuard.TryCreate(stop, Owner, out stopGuard, true)
                 || !PublishedPatchGuard.TryCreate(transpiler, Owner, out transpilerGuard, true)
                 || !PublishedPatchGuard.TryCreate(AccessTools.Method(typeof(LongEventHandler), "UpdateCurrentEnumeratorEvent"), Owner, out loopGuard, true,
@@ -60,12 +57,6 @@ internal static class RepaintCoalescer
             Write("{\"event\":\"installed\",\"nativeTimeBudgetUnchanged\":true}");
         }
         catch (Exception e) { harmony.UnpatchAll(Owner); JsonLineLog.WriteReceipt(path, "refused", e.Message); }
-    }
-    private static void Check(MethodInfo method, string expected)
-    {
-        using var hash = SHA256.Create();
-        if (BitConverter.ToString(hash.ComputeHash(method.GetMethodBody()!.GetILAsByteArray())).Replace("-", "") != expected)
-            throw new InvalidOperationException("body-" + method.Name);
     }
     private static void Coalesce(ref bool __result)
     {

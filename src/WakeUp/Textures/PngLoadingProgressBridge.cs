@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Security.Cryptography;
 using HarmonyLib;
 
 namespace WakeUp;
@@ -23,29 +22,16 @@ internal sealed class PngLoadingProgressBridge
 
     internal PngLoadingProgressBridge(Assembly assembly)
     {
-        const string prefix = "ilyvion.LoadingProgress.";
-        MethodInfo factory = AccessTools.Method(assembly.GetType(prefix + "ReloadContentIntReplacement", true), "ReloadContentInt");
+        var methods = SupplierMethodContract.ResolveAll(assembly, SupplierContracts.PngBridge);
+        MethodInfo factory = (MethodInfo)methods["Factory"];
+        Iterator = (MethodInfo)methods["Iterator"];
         var iterator = (IteratorStateMachineAttribute)factory.GetCustomAttributes(typeof(IteratorStateMachineAttribute), false).Single();
-        Iterator = AccessTools.Method(iterator.StateMachineType, "MoveNext");
-        MethodInfo tracker = AccessTools.Method(assembly.GetType(prefix + "ModContentPack_LoadingDataTracker_Patches", true), "ReloadContentIntPrefix");
-        Type patch = assembly.GetType(prefix + "ModContentPack_ReloadContentInt_Patch", true)!;
-        MethodInfo progress = AccessTools.Method(patch, "ProgressPrefix"), skipOriginal = AccessTools.Method(patch, "Prefix");
+        if (iterator.StateMachineType != Iterator.DeclaringType)
+            throw new InvalidOperationException("changed-loading-progress-iterator");
+        MethodInfo tracker = (MethodInfo)methods["Tracker"], progress = (MethodInfo)methods["Progress"], skipOriginal = (MethodInfo)methods["Skip"];
         ReviewedMethods = new[] { factory, Iterator, tracker, progress, skipOriginal };
-        string[] expected = {
-            "5A0B620EFD31369BCA279D190A1BB45E41D1627F44713A0EBB7904533F5CCEE8",
-            "2AD8B5CA9C885C0EDF807EE60DB65E8C018D3D41D604A09975F2BF00ADE341BC",
-            "62F6ADD0ECC1FBDA039EDCD4D3AE01099743F2413B25072D9D05AC7065793C5D",
-            "1E8037693D63DEF16F182F964745BAA6C167134F1C126B7ABFBD22F178F87C8E",
-            "60323971A473C6041B288EC3BDE1B3E3563F97E41EDAABC16454BED972854379"
-        };
-        // Physical hash/MVID are authenticated by LoadingProgressCompatibility
-        // before construction. These checks also detect rewritten loaded bodies.
-        using var sha = SHA256.Create();
-        for (int i = 0; i < ReviewedMethods.Length; i++)
+        foreach (MethodInfo method in ReviewedMethods)
         {
-            MethodInfo method = ReviewedMethods[i];
-            if (BitConverter.ToString(sha.ComputeHash(method.GetMethodBody()!.GetILAsByteArray())).Replace("-", "") != expected[i])
-                throw new InvalidOperationException("loading-progress-body-" + method.Name);
             if (!PublishedPatchGuard.TryCreate(method, PngRuntime.Owner, out var guard, allPatchKinds: true)
                 || !guard!.AllowsOriginalContract())
                 throw new InvalidOperationException("loading-progress-hook-" + method.Name);

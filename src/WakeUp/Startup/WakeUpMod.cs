@@ -67,7 +67,7 @@ public sealed class WakeUpMod : Mod
         list.CheckboxLabeled("Faster definition and template searches", ref settings.DefinitionSearches);
         list.CheckboxLabeled("Faster code type searches", ref settings.TypeSearches);
         list.Gap();
-        list.Label("Optional mod improvements: missing or unsupported versions keep ordinary loading.");
+        list.Label("Optional mod improvements: updated mods are checked automatically. Missing or incompatible functions keep ordinary loading.");
         list.CheckboxLabeled("Reuse Gagarin's parsed XML", ref settings.GagarinReuse);
         list.CheckboxLabeled("Reuse Character Editor preset lookups", ref settings.CharacterPresets);
         list.CheckboxLabeled("Reduce Loading Progress repaint pauses", ref settings.LoadingProgress);

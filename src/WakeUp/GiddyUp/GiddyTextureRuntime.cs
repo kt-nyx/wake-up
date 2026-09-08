@@ -20,15 +20,6 @@ namespace WakeUp;
 internal static class GiddyTextureRuntime
 {
     internal const string Owner = "wakeup.giddy-textures";
-    internal const string SupplierSha256 = "E54C416CA81A1542A42577E9B13C36A79D054B28F5EB0B3B47AAEBD13C3CAB19";
-    internal static readonly Guid SupplierMvid = new("e06e404d-ffd8-4a3b-a0ac-2285d47573a8");
-    internal static readonly IReadOnlyDictionary<int, string> Bodies = new Dictionary<int, string>
-    {
-        [0x060000E1] = "3FCDFFD6DA25B8595C63E3DF8042A010AD9143A1F8DE766E774C0C4D477866C1", // SetDrawOffset
-        [0x060000E2] = "E53AD35536452B891184F33385F6BA42ABB5A0C1000B6A589058B86151888F4C", // GetBackHeight
-        [0x060000E3] = "A98EA42DECBDCA199FB20E85E03E5EB3AECCD0E3DB82E5AB57EF666EB61CAF6E", // GetReadableTexture
-        [0x060000FE] = "E15D357DA30E93EE51B34311A812F2D67AB26FAFDFB630D828A6D350A3DC8069", // ProcessPawnKinds
-    };
     private static bool attempted, enabled, verify, completed;
     private static int mainThread;
     private static string? evidencePath;
@@ -66,12 +57,9 @@ internal static class GiddyTextureRuntime
                 return true;
             }
             Assembly? assembly = AppDomain.CurrentDomain.GetAssemblies().SingleOrDefault(a => a.GetName().Name == "GiddyUpCore");
-            if (assembly == null || !ValidateSupplier(assembly, Path.Combine(supplier.RootDir, "1.6", "Assemblies", "GiddyUpCore.dll")) || !ValidateBodies(assembly))
-            {
-                Receipt("refused", "supplier-identity");
-                return true;
-            }
-            var methods = Bodies.Keys.Select(t => (MethodInfo)assembly.ManifestModule.ResolveMethod(t)).ToArray();
+            if (assembly == null)
+                throw new InvalidOperationException("giddy-assembly-unavailable");
+            var methods = SupplierMethodContract.ResolveAll(assembly, SupplierContracts.Giddy).Values.Cast<MethodInfo>().ToArray();
             offset = methods.Single(m => m.Name == "SetDrawOffset");
             readable = methods.Single(m => m.Name == "GetReadableTexture");
             original = (Func<Texture2D, Texture2D>)Delegate.CreateDelegate(typeof(Func<Texture2D, Texture2D>), readable);
@@ -95,22 +83,13 @@ internal static class GiddyTextureRuntime
             harmony.Patch(AccessTools.Method(typeof(global::RimWorld.MainMenuDrawer), "MainMenuOnGUI"), postfix: new HarmonyMethod(typeof(GiddyTextureRuntime), nameof(Menu)));
             Receipt("installed", selectors[0]);
         }
-        catch (Exception e) { enabled = false; try { harmony.UnpatchAll(Owner); } catch { } Receipt("refused", "installation-" + e.GetType().Name); }
+        catch (Exception e) { enabled = false; try { harmony.UnpatchAll(Owner); } catch { } Receipt("refused", "installation-" + e.GetType().Name + ": " + e.Message); }
         return true;
-    }
-    internal static bool MatchesSupplierIdentity(string? version, Guid mvid, string hash) => version == "2.2.5.0" && mvid == SupplierMvid && hash == SupplierSha256;
-    internal static bool ValidateSupplier(Assembly assembly, string path)
-    {
-        if (!string.IsNullOrEmpty(assembly.Location) && !string.Equals(Path.GetFullPath(assembly.Location), Path.GetFullPath(path), StringComparison.OrdinalIgnoreCase))
-            return false;
-        using var file = File.OpenRead(path);
-        using var sha = SHA256.Create();
-        return MatchesSupplierIdentity(assembly.GetName().Version?.ToString(), assembly.ManifestModule.ModuleVersionId, BitConverter.ToString(sha.ComputeHash(file)).Replace("-", ""));
     }
     internal static bool ValidateBodies(Assembly assembly)
     {
-        using var sha = SHA256.Create();
-        return Bodies.All(b => BitConverter.ToString(sha.ComputeHash(assembly.ManifestModule.ResolveMethod(b.Key).GetMethodBody()!.GetILAsByteArray())).Replace("-", "") == b.Value);
+        try { SupplierMethodContract.ResolveAll(assembly, SupplierContracts.Giddy); return true; }
+        catch { return false; }
     }
     internal static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {

@@ -21,22 +21,6 @@ namespace WakeUp;
 internal static class CharacterPresetRuntime
 {
     private const string Owner = "wakeup.character-presets";
-    internal const string SupplierSha256 = "BFF3B2268321F8C9566E15CBBD71CA6F975E9139F976C8BD4A9E0CA924C5B457";
-    private static readonly Guid SupplierMvid = new("3db27871-e2d8-425d-98d1-a758fe85d3bd");
-    // Derived from the physical pinned CharacterEditor 1.6.3.3 DLL using the
-    // existing semantic-IL reader; tokens identify this exact supplier only.
-    internal static readonly IReadOnlyDictionary<int, string> Bodies = new Dictionary<int, string>
-    {
-        [0x06000201] = "A49B2326B0203C1A85FCE052BBC1B6F6F4B37B6BD1E34861E5DA2D9B6143CAAE", // CreateDefaults
-        [0x06000208] = "FDDFA8ADE318F45E683469B4976572FA06663CEEB60FA12DD46D80A5EB58399E", // ListAllTurrets
-        [0x06000209] = "FC70FAAB6414EE81D526AFC01B00ED8DFC6916978DD6F5DF85993EEDF9E12B79", // DicGunAndTurret
-        [0x0600020A] = "3591435C0BC7D1B892012E7C9AB17ADD820D7253952ED1E1AB627C4ECB559606", // CreateDefaultObjects
-        [0x0600020B] = "56E2B433E1D0DF301F7EDC72100C5FCEEAE0E7AE97576CF1760C814171369DDB", // CreateDefaultTurrets
-        [0x06000210] = "E73322DF927B5DE606BCA71499481042F531A325A8F7DD9DCD28A4B5CD6E9D3A", // PresetObject(ThingDef)
-        [0x060003DB] = "595EF872EA39DB407B35338D244A38DAA6C5A793FA546816ED5799182E42F8BA", // ListBy<T>
-        [0x06000642] = "481CA1D2BFBF1829FC267E8B7BB7CE3E41438CC403955552C0788454DF81B356", // KeyByValue<T1,T2>
-        [0x060009AB] = "8830C6E04DAFC769EB0F21046C993BE75F62C69EBDBB4A285ED8EE0B441CFD66", // GetTurretDef
-    };
     private static bool attempted;
     private static bool candidate;
     private static bool installed;
@@ -79,27 +63,19 @@ internal static class CharacterPresetRuntime
                 return true;
             }
             Assembly? assembly = AppDomain.CurrentDomain.GetAssemblies().SingleOrDefault(a => a.GetName().Name == "CharacterEditor");
-            if (assembly == null || !ValidateSupplier(assembly, Path.Combine(supplier.RootDir, "v1.6", "Assemblies", "CharacterEditor.dll")))
-            {
-                Receipt("refused", "character-editor-supplier-identity");
-                return true;
-            }
-            if (!ValidateBodies(assembly, out reason))
-            {
-                Receipt("refused", reason);
-                return true;
-            }
-            Module module = assembly.ManifestModule;
-            dictionaryGetter = (MethodInfo)module.ResolveMethod(0x06000209);
-            lookup = (MethodInfo)module.ResolveMethod(0x060009AB);
-            MethodInfo objects = (MethodInfo)module.ResolveMethod(0x0600020A);
-            MethodInfo turrets = (MethodInfo)module.ResolveMethod(0x0600020B);
+            if (assembly == null)
+                throw new InvalidOperationException("character-editor-assembly-unavailable");
+            var methods = SupplierMethodContract.ResolveAll(assembly, SupplierContracts.Character);
+            dictionaryGetter = (MethodInfo)methods["Dictionary"];
+            lookup = (MethodInfo)methods["Lookup"];
+            MethodInfo objects = (MethodInfo)methods["Objects"];
+            MethodInfo turrets = (MethodInfo)methods["Turrets"];
             originalDictionary = (Func<Dictionary<string, ThingDef>>)Delegate.CreateDelegate(typeof(Func<Dictionary<string, ThingDef>>), dictionaryGetter);
-            var tracked = Bodies.Keys.Select(token => module.ResolveMethod(token)).ToList();
+            var tracked = methods.Values.ToList();
             Type preset = assembly.GetType("CharacterEditor.PresetObject", true)!;
-            tracked.Add(((MethodInfo)module.ResolveMethod(0x06000201)).MakeGenericMethod(preset, typeof(ThingDef)));
-            tracked.Add(((MethodInfo)module.ResolveMethod(0x060003DB)).MakeGenericMethod(typeof(ThingDef)));
-            tracked.Add(((MethodInfo)module.ResolveMethod(0x06000642)).MakeGenericMethod(typeof(string), typeof(ThingDef)));
+            tracked.Add(((MethodInfo)methods["CreateDefaults"]).MakeGenericMethod(preset, typeof(ThingDef)));
+            tracked.Add(((MethodInfo)methods["ListBy"]).MakeGenericMethod(typeof(ThingDef)));
+            tracked.Add(((MethodInfo)methods["KeyByValue"]).MakeGenericMethod(typeof(string), typeof(ThingDef)));
             guardedMethods = tracked.ToArray();
             if (candidate)
             {
@@ -137,40 +113,15 @@ internal static class CharacterPresetRuntime
                 }
             }
             catch { }
-            Receipt("refused", "installation-" + exception.GetType().Name);
+            Receipt("refused", "installation-" + exception.GetType().Name + ": " + exception.Message);
         }
         return true;
     }
-
-    internal static bool ValidateSupplier(Assembly assembly, string path)
-    {
-        if (assembly.ManifestModule.ModuleVersionId != SupplierMvid || assembly.GetName().Version?.ToString() != "1.6.3.3")
-            return false;
-        if (!string.IsNullOrEmpty(assembly.Location)
-            && !string.Equals(Path.GetFullPath(assembly.Location), Path.GetFullPath(path), StringComparison.OrdinalIgnoreCase))
-            return false;
-        using FileStream file = File.OpenRead(path);
-        using SHA256 sha = SHA256.Create();
-        return MatchesSupplierIdentity(assembly.GetName().Version?.ToString(), assembly.ManifestModule.ModuleVersionId,
-            BitConverter.ToString(sha.ComputeHash(file)).Replace("-", string.Empty));
-    }
-
-    internal static bool MatchesSupplierIdentity(string? version, Guid mvid, string sha256)
-        => version == "1.6.3.3" && mvid == SupplierMvid && sha256 == SupplierSha256;
 
     internal static bool ValidateBodies(Assembly assembly, out string reason)
     {
-        foreach (KeyValuePair<int, string> entry in Bodies)
-        {
-            MethodBase method = assembly.ManifestModule.ResolveMethod(entry.Key);
-            if (!SemanticMethodIdentity.TryHash(method, out string hash, out string failure) || hash != entry.Value)
-            {
-                reason = "preset-body-" + entry.Key.ToString("x8", CultureInfo.InvariantCulture) + "-" + hash + "-" + failure;
-                return false;
-            }
-        }
-        reason = "exact";
-        return true;
+        try { SupplierMethodContract.ResolveAll(assembly, SupplierContracts.Character); reason = "compatible-methods"; return true; }
+        catch (Exception e) { reason = e.Message; return false; }
     }
 
     internal static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)

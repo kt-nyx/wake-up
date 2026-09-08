@@ -183,6 +183,8 @@ internal static class SemanticMethodIdentity
         }
     }
 
+    internal static string Signature(MethodBase method) => Member(method);
+
     private static string Member(MemberInfo member)
     {
         if (member is Type type)

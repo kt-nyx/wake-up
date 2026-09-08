@@ -69,27 +69,10 @@ internal static class GagarinCacheRuntime
             if (matches.Length != 1)
                 throw new InvalidOperationException(matches.Length == 0 ? "optional-supplier-absent" : "ambiguous-supplier");
             supplier = matches[0];
-            if (supplier.ManifestModule.ModuleVersionId != new Guid("23d812a3-057c-4caf-aa0c-6aa2e37e1ba3"))
-                throw new InvalidOperationException("unsupported-supplier-module");
-            var mod = LoadedModManager.RunningModsListForReading.SingleOrDefault(m => m.PackageId == "vr.missilegirl");
-            if (mod == null)
+            if (!LoadedModManager.RunningModsListForReading.Any(m => m.PackageId == "vr.missilegirl"))
                 throw new InvalidOperationException("supplier-not-active");
-            using (var file = File.OpenRead(Path.Combine(mod.RootDir, "1.6", "Plugins", "Stable", "Gagarin.dll")))
-                if (Hash(file) != "D83EDC9FE3AE0381A71EE460F766563F1CB078F61211D8388614BAB3B0E1250C")
-                    throw new InvalidOperationException("unsupported-supplier-file");
-            string[] types = { "CachedDefHelper", "LoadableXmlAsset_Constructor_Patch", "LoadableXmlAsset_Constructor_Patch", "Context", "Context", "Context", "GagarinEnvironmentInfo", "LoadedModManager_Patch+CombineIntoUnifiedXML_Patch", "LoadedModManager_Patch+CombineIntoUnifiedXML_Patch", "LoadedModManager_Profiler+CombineIntoUnifiedXML_Profiler", "LoadedModManager_Profiler+CombineIntoUnifiedXML_Profiler" };
-            string[] names = { "Load", "Postfix_FileInfo", "Process", "get_IsUsingCache", "get_IsLoadingModXML", "get_IsLoadingPatchXML", "get_UnifiedXmlFilePath", "Prefix", "Postfix", "Prefix", "Postfix" };
-            string[] hashes = {
-                "A45EE8A2551B3B1D6F3D9062C29A07B3C77B24D608EEA554074C6ACA0888EDFC", "EEAC0DAD31A18C7A256FF9C68EEF8CEB5FF54B4A6A46E53F495C931D153AC2BB", "890657130AF6F7B93B9096BCCCA9F7B3D05B523716AB944DB428C0CF085A5620",
-                "D953AC40664928C0E3981D1C995C652BACAD4249446094094CFECAC1955CBD18", "BA9288BF25018C0C05DFE0B64486D54E44F84EC0D9770220C1BEFB19486DA898", "6C52F9FBF400BADE6938A827BF540DE797E373922339FDB267C2761A8BD3BA45", "4B6907E58201AB3115EF1D9C3D59A5C820BDF0CCAF465B9C9CCC85A248C08A71",
-                "1730DF571AFB56199F2CD98AB8BBF8397C583622B723657994A6E488065E9020", "B53C71B5D06118558AD791DDDFC6ABBB1134E5DD53272EC4FDA1DAB98B266929", "A48565B48EFEDB28AFC619C604E86462F319A8D02759512DEAFFD6C3719CA3FA", "88FD9766B064C60B9AB9710B51C2CD7D60FECB47008CE45702ED7F049D37CD6E" };
-            guarded = names.Select((n, i) => AccessTools.Method(supplier.GetType("Gagarin." + types[i]), n)).ToArray();
-            for (int i = 0; i < guarded.Length; i++)
-            {
-                using var body = new MemoryStream(guarded[i].GetMethodBody()!.GetILAsByteArray());
-                if (Hash(body) != hashes[i])
-                    throw new InvalidOperationException("loaded-body-mismatch-" + names[i]);
-            }
+            var methods = SupplierMethodContract.ResolveAll(supplier, SupplierContracts.Gagarin);
+            guarded = Enumerable.Range(0, 11).Select(i => (MethodInfo)methods["Method" + i]).ToArray();
             assetPostfix = guarded[1];
             usingCache = (Func<bool>)Delegate.CreateDelegate(typeof(Func<bool>), guarded[3]);
             loadingMods = (Func<bool>)Delegate.CreateDelegate(typeof(Func<bool>), guarded[4]);
