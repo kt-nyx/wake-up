@@ -40,7 +40,7 @@ public sealed class PngProcessingTests
             if (method == PngRuntime.Iterator)
                 continue;
             Assert.That(SemanticMethodIdentity.TryHash(method, out string hash, out string reason), Is.True, reason);
-            Assert.That(hash, Is.EqualTo(PngRuntime.Expected[method.Name]));
+            Assert.That(hash, Is.EqualTo(PngRuntime.ExpectedBody(GameBuildContract.Current, method.Name)));
         }
         var original = PatchProcessor.GetOriginalInstructions(PngRuntime.Image);
         var replaced = PngRuntime.ImageTranspiler(original).ToArray();
@@ -86,6 +86,33 @@ public sealed class PngProcessingTests
             Assert.That(cache.CanCapture(0), Is.False);
             cache.Invalidate(key);
             Assert.That(cache.Read(key), Is.Null);
+        }
+        finally { if (Directory.Exists(root)) Directory.Delete(root, true); }
+    }
+
+    [TestCase(32, 16, 10, 6, 360)] // CPU DXT1, complete mip chain including sub-block mips.
+    [TestCase(32, 16, 12, 6, 720)] // CPU DXT5 with alpha.
+    [TestCase(12, 8, 10, 2, 64)] // Reduced mip chain for a non-power-of-two image.
+    [TestCase(7, 5, 3, 3, 126)] // RGB image which the native loader leaves uncompressed.
+    public void CpuTextureLayoutsRoundTripWithSamplerSettings(int width, int height, int format, int mips, int bytes)
+    {
+        string root = Path.Combine(Path.GetTempPath(), "wake-up-cpu-png-" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            Assert.That(PngCache.ExpectedBytes(width, height, format, mips), Is.EqualTo(bytes));
+            var cache = new PngCache(root);
+            var entry = new PngCache.Entry { Width = width, Height = height, TextureFormat = format, Mips = mips,
+                GraphicsFormat = 99, Filter = 2, Aniso = 2, WrapU = 1, WrapV = 2, WrapW = 0, Bias = 0.25f,
+                Pixels = Enumerable.Range(0, bytes).Select(i => (byte)(i * 31)).ToArray() };
+            string key = PngCache.Hex(PngCache.Hash(entry.Pixels));
+            cache.Write(key, entry);
+            var read = cache.Read(key);
+            Assert.That(read, Is.Not.Null);
+            Assert.That(read!.Pixels, Is.EqualTo(entry.Pixels));
+            Assert.That(new[] { read.Width, read.Height, read.TextureFormat, read.Mips, read.GraphicsFormat,
+                read.Filter, read.Aniso, read.WrapU, read.WrapV, read.WrapW },
+                Is.EqualTo(new[] { width, height, format, mips, 99, 2, 2, 1, 2, 0 }));
+            Assert.That(read.Bias, Is.EqualTo(entry.Bias));
         }
         finally { if (Directory.Exists(root)) Directory.Delete(root, true); }
     }

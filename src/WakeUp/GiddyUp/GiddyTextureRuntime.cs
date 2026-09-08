@@ -60,9 +60,14 @@ internal static class GiddyTextureRuntime
                 Receipt("inactive", "supplier-absent");
                 return true;
             }
-            if (!ReferenceEquals(GameBuildContract.Current, GameBuildContract.GogRev573) || !RuntimeIdentity.ValidateBinaryIdentity(out _))
+            if (!RuntimeIdentity.ValidateBinaryIdentity(out string reason))
             {
-                Receipt("refused", "game-or-harmony-identity");
+                Receipt("refused", reason);
+                return true;
+            }
+            if (!GameBuildContract.Current.HasReviewedLoadingMethods)
+            {
+                Receipt("refused", "unreviewed-giddy-game-build");
                 return true;
             }
             Assembly? assembly = AppDomain.CurrentDomain.GetAssemblies().SingleOrDefault(a => a.GetName().Name == "GiddyUpCore");
@@ -153,7 +158,7 @@ internal static class GiddyTextureRuntime
         Scope? s = scope;
         if (!enabled || s == null || completed || Thread.CurrentThread.ManagedThreadId != mainThread)
             return original!(source);
-        if (!guards.All(g => g.AllowsOriginalContract()) || SystemInfo.graphicsDeviceType != GraphicsDeviceType.Direct3D11 || s.Textures.Count >= 4096)
+        if (!guards.All(g => g.AllowsOriginalContract()) || !TexturePlatformSupport.SupportsReadback(GameBuildContract.Current, SystemInfo.graphicsDeviceType) || s.Textures.Count >= 4096)
         {
             s.Fallbacks++;
             return original!(source);
@@ -196,6 +201,8 @@ internal static class GiddyTextureRuntime
     {
         // Keep the supplier's complete blit and conversion. Read only the same
         // integer center column; its original CPU GetBackHeight loop is unchanged.
+        // ReadPixels uses lower-left coordinates on both admitted backends;
+        // leave OpenGL orientation to Unity, with no additional vertical flip.
         RenderTexture active = RenderTexture.active;
         RenderTexture temporary = RenderTexture.GetTemporary(source.width, source.height, 0, RenderTextureFormat.Default, RenderTextureReadWrite.Linear);
         Texture2D? result = null;
@@ -232,7 +239,7 @@ internal static class GiddyTextureRuntime
         string digest = BitConverter.ToString(sha.ComputeHash(s.Data.ToArray())).Replace("-", "");
         Receipt("complete", "original-offsets", "\"calls\":" + s.Calls + ",\"hits\":" + s.Hits + ",\"fallbacks\":" + s.Fallbacks
             + ",\"errors\":" + s.Errors + ",\"verified\":" + s.Verified + ",\"mismatches\":" + s.Mismatches + ",\"sourcePixels\":" + s.Pixels
-            + ",\"offsetSha256\":\"" + digest + "\",\"retainedTextures\":" + s.Textures.Count
+            + ",\"graphicsBackend\":\"" + SystemInfo.graphicsDeviceType + "\",\"offsetSha256\":\"" + digest + "\",\"retainedTextures\":" + s.Textures.Count
             + ",\"offsetMs\":" + (s.Ticks * 1000d / Stopwatch.Frequency).ToString("F3", CultureInfo.InvariantCulture)
             + ",\"scopeThroughMenuMs\":" + s.Watch.Elapsed.TotalMilliseconds.ToString("F3", CultureInfo.InvariantCulture)
             + ",\"exception\":" + (s.Errors == 0 ? "false" : "true"));

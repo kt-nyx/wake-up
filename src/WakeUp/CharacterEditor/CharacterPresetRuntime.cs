@@ -73,10 +73,14 @@ internal static class CharacterPresetRuntime
                 Receipt("inactive", "character-editor-not-active");
                 return true;
             }
-            if (!ReferenceEquals(GameBuildContract.Current, GameBuildContract.GogRev573)
-                || !RuntimeIdentity.ValidateBinaryIdentity(out _))
+            if (!RuntimeIdentity.ValidateBinaryIdentity(out string reason))
             {
-                Receipt("refused", "game-or-harmony-identity");
+                Receipt("refused", reason);
+                return true;
+            }
+            if (!GameBuildContract.Current.HasReviewedLoadingMethods)
+            {
+                Receipt("refused", "unreviewed-preset-game-build");
                 return true;
             }
             Assembly? assembly = AppDomain.CurrentDomain.GetAssemblies().SingleOrDefault(a => a.GetName().Name == "CharacterEditor");
@@ -85,7 +89,7 @@ internal static class CharacterPresetRuntime
                 Receipt("refused", "character-editor-supplier-identity");
                 return true;
             }
-            if (!ValidateBodies(assembly, out string reason))
+            if (!ValidateBodies(assembly, out reason))
             {
                 Receipt("refused", reason);
                 return true;

@@ -31,9 +31,14 @@ internal static class RepaintCoalescer
         var choice = StartupLaunchSelector.Parse(args);
         if (!LoadedModManager.RunningModsListForReading.Any(m => m.PackageId == LoadingProgressCompatibility.PackageId))
             return;
-        if (choice.Selection != StartupSelection.Candidate || !RuntimeIdentity.ValidateBinaryIdentity(out _))
+        if (choice.Selection != StartupSelection.Candidate)
             return;
         path = Path.Combine(choice.SaveDataRoot!, "WakeUp", "repaint-coalescing.jsonl");
+        if (!RuntimeIdentity.ValidateBinaryIdentity(out string reason))
+        {
+            JsonLineLog.WriteReceipt(path, "refused", reason);
+            return;
+        }
         var harmony = new Harmony(Owner);
         try
         {

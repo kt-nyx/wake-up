@@ -16,6 +16,17 @@ internal sealed class GameBuildContract
     internal static readonly GameBuildContract GogRev573 = new(
         "gog-rev573", "1.6.9676.17238", "13bee51f-e6fa-4214-a4a5-e1e7b84a41ee",
         "4A170804FBFEFABDB620D8914E584E58F822A58C6E304DCB76A67003588DAB28");
+    internal static readonly GameBuildContract LinuxRev600 = new(
+        "linux-rev600", "1.6.9676.18020", "b4d967f0-d45a-413f-bb02-23eefee4f2ae",
+        "082DB1DD4F7F1D0B72960D7E1BEEAD8FBFE6957200E8627F65BDA0DBBE1DD8F8");
+
+    // The reviewed Steam Windows loading/texture methods match GOG; Linux's
+    // loading methods match too, with its separate PNG LoadItem fingerprint.
+    // See windows-steam-support.md and linux-support.md for exact comparisons.
+    internal bool HasReviewedLoadingMethods => ReferenceEquals(this, GogRev573)
+        || ReferenceEquals(this, SteamRev590) || ReferenceEquals(this, LinuxRev600);
+    internal bool IsLinux => ReferenceEquals(this, LinuxRev600);
+    internal string DataDirectoryName => IsLinux ? "RimWorldLinux_Data" : "RimWorldWin64_Data";
 
     private GameBuildContract(string target, string version, string mvid, string sha256)
     {
@@ -50,7 +61,7 @@ internal sealed class GameBuildContract
     {
         if (!string.Equals(name.Name, "Assembly-CSharp", StringComparison.Ordinal))
             return null;
-        foreach (GameBuildContract build in new[] { SteamRev590, GogRev573 })
+        foreach (GameBuildContract build in new[] { SteamRev590, GogRev573, LinuxRev600 })
             if (name.Version?.ToString() == build.Version && mvid == build.Mvid)
                 return build;
         return null;

@@ -13,44 +13,50 @@ namespace WakeUp;
 // Admission authenticates both the loaded identities and the pinned physical files.
 internal static class RuntimeIdentity
 {
-    private static string AssemblySha => GameBuildContract.Current.Sha256;
     private const string HarmonySha = "7B9E756306FA3D7620E02A857C8927A6AB04973F9BD8A77D3866700A6DEAC55C";
     internal static bool ValidateBinaryIdentity(out string reason)
         => ValidateBinaryIdentity(typeof(ModContentPack).Module, ResolveHarmonyFileWithoutModBindings, out reason);
 
-    private static bool ValidateBinaryIdentity(Module module, Func<Assembly, string?> harmonyResolver, out string reason)
+    internal static string DescribeFailure(string reason)
+    {
+        string detail = reason == "game-build-unreviewed" ? "This RimWorld build has not been reviewed."
+            : reason == "game-module-file-unavailable" ? "Wake-Up could not locate the original RimWorld game file."
+            : reason.StartsWith("game-", StringComparison.Ordinal) ? "The RimWorld game file does not match its reviewed build."
+            : reason == "harmony-file-unavailable" ? "Wake-Up could not locate the Harmony library supplied by Prepatcher."
+            : reason.StartsWith("harmony-", StringComparison.Ordinal) ? "This Harmony library does not match the reviewed build."
+            : "Wake-Up could not verify the game and Harmony files.";
+        return detail + " Ordinary loading is preserved.";
+    }
+
+    internal static bool ValidateBinaryIdentity(Module module, Func<Assembly, string?> harmonyResolver, out string reason)
     {
         reason = "runtime-identity-mismatch";
         try
         {
             AssemblyName game = module.Assembly.GetName();
-            Assembly harmony = typeof(Harmony).Assembly;
             if (!string.Equals(game.Name, "Assembly-CSharp", StringComparison.Ordinal))
             {
                 reason = "game-assembly-name-mismatch";
                 return false;
             }
-            if (!string.Equals(game.Version?.ToString(), GameBuildContract.Current.Version, StringComparison.Ordinal))
+            GameBuildContract? build = GameBuildContract.Select(game, module.ModuleVersionId);
+            if (build is null)
             {
-                reason = "game-assembly-version-mismatch";
+                reason = "game-build-unreviewed";
                 return false;
             }
-            if (module.ModuleVersionId != GameBuildContract.Current.Mvid)
-            {
-                reason = "game-module-mvid-mismatch";
-                return false;
-            }
-            string? gameAssemblyPath = ResolveGameAssemblyPath(module);
+            string? gameAssemblyPath = ResolveGameAssemblyPath(module, build);
             if (gameAssemblyPath is null)
             {
                 reason = "game-module-file-unavailable";
                 return false;
             }
-            if (!string.Equals(HashFile(gameAssemblyPath), AssemblySha, StringComparison.Ordinal))
+            if (!string.Equals(HashFile(gameAssemblyPath), build.Sha256, StringComparison.Ordinal))
             {
                 reason = "game-module-sha-mismatch";
                 return false;
             }
+            Assembly harmony = typeof(Harmony).Assembly;
             if (!string.Equals(harmony.GetName().Version?.ToString(), "2.4.2.0", StringComparison.Ordinal))
             {
                 reason = "harmony-assembly-version-mismatch";
@@ -78,26 +84,22 @@ internal static class RuntimeIdentity
         catch { return false; }
     }
 
-    private static string? ResolveGameAssemblyPath(Module module)
+    private static string? ResolveGameAssemblyPath(Module module, GameBuildContract build)
     {
-        string[] candidates;
-        try
-        {
-            candidates = new[]
-            {
-                module.FullyQualifiedName,
-                module.Assembly.Location,
-                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RimWorldWin64_Data", "Managed", "Assembly-CSharp.dll"),
-            };
-        }
-        catch
-        {
-            candidates = new[]
-            {
-                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RimWorldWin64_Data", "Managed", "Assembly-CSharp.dll"),
-            };
-        }
-        foreach (string candidate in candidates)
+        string? modulePath = null, assemblyPath = null;
+        try { modulePath = module.FullyQualifiedName; } catch { }
+        try { assemblyPath = module.Assembly.Location; } catch { }
+        return ResolveGameAssemblyPath(AppDomain.CurrentDomain.BaseDirectory, build, modulePath, assemblyPath);
+    }
+
+    // Prepatcher may load bytes without a physical assembly Location. Select the
+    // platform's original game file; the caller still authenticates its full hash.
+    internal static string? ResolveGameAssemblyPath(string gameRoot, GameBuildContract build,
+        string? modulePath = null, string? assemblyPath = null)
+    {
+        string?[] candidates = { modulePath, assemblyPath,
+            Path.Combine(gameRoot, build.DataDirectoryName, "Managed", "Assembly-CSharp.dll") };
+        foreach (string? candidate in candidates)
         {
             try
             {
@@ -135,10 +137,13 @@ internal static class RuntimeIdentity
     }
 
     private static string? ResolveSameLibraryPrepatcherHarmonyPath()
+        => ResolveSameLibraryPrepatcherHarmonyPath(AppDomain.CurrentDomain.BaseDirectory);
+
+    internal static string? ResolveSameLibraryPrepatcherHarmonyPath(string gameRootPath)
     {
         try
         {
-            var gameRoot = new DirectoryInfo(Path.GetFullPath(AppDomain.CurrentDomain.BaseDirectory));
+            var gameRoot = new DirectoryInfo(Path.GetFullPath(gameRootPath));
             DirectoryInfo? common = gameRoot.Parent;
             DirectoryInfo? steamApps = common?.Parent;
             if (common is null || steamApps is null

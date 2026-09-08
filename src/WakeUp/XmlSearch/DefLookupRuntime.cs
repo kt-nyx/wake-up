@@ -48,10 +48,14 @@ internal static class DefLookupRuntime
             }
             evidencePath = Path.Combine(mode.SaveDataRoot!, "WakeUp", "def-lookup.jsonl");
             candidate = mode.Selection == StartupSelection.Candidate;
-            if (!ReferenceEquals(GameBuildContract.Current, GameBuildContract.GogRev573)
-                || !RuntimeIdentity.ValidateBinaryIdentity(out _))
+            if (!RuntimeIdentity.ValidateBinaryIdentity(out string reason))
             {
-                Receipt("refused", "pinned-binary-identity");
+                Receipt("refused", reason);
+                return true;
+            }
+            if (!GameBuildContract.Current.HasReviewedLoadingMethods)
+            {
+                Receipt("refused", "unreviewed-definition-search-build");
                 return true;
             }
             Assembly game = typeof(LoadedModManager).Assembly;

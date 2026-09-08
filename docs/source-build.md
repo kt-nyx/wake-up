@@ -6,10 +6,14 @@ maintainer's private fixture. You can build without creating that fixture.
 
 Use Windows, Git, PowerShell 7, Python 3.11+ and the .NET SDK pinned in `global.json`.
 Obtain the required game and Prepatcher references legally. The present build
-contract uses the exact reviewed GOG game and Harmony binaries; version labels
-alone are insufficient. Their hashes are in `build/Verify-LocalReferences.ps1`.
-Do not weaken those checks to make another build compile: Steam support is a
-separate pending qualification task.
+example below selects the fixture's exact reviewed GOG game and Harmony binaries;
+version labels alone are insufficient. Their hashes are in
+`build/Verify-LocalReferences.ps1`. The explicit `linux-rev600` target also permits
+the captured native Linux references for offline compilation. The historical
+`steam-rev590` target remains available. Runtime platform support and the build
+host are separate: these instructions still use Windows and PowerShell 7.
+Do not weaken identity checks to make another build compile; see the
+[Linux preview's qualification limits](linux-support.md).
 
 From a source checkout or extracted source archive, set the paths for your own
 copies, then restore and build:
@@ -28,6 +32,15 @@ These commands do not launch the game. Runtime output is under
 `artifacts/bin/WakeUp/Release/net472/`.
 Tests require the separately obtained references; no public CI runner is
 expected to download or possess the game. Python packaging checks run without it.
+
+To check compilation against the reviewed Linux game without changing the
+fixture, set `WAKE_UP_RIMWORLD_MANAGED_DIR` to a private copy of its
+`RimWorldLinux_Data/Managed` directory, set the Prepatcher path as above, and
+select `WAKE_UP_REFERENCE_TARGET=linux-rev600`. Build only
+`src/WakeUp/WakeUp.csproj`; the Windows fixture observer is not a Linux target.
+Use an absolute `-p:OutputPath=...` under `artifacts/` to keep this output separate
+from the ordinary build. The normal fixture test suite still uses GOG references;
+compiling Linux references on Windows is not a Linux execution test.
 
 The package's `Source/source.zip` carries the actual corresponding source,
 including these instructions, pinned dependencies, project files and scripts.

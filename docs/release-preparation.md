@@ -1,9 +1,36 @@
 # Release preparation
 
-The product is ready for release packaging, not yet qualified for a Steam
-Workshop launch. Final user-facing copy and preview art remain pending.
-This preparation does not publish a binary or create a Workshop
-item. The source repository may be public independently of binary qualification.
+The owner authorized the 0.2.0-preview.1 Windows Steam/Linux update on 2026-09-08.
+The [release notes](../release/notes-0.2.0-preview.1.md) state its exact supported
+builds and pending live checks. Uploading does not establish additional runtime
+or performance qualification. Preserve the owner's existing Workshop copy and
+preview image; update its compatibility section and change notes for this release.
+
+## Workshop description and performance claims
+
+The description leads with player benefits and names the four optional mod
+integrations. Its rounded 17% figure comes from the 16.58% equally weighted average of the four
+completed smaller-list fresh-cache reductions, not an average for all players
+or the unfinished broader campaign. The repeatable best case is 77.71 to 38.97
+seconds, approximately 50% shorter startup. Both come from the
+[retained-feature benchmark record](feature-benchmark-results.md).
+
+Keep the development-test, four-list and rebuilt-cache scope beside these claims;
+the full test conditions and technical explanation live in the linked GitHub
+documentation. Use "shorter load times" to describe time saved, and do not turn
+the measured four-list average into an expected 15-20% range for all players.
+The uploaded build has not received a separate Steam benchmark. Later
+Character Editor, Loading Progress and Giddy-Up comparisons are separate
+measurements; do not add their gains to the four-list average. No new benchmark
+was run to prepare this copy. Publication and qualification are separate facts.
+
+The companion section links Missile Girl for its own loading cache and Loading
+Progress for loading visibility, using their authors' Workshop descriptions.
+It does not promise that adding either increases Wake-Up's measured saving:
+existing caches skip some of the work Wake-Up accelerates, and the recorded
+Loading Progress hook prevents the extra Gagarin reuse. Character Editor and
+Giddy-Up remain optional integrations, not recommendations to install gameplay
+mods solely for startup performance.
 
 ## Product identity
 
@@ -45,7 +72,12 @@ the full current tracked source as `Source/source.zip`, and writes a ZIP plus
 a public manifest of hashes under `artifacts/releases/<version>-<revision>/`.
 It rejects symlinks, private fixture paths and unexpected input files. It never
 ships the fixture's private build receipt, game references or observer DLL.
-There is no upload step. Inspect the generated folder before manual distribution.
+The packager has no upload step. Inspect the generated folder before distribution.
+For the owner-authorized update, the existing Steam client API can update item
+`3798073152` without launching RimWorld. Verify app ID and listing ownership,
+upload only the inspected source-inclusive content, preserve unrelated listing
+fields and capture Steam's completion result. Publish the matching source tag
+and downloadable ZIP on GitHub's public history.
 
 The generated public manifest records source and package identities and marks
 Steam qualification pending. The source archive contains only the current tree,
@@ -90,11 +122,14 @@ permission review; our exception cannot extend another author's rights.
    disclaimer in NOTICE on or alongside the published content.
 3. Set the release version/status and `steamQualified` only from actual evidence;
    review supported versions and feature limitations against that evidence.
-4. Package that revision, publish a matching source tag, and manually upload the
-   inspected mod folder with the bundled source and notices. Record the assigned
-   Workshop item ID privately until publication; never invent one in advance.
+4. For the next update, package that revision, publish a matching source tag, and
+   upload the inspected mod folder with the bundled source and notices using
+   the owner-authorized publishing method.
+   Preserve the publishing folder's `About/PublishedFileId.txt` so the update
+   targets the existing listing recorded in [current state](current-state.md).
 
-The current development bundle is not a Workshop-ready compatibility claim.
+The preview may be distributed with the stated limits; it must not be relabelled
+as fully qualified merely because publication succeeds.
 
 ## Initial preparation verification, 2026-09-08
 

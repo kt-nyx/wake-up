@@ -44,6 +44,18 @@ future fixture runs. Old captures remain evidence of their recorded builds.
 
 The repository pins .NET SDK `10.0.400` in [global.json](../global.json). The existing fixture supplies the reviewed GOG `Assembly-CSharp.dll` and frozen Harmony references. Do not substitute a convenient installed game DLL. Run from the checkout:
 
+The [Linux preview](linux-support.md) separately permits offline runtime-only
+compilation against the captured exact `linux-rev600` references under ignored
+`artifacts/`, as described in [source build](source-build.md). This does not
+replace fixture references, deploy a candidate or authorize a game launch.
+
+The [Windows Steam support review](windows-steam-support.md) also permits
+runtime-only compilation and focused managed identity/texture tests against the
+owner's exact installed `steam-rev590` game and authenticated Prepatcher references.
+Use `WAKE_UP_REFERENCE_TARGET=steam-rev590` and an absolute `OutputPath` under
+`artifacts/windows-steam-support/`. This does not change fixture references or
+authorize installation or live testing.
+
 ```powershell
 python scripts/fixture.py test
 python scripts/fixture.py build
@@ -107,6 +119,13 @@ For authorized manual inspection use `--no-exit-after-menu-ready`, then wait for
 
 ## PNG qualification and cache reuse
 
+The Linux OpenGL source port caches the game's default CPU-processing output;
+it requires no added launch flag or enabled compute shaders. Windows Direct3D 11
+retains compute block capture and also supports CPU processing. These paths have
+separate cache identities. Linux graphics validation remains pending; see
+[Linux support](linux-support.md). Do not interpret successful offline tests or
+cross-compilation as texture equality or a loading speed measurement.
+
 The following feature switches are explicit fixture controls, not ordinary user-setting defaults. Use `--png cache` with candidate `startup-searches` to enable the retained processed-PNG cache; its default is `off`. `--png control` records original PNG processing and `--png verify-cache` adds sampled rendering comparisons. Normal DDS precedence is preserved. Only an explicit `--png-source original` qualification comparison selects existing PNG siblings instead of their DDS counterparts. Match that source choice between arms and report it as a PNG workload, not a gain for the normal DDS-heavy fixture.
 
 `--png-cache-from <label>` restores only a normally completed capture's processed-PNG entries after checking file identities and matching package, content, lane, selectors, profile overrides and observer. The first cache build and subsequent hits are different performance conditions. Keep all source and payload validation inside startup timing; verification replay is a separate correctness arm. The cache needs no external conversion tool or mod-specific allowlist. Unsupported graphics/settings retain original processing.
@@ -137,7 +156,7 @@ Keep concise decisions and useful evidence summaries in [results](results.md). R
 
 ## Publication
 
-No release has been published. Normal activation and an exact development support policy are implemented in the [user guide](user-guide.md), with focused new-colony/save-reload coverage in the [qualification report](product-activation-and-final-opportunities.md). Broader game/dependency support and gameplay coverage remain necessary before broader release claims. The exact pinned GOG fixture is a development contract; it does not qualify latest Steam or other platforms.
+The owner reported a Workshop upload on 2026-09-08; see [current state](current-state.md). Normal activation and an exact development support policy are implemented in the [user guide](user-guide.md), with focused new-colony/save-reload coverage in the [qualification report](product-activation-and-final-opportunities.md). Broader game/dependency support and gameplay coverage remain necessary before broader release claims. The exact pinned GOG fixture is a development contract; it does not qualify latest Steam or other platforms.
 
 The approved licensing direction is implemented in [LICENSE.md](../LICENSE.md): GPL-3.0-or-later with a separate linking permission, CC BY-SA 4.0 documentation/artwork, DCO and explicit Workshop contribution consent. See [release preparation](release-preparation.md) for packaging and the remaining Steam/copy work. The archived assessment is historical. Public source publication is separate from a qualified Workshop binary release.
 

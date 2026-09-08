@@ -1,0 +1,41 @@
+[h1]Less waiting. More RimWorld.[/h1]
+[b]Up to 50% shorter load times in development tests, with around 17% saved on average across four tested modlists.[/b]
+
+Wake-Up helps you get from launching RimWorld to the main menu sooner. It trims repeated work out of startup, helping the game find what it needs faster and spend less time preparing your mods.
+
+Results depend on your modlist. These figures come from tests with loading caches rebuilt; if another mod already skips that work, the extra saving can be small or absent.
+
+[h2]Features[/h2]
+[list]
+[*][b]Finds things faster.[/b] Cuts down on repeated searches while RimWorld prepares your modded content.
+[*][b]Avoids doing the same work twice.[/b] Reuses information during loading where supported, instead of repeatedly rebuilding it.
+[*][b]Remembers prepared textures.[/b] Optional texture caching can speed up later launches with eligible textures. It's off by default because the first cache build takes extra time.
+[*][b]Lets you choose.[/b] Enable or disable individual improvements in Wake-Up's mod settings. Changes take effect after restarting the game.
+[/list]
+
+[h2]Mod integrations[/h2]
+Extra help for some familiar faces:
+[list]
+[*][b]Character Editor:[/b] Reduces repetitive setup while preparing its object and turret presets.
+[*][b]Loading Progress:[/b] Reduces extra pauses spent refreshing the loading display. Progress may update less frequently while loading continues.
+[*][b]Giddy-Up:[/b] Reduces image-processing work used to position riders on animals during startup.
+[*][b]Gagarin / Missile Girl:[/b] Reuses already-prepared mod data to avoid an extra processing step when loading its cache.
+[/list]
+These mods are all optional. You only need the ones you actually want to use.
+
+[h2]Recommended companion mods[/h2]
+[list]
+[*][url=https://steamcommunity.com/sharedfiles/filedetails/?id=3712928623][b]Missile Girl - Performance Mod[/b][/url] — Saves prepared mod data so later launches can skip more work. Wake-Up includes an additional improvement for its Gagarin loading cache on supported setups.
+[*][url=https://steamcommunity.com/sharedfiles/filedetails/?id=3535481557][b]Loading Progress[/b][/url] — Shows what RimWorld is doing as it loads. A useful companion if you want a clearer loading screen, with Wake-Up reducing some of the pauses spent updating it on supported versions.
+[/list]
+Choose companions for the features you want. Loading Progress can prevent Wake-Up's extra Missile Girl improvement from running, and an existing cache can leave less work for Wake-Up to speed up.
+
+[h2]Compatibility[/h2]
+Improvements activate only for supported versions and setups; otherwise normal loading is preserved. Some loading optimizations overlap, so their savings won't always add together.
+
+[b]0.2.0-preview.1 — Windows Steam and Linux / Steam Deck support:[/b] Adds Windows Steam 1.6.4871 rev590 and native Linux 1.6.4871 rev600 support. No extra launch flag is required. Includes OpenGL Giddy-Up improvements, CPU PNG caching with Steam's default Linux settings, and PNG integration with Loading Progress. Five features completed startup on a Steam Deck; final Windows Steam and PNG cache live validation remains pending. PNG caching remains opt-in and can slow the first launch while building its cache. Earlier Windows benchmark figures are not Linux or Windows Steam performance claims.
+
+[h2]More information[/h2]
+[url=https://github.com/kt-nyx/wake-up]Visit Wake-Up on GitHub[/url] for technical details, benchmark results, compatibility notes, source code and credits.
+
+Portions of the materials used to create this content/mod are trademarks and/or copyrighted works of Ludeon Studios Inc. All rights reserved by Ludeon. This content/mod is not official and is not endorsed by Ludeon.

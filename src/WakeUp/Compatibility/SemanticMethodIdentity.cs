@@ -23,16 +23,14 @@ internal static class SemanticMethodIdentity
 
     // Derived from the pinned ORIGINAL GOG assembly (SHA in GameBuildContract),
     // using resolved Cecil operands, exact opcodes/branch offsets, locals and EH.
-    // These values are not learned from an optimized or Prepatcher-modified body.
-    internal static string? ExpectedFor(GameBuildContract build, int token)
+    // Steam Windows rev590 and Linux rev600 have identical original instructions,
+    // operands, locals and exception regions for this constructor.
+    // This value is not learned from an optimized or Prepatcher-modified body.
+    internal static string? ExpectedXmlAssetConstructor(GameBuildContract build)
     {
-        if (!ReferenceEquals(build, GameBuildContract.GogRev573))
+        if (!build.HasReviewedLoadingMethods)
             return null;
-        return token switch
-        {
-            0x060035A2 => "8672989FE7B5FF5D424A18EDBF1F6890A590E20C6C993737552A05A3A90491D5",
-            _ => throw new InvalidOperationException("Unreviewed constructor body."),
-        };
+        return "8672989FE7B5FF5D424A18EDBF1F6890A590E20C6C993737552A05A3A90491D5";
     }
 
     internal static bool TryHash(MethodBase method, out string hash, out string reason) =>

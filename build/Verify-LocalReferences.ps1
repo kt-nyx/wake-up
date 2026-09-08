@@ -110,7 +110,7 @@ $managedDir = (Resolve-Path -LiteralPath $managedDir).Path
 $prepatcherDir = (Resolve-Path -LiteralPath $prepatcherDir).Path
 
 # The fixture workflow explicitly selects the owner-approved GOG development
-# reference. GameBuildContract separately authenticates either reviewed runtime.
+# reference. GameBuildContract separately authenticates reviewed runtimes.
 # An unspecified target retains the historical reviewed Steam reference.
 $referenceTarget = $env:WAKE_UP_REFERENCE_TARGET
 $gameVersion = '1.6.9676.17735'
@@ -120,7 +120,11 @@ if ($referenceTarget -eq 'gog-rev573') {
     $gameSha = '4A170804FBFEFABDB620D8914E584E58F822A58C6E304DCB76A67003588DAB28'
 }
 elseif (-not [string]::IsNullOrWhiteSpace($referenceTarget) -and $referenceTarget -ne 'steam-rev590') {
-    Fail ('unknown WAKE_UP_REFERENCE_TARGET: ' + $referenceTarget)
+    if ($referenceTarget -eq 'linux-rev600') {
+        $gameVersion = '1.6.9676.18020'
+        $gameSha = '082DB1DD4F7F1D0B72960D7E1BEEAD8FBFE6957200E8627F65BDA0DBBE1DD8F8'
+    }
+    else { Fail ('unknown WAKE_UP_REFERENCE_TARGET: ' + $referenceTarget) }
 }
 
 $verified = @(

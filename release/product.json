@@ -2,9 +2,9 @@
   "displayName": "Wake-Up: Loading Optimizations",
   "folderName": "wake-up",
   "packageId": "kt.nyx.wakeup",
-  "version": "0.1.0-dev",
+  "version": "0.2.0-preview.1",
   "author": "kt-nyx",
   "sourceUrl": "https://github.com/kt-nyx/wake-up",
-  "status": "development",
+  "status": "preview",
   "steamQualified": false
 }
