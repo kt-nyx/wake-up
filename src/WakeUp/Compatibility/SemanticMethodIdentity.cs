@@ -26,12 +26,8 @@ internal static class SemanticMethodIdentity
     // Steam Windows rev590 and Linux rev600 have identical original instructions,
     // operands, locals and exception regions for this constructor.
     // This value is not learned from an optimized or Prepatcher-modified body.
-    internal static string? ExpectedXmlAssetConstructor(GameBuildContract build)
-    {
-        if (!build.HasReviewedLoadingMethods)
-            return null;
-        return "8672989FE7B5FF5D424A18EDBF1F6890A590E20C6C993737552A05A3A90491D5";
-    }
+    internal const string ExpectedXmlAssetConstructor =
+        "8672989FE7B5FF5D424A18EDBF1F6890A590E20C6C993737552A05A3A90491D5";
 
     internal static bool TryHash(MethodBase method, out string hash, out string reason) =>
         TryHash(method, out hash, out reason, out _);

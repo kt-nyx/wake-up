@@ -14,6 +14,8 @@ For DLL inspection prefer the existing read-only ILSpy CLI under `artifacts/`. D
 
 Use `git -c core.hooksPath=.githooks commit ...` for every commit. The tracked guard rejects fixture content. Do not push, publish or launch beyond the owner's authorization.
 
+When publishing on the owner's behalf, preserve the existing Workshop mod description exactly unless the owner explicitly asks to change it. Release authorization permits the approved content update and release change notes; it does not authorize editing the description. Do not call the description setter in the ordinary upload path.
+
 # Product scope and communication
 
 Follow the [development policy](docs/development.md#development-policy). Prioritize shared RimWorld loading work across modlists. The owner also permits targeted improvements for individual mods when they remain soft dependencies: absent, changed or unsupported suppliers must preserve ordinary behavior, with exact identity checks and focused compatibility evidence. The fixture remains a representative workload. Preserve optional dependencies and ordinary fallback behavior.

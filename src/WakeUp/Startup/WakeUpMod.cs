@@ -13,7 +13,7 @@ public sealed class WakeUpMod : Mod
 {
     private WakeUpSettings? settings;
     private string launchStatus = "Startup optimizations are unavailable for this launch.";
-    private bool linuxPreview;
+    private bool linuxSupport;
 
     public WakeUpMod(ModContentPack content) : base(content)
     {
@@ -28,9 +28,9 @@ public sealed class WakeUpMod : Mod
                 arguments = UserStartupSelection.Resolve(arguments, settings, GenFilePaths.SaveDataFolderPath);
                 string reason = "disabled";
                 bool recognized = settings.Enabled && RuntimeIdentity.ValidateBinaryIdentity(out reason);
-                linuxPreview = recognized && GameBuildContract.Current.IsLinux;
+                linuxSupport = recognized && GameBuildContract.Current.IsLinux;
                 launchStatus = !settings.Enabled ? "Startup optimizations were disabled for this launch."
-                    : recognized ? "Recognized game and Harmony build. Selected features use their own compatibility checks."
+                    : recognized ? "Game revisions are not restricted. Selected features use their own compatibility checks; future updates may disable individual improvements."
                     : RuntimeIdentity.DescribeFailure(reason);
                 Log.Message("[Wake-Up] " + launchStatus);
                 if (settings.Enabled && !recognized)
@@ -60,8 +60,8 @@ public sealed class WakeUpMod : Mod
         list.Begin(inRect);
         list.Label("Changes take effect after restarting RimWorld.");
         list.Label(launchStatus);
-        if (linuxPreview)
-            list.Label("Linux OpenGL support: PNG caching and the Giddy-Up texture improvement support the reviewed game build. No extra launch flag is required.");
+        if (linuxSupport)
+            list.Label("Linux OpenGL support: PNG caching and the Giddy-Up texture improvement use feature compatibility checks. No extra launch flag is required.");
         list.Gap();
         list.CheckboxLabeled("Enable startup optimizations", ref settings.Enabled);
         list.CheckboxLabeled("Faster definition and template searches", ref settings.DefinitionSearches);
@@ -74,7 +74,7 @@ public sealed class WakeUpMod : Mod
         list.CheckboxLabeled("Reduce Giddy-Up texture readback", ref settings.GiddyTextures);
         list.Gap();
         list.CheckboxLabeled("Cache processed PNG textures (up to 512 MiB)", ref settings.PngCache);
-        list.Label("PNG caching can slow the first launch while building its cache. Later launches may be faster. DDS textures are unaffected. Supports reviewed Windows Direct3D 11 and Linux OpenGL builds, including Steam's default Linux launch settings.");
+        list.Label("PNG caching can slow the first launch while building its cache. Later launches may be faster. DDS textures are unaffected. Supports compatible Windows Direct3D 11 and Linux OpenGL loaders, including Steam's default Linux launch settings.");
         list.End();
     }
 }

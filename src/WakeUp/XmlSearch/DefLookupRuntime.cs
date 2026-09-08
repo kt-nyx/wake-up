@@ -53,11 +53,6 @@ internal static class DefLookupRuntime
                 Receipt("refused", reason);
                 return true;
             }
-            if (!GameBuildContract.Current.HasReviewedLoadingMethods)
-            {
-                Receipt("refused", "unreviewed-definition-search-build");
-                return true;
-            }
             Assembly game = typeof(LoadedModManager).Assembly;
             if (candidate)
             {

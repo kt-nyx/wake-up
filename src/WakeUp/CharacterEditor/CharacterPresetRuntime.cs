@@ -78,11 +78,6 @@ internal static class CharacterPresetRuntime
                 Receipt("refused", reason);
                 return true;
             }
-            if (!GameBuildContract.Current.HasReviewedLoadingMethods)
-            {
-                Receipt("refused", "unreviewed-preset-game-build");
-                return true;
-            }
             Assembly? assembly = AppDomain.CurrentDomain.GetAssemblies().SingleOrDefault(a => a.GetName().Name == "CharacterEditor");
             if (assembly == null || !ValidateSupplier(assembly, Path.Combine(supplier.RootDir, "v1.6", "Assemblies", "CharacterEditor.dll")))
             {

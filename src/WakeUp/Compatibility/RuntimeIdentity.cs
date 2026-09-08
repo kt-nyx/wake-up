@@ -10,7 +10,8 @@ using Verse;
 
 namespace WakeUp;
 
-// Admission authenticates both the loaded identities and the pinned physical files.
+// Game revisions may advance independently. Keep the exact Harmony contract:
+// PublishedPatchGuard relies on its internal publication behavior.
 internal static class RuntimeIdentity
 {
     private const string HarmonySha = "7B9E756306FA3D7620E02A857C8927A6AB04973F9BD8A77D3866700A6DEAC55C";
@@ -19,12 +20,11 @@ internal static class RuntimeIdentity
 
     internal static string DescribeFailure(string reason)
     {
-        string detail = reason == "game-build-unreviewed" ? "This RimWorld build has not been reviewed."
-            : reason == "game-module-file-unavailable" ? "Wake-Up could not locate the original RimWorld game file."
-            : reason.StartsWith("game-", StringComparison.Ordinal) ? "The RimWorld game file does not match its reviewed build."
+        string detail = reason == "game-platform-unsupported" ? "This game assembly or operating system is unsupported."
+            : reason.StartsWith("game-", StringComparison.Ordinal) ? "Wake-Up could not identify the RimWorld game assembly."
             : reason == "harmony-file-unavailable" ? "Wake-Up could not locate the Harmony library supplied by Prepatcher."
             : reason.StartsWith("harmony-", StringComparison.Ordinal) ? "This Harmony library does not match the reviewed build."
-            : "Wake-Up could not verify the game and Harmony files.";
+            : "Wake-Up could not check the game platform and Harmony library.";
         return detail + " Ordinary loading is preserved.";
     }
 
@@ -39,21 +39,10 @@ internal static class RuntimeIdentity
                 reason = "game-assembly-name-mismatch";
                 return false;
             }
-            GameBuildContract? build = GameBuildContract.Select(game, module.ModuleVersionId);
+            GameBuildContract? build = GameBuildContract.SelectRuntime(game, module.ModuleVersionId);
             if (build is null)
             {
-                reason = "game-build-unreviewed";
-                return false;
-            }
-            string? gameAssemblyPath = ResolveGameAssemblyPath(module, build);
-            if (gameAssemblyPath is null)
-            {
-                reason = "game-module-file-unavailable";
-                return false;
-            }
-            if (!string.Equals(HashFile(gameAssemblyPath), build.Sha256, StringComparison.Ordinal))
-            {
-                reason = "game-module-sha-mismatch";
+                reason = "game-platform-unsupported";
                 return false;
             }
             Assembly harmony = typeof(Harmony).Assembly;
@@ -78,22 +67,14 @@ internal static class RuntimeIdentity
                 reason = "harmony-file-sha-mismatch";
                 return false;
             }
-            reason = "binary-identity-exact";
+            reason = build.IsReviewedBuild ? "reviewed-game-feature-checks" : "new-game-feature-checks";
             return true;
         }
         catch { return false; }
     }
 
-    private static string? ResolveGameAssemblyPath(Module module, GameBuildContract build)
-    {
-        string? modulePath = null, assemblyPath = null;
-        try { modulePath = module.FullyQualifiedName; } catch { }
-        try { assemblyPath = module.Assembly.Location; } catch { }
-        return ResolveGameAssemblyPath(AppDomain.CurrentDomain.BaseDirectory, build, modulePath, assemblyPath);
-    }
-
-    // Prepatcher may load bytes without a physical assembly Location. Select the
-    // platform's original game file; the caller still authenticates its full hash.
+    // Retained for offline file discovery; runtime admission does not hash or
+    // require a physical game file (Prepatcher may load the assembly from bytes).
     internal static string? ResolveGameAssemblyPath(string gameRoot, GameBuildContract build,
         string? modulePath = null, string? assemblyPath = null)
     {

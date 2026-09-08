@@ -1,5 +1,19 @@
 # Current state
 
+**Unreleased forward compatibility, 2026-09-08:** At the owner's request, runtime
+admission no longer pins the game assembly version, MVID or full file hash.
+Future Windows and native Linux builds attempt each feature's existing method,
+supplier, graphics and patch checks. Harmony remains pinned. PNG cache keys now
+include the actual game MVID so updates rebuild eligible entries. The first
+offline pass completed 105 managed tests (one existing optional supplier skip)
+and all 35 Python checks, with zero build warnings/errors. Compilation against
+the captured Linux references also passed with zero warnings/errors. Validation used the
+installed .NET 10.0.401 patch SDK via a temporary SDK-selection override; tracked
+`global.json` remains unchanged. No game was launched or normal installation
+changed. Published 0.2.0 remains unchanged. See [forward compatibility](forward-compatibility.md).
+Future Workshop releases must preserve the owner's description unless explicitly
+asked to edit it; this is recorded in AGENTS.md and release preparation.
+
 **0.2.0 promotion after live checks, 2026-09-08:** Both the Windows Steam rev590
 and native Steam Deck rev600 checks reached the menu and exited normally. Each
 verified 1,682 Giddy-Up reads and six PNG cache hits against original output,

@@ -48,9 +48,10 @@ internal static class PngRuntime
     // Linux changes LoadItem's audio branch, not texture selection/conversion.
     // Derived from the original captured rev600 assembly, never a patched body.
     internal static string? ExpectedBody(GameBuildContract build, string method) =>
-        !build.HasReviewedLoadingMethods ? null : build.IsLinux && method == "LoadItem"
+        build.IsLinux && method == "LoadItem"
             ? "BA99B5D41EAB8C9EC052A993DB210E88205297F3D51798A9E02DC0B3C29F4509"
             : Expected.TryGetValue(method, out string hash) ? hash : null;
+    internal static string CacheGameIdentity(Guid gameMvid) => "png-v4|" + gameMvid.ToString("D");
     private static readonly List<PublishedPatchGuard> Guards = new();
     private delegate Texture2D ImageDelegate(VirtualFile file);
     private static readonly ImageDelegate NativeImage = (ImageDelegate)Delegate.CreateDelegate(typeof(ImageDelegate), Image);
@@ -254,8 +255,10 @@ internal static class PngRuntime
                 if (platform.Length == 0)
                 {
                     backend = SystemInfo.graphicsDeviceType;
-                    // v3 excludes earlier entries captured before final mip generation.
-                    platform = "png-v3|" + Application.unityVersion + "|" + backend + "|" + SystemInfo.graphicsDeviceVersion
+                    // A game update may change helpers outside the intercepted bodies.
+                    // Never reuse processed output across game module identities.
+                    platform = CacheGameIdentity(typeof(ModContentPack).Module.ModuleVersionId)
+                        + "|" + Application.unityVersion + "|" + backend + "|" + SystemInfo.graphicsDeviceVersion
                         + "|" + SystemInfo.graphicsDeviceVendorID + "|" + SystemInfo.graphicsDeviceID + "|" + QualitySettings.activeColorSpace;
                     floatReadback = backend == GraphicsDeviceType.Direct3D11
                         && SystemInfo.IsFormatSupported(GraphicsFormat.R32G32B32A32_SFloat, FormatUsage.ReadPixels);

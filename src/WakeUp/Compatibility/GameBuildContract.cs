@@ -6,8 +6,8 @@ using System.Reflection;
 
 namespace WakeUp;
 
-// Distribution is not authority. Only one of these reviewed assembly identities
-// selects a contract; runtime admission also authenticates the physical bytes.
+// Keep reviewed identities for build tooling and diagnostics. Runtime selection
+// also admits new game builds; each feature checks the code/API it depends on.
 internal sealed class GameBuildContract
 {
     internal static readonly GameBuildContract SteamRev590 = new(
@@ -20,12 +20,9 @@ internal sealed class GameBuildContract
         "linux-rev600", "1.6.9676.18020", "b4d967f0-d45a-413f-bb02-23eefee4f2ae",
         "082DB1DD4F7F1D0B72960D7E1BEEAD8FBFE6957200E8627F65BDA0DBBE1DD8F8");
 
-    // The reviewed Steam Windows loading/texture methods match GOG; Linux's
-    // loading methods match too, with its separate PNG LoadItem fingerprint.
-    // See windows-steam-support.md and linux-support.md for exact comparisons.
-    internal bool HasReviewedLoadingMethods => ReferenceEquals(this, GogRev573)
+    internal bool IsReviewedBuild => ReferenceEquals(this, GogRev573)
         || ReferenceEquals(this, SteamRev590) || ReferenceEquals(this, LinuxRev600);
-    internal bool IsLinux => ReferenceEquals(this, LinuxRev600);
+    internal bool IsLinux => Target.StartsWith("linux-", StringComparison.Ordinal);
     internal string DataDirectoryName => IsLinux ? "RimWorldLinux_Data" : "RimWorldWin64_Data";
 
     private GameBuildContract(string target, string version, string mvid, string sha256)
@@ -54,8 +51,26 @@ internal sealed class GameBuildContract
     }
     internal static GameBuildContract Current => For(typeof(Verse.Root).Assembly.ManifestModule);
 
-    internal static GameBuildContract For(Module module) => Select(module.Assembly.GetName(), module.ModuleVersionId)
-        ?? throw new InvalidOperationException("Unreviewed game build.");
+    internal static GameBuildContract For(Module module) => SelectRuntime(module.Assembly.GetName(), module.ModuleVersionId)
+        ?? throw new InvalidOperationException("Unsupported game assembly or operating system.");
+
+    internal static GameBuildContract? SelectRuntime(AssemblyName name, Guid mvid) => SelectRuntime(name, mvid,
+        System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows)
+            ? PlatformID.Win32NT
+            : System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Linux)
+                ? PlatformID.Unix : PlatformID.MacOSX);
+
+    internal static GameBuildContract? SelectRuntime(AssemblyName name, Guid mvid, PlatformID platform)
+    {
+        if (name.Name != "Assembly-CSharp" || (platform != PlatformID.Win32NT && platform != PlatformID.Unix))
+            return null;
+        bool linux = platform == PlatformID.Unix;
+        GameBuildContract? reviewed = Select(name, mvid);
+        if (reviewed != null && reviewed.IsLinux == linux)
+            return reviewed;
+        return new GameBuildContract(linux ? "linux-forward" : "windows-forward",
+            name.Version?.ToString() ?? "unknown", mvid.ToString(), string.Empty);
+    }
 
     internal static GameBuildContract? Select(AssemblyName name, Guid mvid)
     {

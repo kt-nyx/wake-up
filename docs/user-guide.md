@@ -1,6 +1,6 @@
 # Using Wake-Up
 
-Wake-Up avoids repeated work during startup. With a supported game and dependency build, enabling the mod now enables its established improvements without special launch arguments. This is an early development build with deliberately narrow compatibility; a matching version number alone does not establish support.
+Wake-Up avoids repeated work during startup without special launch arguments. The working source attempts its improvements on new Windows and native Linux game revisions automatically. Each feature retains its own compatibility checks; a future update can still require a fix. Published 0.2.0 has the older exact-game restriction until this change is released.
 
 ## Installation and settings
 
@@ -24,15 +24,15 @@ the current emergency bypass is `--wake-up-bypass`.
 
 ## Supported-build policy
 
-Wake-Up checks actual game and dependency code, including file identity and the methods modified by other mods. This is stricter than comparing displayed version numbers. An unrecognized version uses ordinary behavior rather than an unverified replacement. A new game or supplier version requires focused identity, behavior and startup checks before it is added to the support list.
+Wake-Up no longer rejects a game solely because its version, revision or whole-file fingerprint changed. New Windows and native Linux builds attempt each selected feature. Required methods and call patterns, PNG/XML method fingerprints, graphics support and conflicting patches still constrain individual features. Harmony and optional supplier binaries retain their exact identity checks. A changed feature can fall back to ordinary loading while the others continue; future compatibility is attempted, not guaranteed. See [forward compatibility](forward-compatibility.md).
 
 | Component | Current development contract |
 |---|---|
 | Operating system | Windows and native Linux / Steam Deck; live startup and texture checks completed on the reviewed builds |
-| Game | Exact pinned GOG 1.6.4871 rev574 fixture (`gog-rev573`), Windows Steam 1.6.4871 rev590 (`steam-rev590`) and native Linux 1.6.4871 rev600 (`linux-rev600`); this is not all 1.6 builds |
+| Game | New Windows and native Linux revisions are attempted; the reviewed GOG fixture, Windows Steam rev590 and Linux rev600 remain the recorded validation baselines |
 | Harmony | Exact reviewed 2.4.2.0 binary supplied by the frozen Prepatcher environment |
-| Definition/template searches | Reviewed GOG methods and matching Windows Steam/Linux methods; supported vanilla XML patch workers |
-| Type searches | Reviewed Harmony fallback search; exact reviewed Windows GOG, Windows Steam and Linux game identities |
+| Definition/template searches | Required vanilla XML patch worker signatures, unique XPath call patterns and patch checks |
+| Type searches | Reviewed Harmony fallback search and patch checks; no game revision restriction |
 | Gagarin reuse | Exact frozen Missile Girl/Gagarin implementation; the known Loading Progress XML replacement causes ordinary fallback |
 | Character Editor | Exact 1.6.3.3 binary and preset-construction methods |
 | Loading Progress | Exact 0.14.0 binary and loading-loop hooks; progress may redraw less frequently within its original time budget |

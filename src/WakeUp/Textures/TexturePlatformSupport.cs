@@ -10,7 +10,7 @@ internal enum PngCapturePath { Unsupported, CpuTextureData, D3D11CompressionBloc
 internal static class TexturePlatformSupport
 {
     internal static bool SupportsReadback(GameBuildContract build, GraphicsDeviceType backend) =>
-        (build.HasReviewedLoadingMethods && !build.IsLinux && backend == GraphicsDeviceType.Direct3D11)
+        (!build.IsLinux && backend == GraphicsDeviceType.Direct3D11)
         || (build.IsLinux && backend == GraphicsDeviceType.OpenGLCore);
 
     internal static PngCapturePath SelectPngPath(GameBuildContract build, GraphicsDeviceType backend,

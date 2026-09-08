@@ -4,8 +4,12 @@ The owner authorized regular 0.2.0 publication after both live platform checks
 passed on 2026-09-08. The [release notes](../release/notes-0.2.0.md) and
 [validation record](steam-linux-live-validation.md) state the exact scope.
 Uploading does not establish additional gameplay or performance qualification.
-Preserve the owner's existing Workshop copy and preview image; update its
-compatibility section and change notes for this release.
+For future releases, preserve the owner's existing Workshop description exactly
+unless the owner explicitly requests a description edit. Do not call
+`SetItemDescription` during an ordinary content update. Release change notes are
+separate from the listing description. Preserve the preview image and unrelated
+listing fields too. This owner instruction supersedes the earlier 0.2.0 workflow
+that updated the compatibility section.
 
 ## Workshop description and performance claims
 

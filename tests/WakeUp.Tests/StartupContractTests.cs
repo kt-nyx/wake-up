@@ -90,15 +90,16 @@ public sealed class StartupContractTests
     }
 
     [Test]
-    public void UnreviewedGameReturnsSpecificReasonBeforeLookingForHarmony()
+    public void FutureGameReachesHarmonyChecksWithoutAnExactGameFile()
     {
         var name = new AssemblyName("Assembly-CSharp") { Version = new Version(1, 6, 9999, 1) };
         var module = AppDomain.CurrentDomain.DefineDynamicAssembly(name, AssemblyBuilderAccess.Run).DefineDynamicModule("unreviewed");
         bool resolvedHarmony = false;
         Assert.That(RuntimeIdentity.ValidateBinaryIdentity(module, _ => { resolvedHarmony = true; return null; }, out string reason), Is.False);
-        Assert.That(reason, Is.EqualTo("game-build-unreviewed"));
-        Assert.That(resolvedHarmony, Is.False);
-        Assert.That(RuntimeIdentity.DescribeFailure(reason), Does.Contain("RimWorld build has not been reviewed"));
+        Assert.That(reason, Is.EqualTo("harmony-file-unavailable"));
+        Assert.That(resolvedHarmony, Is.True);
+        Assert.That(RuntimeIdentity.ValidateBinaryIdentity(module, harmony => harmony.Location, out reason), Is.True, reason);
+        Assert.That(reason, Is.EqualTo("new-game-feature-checks"));
         Assert.That(RuntimeIdentity.DescribeFailure("harmony-file-sha-mismatch"), Does.Contain("Harmony library does not match"));
     }
 }

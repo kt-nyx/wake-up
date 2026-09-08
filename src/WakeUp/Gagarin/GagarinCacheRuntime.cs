@@ -46,8 +46,6 @@ internal static class GagarinCacheRuntime
         {
             if (!RuntimeIdentity.ValidateBinaryIdentity(out string reason))
                 throw new InvalidOperationException(reason);
-            if (!GameBuildContract.Current.HasReviewedLoadingMethods)
-                throw new InvalidOperationException("unreviewed-gagarin-game-build");
             var harmony = new Harmony(Owner);
             // All mod constructors have completed here, including memory-loaded plugins.
             harmony.Patch(AccessTools.Method(typeof(LoadedModManager), "LoadModXML"),
@@ -98,7 +96,7 @@ internal static class GagarinCacheRuntime
             loadingPatches = (Func<bool>)Delegate.CreateDelegate(typeof(Func<bool>), guarded[5]);
             ConstructorInfo ctor = AssetConstructor;
             if (!SemanticMethodIdentity.TryHash(ctor, out string actual, out string reason)
-                || actual != SemanticMethodIdentity.ExpectedXmlAssetConstructor(GameBuildContract.Current))
+                || actual != SemanticMethodIdentity.ExpectedXmlAssetConstructor)
                 throw new InvalidOperationException("asset-constructor-" + reason);
             if (!SafeHooks() && mode != "timing")
                 throw new InvalidOperationException("unknown-interfering-hooks");

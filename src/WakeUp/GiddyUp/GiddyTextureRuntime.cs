@@ -65,11 +65,6 @@ internal static class GiddyTextureRuntime
                 Receipt("refused", reason);
                 return true;
             }
-            if (!GameBuildContract.Current.HasReviewedLoadingMethods)
-            {
-                Receipt("refused", "unreviewed-giddy-game-build");
-                return true;
-            }
             Assembly? assembly = AppDomain.CurrentDomain.GetAssemblies().SingleOrDefault(a => a.GetName().Name == "GiddyUpCore");
             if (assembly == null || !ValidateSupplier(assembly, Path.Combine(supplier.RootDir, "1.6", "Assemblies", "GiddyUpCore.dll")) || !ValidateBodies(assembly))
             {
