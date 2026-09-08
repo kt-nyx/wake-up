@@ -4,7 +4,7 @@ The public repository contains the current implementation, tests and build
 scripts. It does not contain game files, third-party mod binaries or the
 maintainer's private fixture. You can build without creating that fixture.
 
-Use Windows, PowerShell 7, Python 3.11+ and the .NET SDK pinned in `global.json`.
+Use Windows, Git, PowerShell 7, Python 3.11+ and the .NET SDK pinned in `global.json`.
 Obtain the required game and Prepatcher references legally. The present build
 contract uses the exact reviewed GOG game and Harmony binaries; version labels
 alone are insufficient. Their hashes are in `build/Verify-LocalReferences.ps1`.

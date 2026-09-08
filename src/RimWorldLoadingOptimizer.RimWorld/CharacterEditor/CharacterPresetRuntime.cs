@@ -52,27 +52,44 @@ internal static class CharacterPresetRuntime
     internal static bool TryInitialize(IReadOnlyList<string> arguments)
     {
         string[] selectors = arguments.Where(a => a != null && a.StartsWith("--rlo-character-presets=", StringComparison.Ordinal)).ToArray();
-        if (selectors.Length != 1 || (selectors[0] != "--rlo-character-presets=on" && selectors[0] != "--rlo-character-presets=timing")) return false;
-        if (attempted) return true;
+        if (selectors.Length != 1 || (selectors[0] != "--rlo-character-presets=on" && selectors[0] != "--rlo-character-presets=timing"))
+            return false;
+        if (attempted)
+            return true;
         attempted = true;
         var harmony = new Harmony(Owner);
         try
         {
             StartupLaunchDecision mode = StartupLaunchSelector.Parse(arguments);
             string[] strategies = arguments.Where(a => a != null && a.StartsWith("--rlo-strategy=", StringComparison.Ordinal)).ToArray();
-            if (mode.Selection != StartupSelection.Candidate || strategies.Length != 1 || strategies[0] != "--rlo-strategy=startup-searches") return true;
+            if (mode.Selection != StartupSelection.Candidate || strategies.Length != 1 || strategies[0] != "--rlo-strategy=startup-searches")
+                return true;
             evidencePath = Path.Combine(mode.SaveDataRoot!, "RimWorldLoadingOptimizer", "character-presets.jsonl");
             candidate = selectors[0] == "--rlo-character-presets=on";
             ModContentPack? supplier = LoadedModManager.RunningModsListForReading
                 .SingleOrDefault(mod => string.Equals(mod.PackageId, "void.charactereditor", StringComparison.OrdinalIgnoreCase));
-            if (supplier == null) { Receipt("inactive", "character-editor-not-active"); return true; }
+            if (supplier == null)
+            {
+                Receipt("inactive", "character-editor-not-active");
+                return true;
+            }
             if (!ReferenceEquals(GameBuildContract.Current, GameBuildContract.GogRev573)
                 || !RuntimeIdentity.ValidateBinaryIdentity(out _))
-            { Receipt("refused", "game-or-harmony-identity"); return true; }
+            {
+                Receipt("refused", "game-or-harmony-identity");
+                return true;
+            }
             Assembly? assembly = AppDomain.CurrentDomain.GetAssemblies().SingleOrDefault(a => a.GetName().Name == "CharacterEditor");
             if (assembly == null || !ValidateSupplier(assembly, Path.Combine(supplier.RootDir, "v1.6", "Assemblies", "CharacterEditor.dll")))
-            { Receipt("refused", "character-editor-supplier-identity"); return true; }
-            if (!ValidateBodies(assembly, out string reason)) { Receipt("refused", reason); return true; }
+            {
+                Receipt("refused", "character-editor-supplier-identity");
+                return true;
+            }
+            if (!ValidateBodies(assembly, out string reason))
+            {
+                Receipt("refused", reason);
+                return true;
+            }
             Module module = assembly.ManifestModule;
             dictionaryGetter = (MethodInfo)module.ResolveMethod(0x06000209);
             lookup = (MethodInfo)module.ResolveMethod(0x060009AB);
@@ -88,7 +105,10 @@ internal static class CharacterPresetRuntime
             if (candidate)
             {
                 if (!CharacterPresetPatchSnapshot.TryCapture(guardedMethods, Owner, out _))
-                { Receipt("refused", "foreign-preset-chain-patch"); return true; }
+                {
+                    Receipt("refused", "foreign-preset-chain-patch");
+                    return true;
+                }
                 harmony.Patch(lookup, transpiler: new HarmonyMethod(typeof(CharacterPresetRuntime), nameof(Transpiler)) { priority = Priority.Last });
             }
             foreach (MethodInfo method in new[] { objects, turrets })
@@ -104,7 +124,11 @@ internal static class CharacterPresetRuntime
         catch (Exception exception)
         {
             installed = false;
-            try { harmony.UnpatchAll(Owner); } catch { }
+            try
+            {
+                harmony.UnpatchAll(Owner);
+            }
+            catch { }
             try
             {
                 if (evidencePath != null)
@@ -121,9 +145,11 @@ internal static class CharacterPresetRuntime
 
     internal static bool ValidateSupplier(Assembly assembly, string path)
     {
-        if (assembly.ManifestModule.ModuleVersionId != SupplierMvid || assembly.GetName().Version?.ToString() != "1.6.3.3") return false;
+        if (assembly.ManifestModule.ModuleVersionId != SupplierMvid || assembly.GetName().Version?.ToString() != "1.6.3.3")
+            return false;
         if (!string.IsNullOrEmpty(assembly.Location)
-            && !string.Equals(Path.GetFullPath(assembly.Location), Path.GetFullPath(path), StringComparison.OrdinalIgnoreCase)) return false;
+            && !string.Equals(Path.GetFullPath(assembly.Location), Path.GetFullPath(path), StringComparison.OrdinalIgnoreCase))
+            return false;
         using FileStream file = File.OpenRead(path);
         using SHA256 sha = SHA256.Create();
         return MatchesSupplierIdentity(assembly.GetName().Version?.ToString(), assembly.ManifestModule.ModuleVersionId,
@@ -139,7 +165,10 @@ internal static class CharacterPresetRuntime
         {
             MethodBase method = assembly.ManifestModule.ResolveMethod(entry.Key);
             if (!SemanticMethodIdentity.TryHash(method, out string hash, out string failure) || hash != entry.Value)
-            { reason = "preset-body-" + entry.Key.ToString("x8", CultureInfo.InvariantCulture) + "-" + hash + "-" + failure; return false; }
+            {
+                reason = "preset-body-" + entry.Key.ToString("x8", CultureInfo.InvariantCulture) + "-" + hash + "-" + failure;
+                return false;
+            }
         }
         reason = "exact";
         return true;
@@ -148,9 +177,11 @@ internal static class CharacterPresetRuntime
     internal static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         List<CodeInstruction> code = instructions.Select(i => new CodeInstruction(i)).ToList();
-        if (lookup == null || dictionaryGetter == null) throw new InvalidOperationException("Preset lookup unavailable.");
+        if (lookup == null || dictionaryGetter == null)
+            throw new InvalidOperationException("Preset lookup unavailable.");
         // A foreign earlier transform must keep its ordinary fresh dictionary.
-        if (!InstructionComparison.SameInstructions(code, PatchProcessor.GetOriginalInstructions(lookup))) return code;
+        if (!InstructionComparison.SameInstructions(code, PatchProcessor.GetOriginalInstructions(lookup)))
+            return code;
         return RedirectDictionaryCall(code, dictionaryGetter,
             AccessTools.Method(typeof(CharacterPresetRuntime), nameof(GetDictionary)));
     }
@@ -161,7 +192,8 @@ internal static class CharacterPresetRuntime
         if (code.Count(i => i.opcode == OpCodes.Call && Equals(i.operand, original)) != 1)
             throw new InvalidOperationException("Unique GetTurretDef dictionary callsite unavailable.");
         foreach (CodeInstruction instruction in code)
-            if (instruction.opcode == OpCodes.Call && Equals(instruction.operand, original)) instruction.operand = replacement;
+            if (instruction.opcode == OpCodes.Call && Equals(instruction.operand, original))
+                instruction.operand = replacement;
         return code;
     }
 
@@ -182,18 +214,30 @@ internal static class CharacterPresetRuntime
         try
         {
             bool first;
-            lock (Consumed) first = Consumed.Add(__originalMethod);
-            if (!installed || !candidate || !first || __state.Previous != null) return;
-            if (startupComplete) { __state.Reason = "startup-menu-already-complete"; return; }
+            lock (Consumed)
+                first = Consumed.Add(__originalMethod);
+            if (!installed || !candidate || !first || __state.Previous != null)
+                return;
+            if (startupComplete)
+            {
+                __state.Reason = "startup-menu-already-complete";
+                return;
+            }
             if (!CharacterPresetPatchSnapshot.TryCapture(guardedMethods, Owner, out CharacterPresetPatchSnapshot? patches))
-            { __state.Reason = "foreign-preset-chain-patch"; return; }
+            {
+                __state.Reason = "foreign-preset-chain-patch";
+                return;
+            }
             // The pinned synchronous constructors write their own presets, not
             // the definition database. A changed list membership/order during
             // this scope disables reuse. No whole-game cache survives the call.
             List<ThingDef> definitions = DefDatabase<ThingDef>.AllDefsListForReading;
             FieldInfo? version = AccessTools.Field(typeof(List<ThingDef>), "_version");
             if (version == null || version.GetValue(definitions) is not int initialVersion)
-            { __state.Reason = "definition-version-unavailable"; return; }
+            {
+                __state.Reason = "definition-version-unavailable";
+                return;
+            }
             __state.Scope = new CharacterPresetLookupScope(originalDictionary!, () =>
                 patches!.Unchanged() && ReferenceEquals(definitions, DefDatabase<ThingDef>.AllDefsListForReading)
                 && Equals(version.GetValue(definitions), initialVersion));
@@ -205,13 +249,18 @@ internal static class CharacterPresetRuntime
 
     private static Exception? ScopeFinalizer(MethodBase __originalMethod, ScopeState? __state, object? __result, Exception? __exception)
     {
-        if (__state == null) return __exception;
+        if (__state == null)
+            return __exception;
         __state.Watch.Stop();
         CharacterPresetLookupScope? scope = __state.Scope;
         scope?.Dispose();
         currentScope = __state.Previous;
         string digest;
-        try { digest = PresetDigest(__result as IDictionary); } catch { digest = "unavailable"; }
+        try
+        {
+            digest = PresetDigest(__result as IDictionary);
+        }
+        catch { digest = "unavailable"; }
         Receipt("scope-complete", __state.Reason,
             "\"method\":\"" + __originalMethod.Name + "\",\"milliseconds\":" + __state.Watch.Elapsed.TotalMilliseconds.ToString("F3", CultureInfo.InvariantCulture)
             + ",\"presetSha256\":\"" + digest + "\""
@@ -224,14 +273,16 @@ internal static class CharacterPresetRuntime
     private static void Menu(bool __runOriginal)
     {
         if (__runOriginal && Event.current != null && Event.current.type == EventType.Repaint
-            && Current.ProgramState == ProgramState.Entry && PlayDataLoader.Loaded) startupComplete = true;
+            && Current.ProgramState == ProgramState.Entry && PlayDataLoader.Loaded)
+            startupComplete = true;
     }
 
     // Read stored preset values, without calling supplier getters or rebuilding
     // presets. Both comparison arms record the same canonical content digest.
     internal static string PresetDigest(IDictionary? presets)
     {
-        if (presets == null) return "unavailable";
+        if (presets == null)
+            return "unavailable";
         using var bytes = new MemoryStream();
         using (var writer = new BinaryWriter(bytes, Encoding.UTF8, true))
         {
@@ -239,7 +290,8 @@ internal static class CharacterPresetRuntime
             {
                 writer.Write(key);
                 var field = AccessTools.Field(presets[key].GetType(), "dicParams");
-                if (field?.GetValue(presets[key]) is not IDictionary values) return "unavailable";
+                if (field?.GetValue(presets[key]) is not IDictionary values)
+                    return "unavailable";
                 writer.Write(values.Count);
                 foreach (object valueKey in values.Keys.Cast<object>().OrderBy(k => Convert.ToInt32(k, CultureInfo.InvariantCulture)))
                 {
@@ -255,54 +307,5 @@ internal static class CharacterPresetRuntime
     }
 
     private static void Receipt(string kind, string reason, string? fields = null)
-    {
-        try
-        {
-            if (evidencePath == null) return;
-            Directory.CreateDirectory(Path.GetDirectoryName(evidencePath)!);
-            File.AppendAllText(evidencePath, "{\"event\":\"" + kind + "\",\"reason\":\"" + reason + "\""
-                + (fields == null ? "" : "," + fields) + "}" + Environment.NewLine, new UTF8Encoding(false));
-        }
-        catch { }
-    }
-}
-
-// The pinned Harmony binary publishes a fresh serialized byte array whenever
-// its patch record changes. Capture once per scope; compare references under
-// Harmony's own state lock, without deserializing once per preset.
-internal sealed class CharacterPresetPatchSnapshot
-{
-    private readonly Dictionary<MethodBase, byte[]> state;
-    private readonly MethodBase[] methods;
-    private readonly byte[]?[] stamps;
-    private CharacterPresetPatchSnapshot(Dictionary<MethodBase, byte[]> state, MethodBase[] methods, byte[]?[] stamps)
-    { this.state = state; this.methods = methods; this.stamps = stamps; }
-
-    internal static bool TryCapture(MethodBase[] methods, string owner, out CharacterPresetPatchSnapshot? snapshot)
-    {
-        snapshot = null;
-        try
-        {
-            Type? shared = typeof(Harmony).Assembly.GetType("HarmonyLib.HarmonySharedState");
-            FieldInfo? field = shared?.GetField("state", BindingFlags.NonPublic | BindingFlags.Static);
-            if (field == null || !field.IsInitOnly || field.GetValue(null) is not Dictionary<MethodBase, byte[]> state) return false;
-            byte[]?[] stamps;
-            lock (state) stamps = methods.Select(m => state.TryGetValue(m, out byte[] stamp) ? stamp : null).ToArray();
-            foreach (MethodBase method in methods)
-                if (Harmony.GetPatchInfo(method)?.Owners.Any(id => id != owner) == true) return false;
-            var captured = new CharacterPresetPatchSnapshot(state, methods, stamps);
-            if (!captured.Unchanged()) return false;
-            snapshot = captured;
-            return true;
-        }
-        catch { return false; }
-    }
-
-    internal bool Unchanged()
-    {
-        lock (state)
-            for (int i = 0; i < methods.Length; i++)
-                if (!ReferenceEquals(stamps[i], state.TryGetValue(methods[i], out byte[] stamp) ? stamp : null)) return false;
-        return true;
-    }
+        => JsonLineLog.WriteReceipt(evidencePath, kind, reason, fields);
 }

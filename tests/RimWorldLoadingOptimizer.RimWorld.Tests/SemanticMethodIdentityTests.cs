@@ -8,6 +8,7 @@ using System.Reflection.Emit;
 using NUnit.Framework;
 using RimWorldLoadingOptimizer.RimWorld;
 namespace RimWorldLoadingOptimizer.RimWorld.Tests;
+
 [TestFixture]
 public sealed class SemanticMethodIdentityTests
 {
@@ -37,9 +38,13 @@ public sealed class SemanticMethodIdentityTests
         var target = type.DefineMethod("Referenced", MethodAttributes.Public | MethodAttributes.Static);
         target.SetSignature(typeof(int), modified ? new[] { typeof(System.Runtime.InteropServices.InAttribute) } : null,
             null, Type.EmptyTypes, null, null);
-        var targetIl = target.GetILGenerator(); targetIl.Emit(OpCodes.Ldc_I4_0); targetIl.Emit(OpCodes.Ret);
+        var targetIl = target.GetILGenerator();
+        targetIl.Emit(OpCodes.Ldc_I4_0);
+        targetIl.Emit(OpCodes.Ret);
         var caller = type.DefineMethod("Caller", MethodAttributes.Public | MethodAttributes.Static, typeof(int), Type.EmptyTypes);
-        var callerIl = caller.GetILGenerator(); callerIl.Emit(OpCodes.Call, target); callerIl.Emit(OpCodes.Ret);
+        var callerIl = caller.GetILGenerator();
+        callerIl.Emit(OpCodes.Call, target);
+        callerIl.Emit(OpCodes.Ret);
         return type.CreateType()!.GetMethod("Caller")!;
     }
 
@@ -56,7 +61,9 @@ public sealed class SemanticMethodIdentityTests
         if (shift)
         {
             var noise = type.DefineMethod("Noise", MethodAttributes.Public | MethodAttributes.Static, typeof(void), Type.EmptyTypes).GetILGenerator();
-            noise.Emit(OpCodes.Ldstr, "metadata row shift"); noise.Emit(OpCodes.Pop); noise.Emit(OpCodes.Ret);
+            noise.Emit(OpCodes.Ldstr, "metadata row shift");
+            noise.Emit(OpCodes.Pop);
+            noise.Emit(OpCodes.Ret);
         }
         var method = type.DefineMethod("Target", MethodAttributes.Public | MethodAttributes.Static, typeof(void), Type.EmptyTypes);
         method.InitLocals = init;
@@ -64,9 +71,12 @@ public sealed class SemanticMethodIdentityTests
         var il = method.GetILGenerator();
         il.DeclareLocal(local);
         il.BeginExceptionBlock();
-        il.Emit(OpCodes.Ldstr, text); il.Emit(OpCodes.Pop);
-        il.BeginCatchBlock(caught); il.Emit(OpCodes.Pop);
-        il.EndExceptionBlock(); il.Emit(OpCodes.Ret);
+        il.Emit(OpCodes.Ldstr, text);
+        il.Emit(OpCodes.Pop);
+        il.BeginCatchBlock(caught);
+        il.Emit(OpCodes.Pop);
+        il.EndExceptionBlock();
+        il.Emit(OpCodes.Ret);
         return type.CreateType()!.GetMethod("Target")!;
     }
 }

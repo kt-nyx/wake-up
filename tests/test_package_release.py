@@ -15,7 +15,8 @@ spec.loader.exec_module(p)
 
 class ReleaseTests(unittest.TestCase):
     def test_private_and_binary_source_paths_rejected(self):
-        for path in (".rlo-test-instance/game/a", "nested/artifacts/a", "x.dll", "../outside", "/absolute", ".git/config"):
+        for path in (".rlo-test-instance/game/a", "nested/artifacts/a", "x.dll", "../outside", "/absolute", ".git/config",
+                     ".RLO-TEST-INSTANCE/game/a", "nested/Artifacts/a", "C:/private/file", "folder\\file"):
             self.assertFalse(p.safe_source_path(path), path)
         self.assertTrue(p.safe_source_path("src/Runtime.cs"))
         self.assertTrue(p.safe_source_path("LICENSE"))

@@ -25,7 +25,8 @@ public sealed class CompatibilityGuardTests
         Assert.That(InstructionComparison.SameInstructions(first, same), Is.True);
         same[0].operand = BitConverter.ToSingle(new byte[] { 0, 0, 0, 128 }, 0);
         Assert.That(InstructionComparison.SameInstructions(first, same), Is.False);
-        same[0].operand = 0f; same[1].operand = 21d;
+        same[0].operand = 0f;
+        same[1].operand = 21d;
         Assert.That(InstructionComparison.SameInstructions(first, same), Is.False);
     }
     [Test]
@@ -50,7 +51,8 @@ public sealed class CompatibilityGuardTests
     private static List<CodeInstruction> ComparisonBody(int extraLabels)
     {
         ILGenerator il = new DynamicMethod("Compare", typeof(void), Type.EmptyTypes).GetILGenerator();
-        for (int index = 0; index < extraLabels; index++) il.DefineLabel();
+        for (int index = 0; index < extraLabels; index++)
+            il.DefineLabel();
         Label branch = il.DefineLabel(), destination = il.DefineLabel();
         var code = new List<CodeInstruction> { new(OpCodes.Ldc_I4, 1), new(OpCodes.Br, destination), new(OpCodes.Ret) };
         code[1].labels.Add(branch);
@@ -72,14 +74,16 @@ public sealed class CompatibilityGuardTests
             own.Patch(target, transpiler: transpiler);
             Assert.That(PublishedPatchGuard.TryCreate(target, ownId, out PublishedPatchGuard? guard), Is.True);
             PublishedPatchGuard activeGuard = guard!;
-            for (int i = 0; i < 200; i++) Assert.That(activeGuard.AllowsOriginalContract(), Is.True);
+            for (int i = 0; i < 200; i++)
+                Assert.That(activeGuard.AllowsOriginalContract(), Is.True);
             Assert.That(activeGuard.PatchInfoReads, Is.EqualTo(1), "Unchanged state must not deserialize once per lookup.");
 
             // This is the first foreign addition, so a check made during its
             // wrapper rebuild would still see only our old published entry.
             foreign.Patch(target, transpiler: transpiler);
             Assert.That(activeGuard.AllowsOriginalContract(), Is.False, "The first call after publication must use native fallback.");
-            for (int i = 0; i < 200; i++) Assert.That(activeGuard.AllowsOriginalContract(), Is.False);
+            for (int i = 0; i < 200; i++)
+                Assert.That(activeGuard.AllowsOriginalContract(), Is.False);
             Assert.That(activeGuard.PatchInfoReads, Is.EqualTo(2));
 
             foreign.Unpatch(target, HarmonyPatchType.All, foreignId);

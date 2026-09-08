@@ -36,7 +36,8 @@ def sha(data):
 def safe_source_path(name):
     path = PurePosixPath(name)
     return (not path.is_absolute() and ".." not in path.parts
-            and not PRIVATE.intersection(path.parts)
+            and "\\" not in name and ":" not in name
+            and not PRIVATE.intersection(part.casefold() for part in path.parts)
             and path.suffix.lower() not in {".dll", ".exe", ".pdb", ".sav", ".rws"})
 
 
@@ -82,6 +83,7 @@ def make_bundle(package):
     for key in ("folderName", "version"):
         require(re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]*", product[key]), "Unsafe product " + key)
     require(re.fullmatch(r"[a-z0-9]+(?:\.[a-z0-9]+)+", product["packageId"]), "Invalid public package ID")
+    require(not package.is_symlink(), "Symlink package is not supported")
     package = package.resolve()
     allowed = (REPO / "artifacts/op7-fixture-package").resolve()
     require(package.is_relative_to(allowed), "Use a build from this checkout's package output")

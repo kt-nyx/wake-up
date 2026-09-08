@@ -18,12 +18,29 @@ internal sealed class GameBuildContract
         "4A170804FBFEFABDB620D8914E584E58F822A58C6E304DCB76A67003588DAB28");
 
     private GameBuildContract(string target, string version, string mvid, string sha256)
-    { Target = target; Version = version; Mvid = new Guid(mvid); Sha256 = sha256; }
+    {
+        Target = target;
+        Version = version;
+        Mvid = new Guid(mvid);
+        Sha256 = sha256;
+    }
 
-    internal string Target { get; }
-    internal string Version { get; }
-    internal Guid Mvid { get; }
-    internal string Sha256 { get; }
+    internal string Target
+    {
+        get;
+    }
+    internal string Version
+    {
+        get;
+    }
+    internal Guid Mvid
+    {
+        get;
+    }
+    internal string Sha256
+    {
+        get;
+    }
     internal static GameBuildContract Current => For(typeof(Verse.Root).Assembly.ManifestModule);
 
     internal static GameBuildContract For(Module module) => Select(module.Assembly.GetName(), module.ModuleVersionId)
@@ -31,9 +48,11 @@ internal sealed class GameBuildContract
 
     internal static GameBuildContract? Select(AssemblyName name, Guid mvid)
     {
-        if (!string.Equals(name.Name, "Assembly-CSharp", StringComparison.Ordinal)) return null;
+        if (!string.Equals(name.Name, "Assembly-CSharp", StringComparison.Ordinal))
+            return null;
         foreach (GameBuildContract build in new[] { SteamRev590, GogRev573 })
-            if (name.Version?.ToString() == build.Version && mvid == build.Mvid) return build;
+            if (name.Version?.ToString() == build.Version && mvid == build.Mvid)
+                return build;
         return null;
     }
 

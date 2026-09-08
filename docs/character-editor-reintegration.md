@@ -1,6 +1,8 @@
 # Character Editor preset preparation: optional reintegration
 
-This change restores faster preparation of Character Editor’s item/turret UI presets. It reuses a read-only lookup during the original startup construction instead of repeatedly scanning and sorting the same definitions. It does not skip presets or change their settings. The owner explicitly expanded scope to permit individual-mod improvements with safe soft dependencies on 2026-09-07.
+> Dated qualification record. Identities, activation defaults, permissions and proposed next steps describe this investigation, not the current release. See [current state](current-state.md), [support policy](user-guide.md#supported-build-policy) and [results](results.md) for current decisions.
+
+This change restores faster preparation of Character Editorâ€™s item/turret UI presets. It reuses a read-only lookup during the original startup construction instead of repeatedly scanning and sorting the same definitions. It does not skip presets or change their settings. The owner explicitly expanded scope to permit individual-mod improvements with safe soft dependencies on 2026-09-07.
 
 The historical implementation from `1f33fd5` was removed by `f886277` for the former general-only scope, not because it failed to execute. It is adapted to the current runtime on `codex/character-editor-reintegration`, starting from local main `4d253ab231dc3977b34bdccdcde1b54d536ffdc4`. The historical combined 51.6% result is not a measurement of this isolated feature or the new package.
 
@@ -26,7 +28,7 @@ The final forward/reverse comparison uses the same package, searches, Gagarin/PN
 | Original first | 38.661214 s | 29.731554 s | 23.10% |
 | Candidate first | 39.746350 s | 28.758183 s | 27.65% |
 
-The two-run medians are **39.203782 seconds versus 29.244868 seconds, a 25.40% reduction**. Both orders favor reuse; the difference is roughly 9–11 seconds in these pairs. All four final comparisons passed normal automatic exit and matched preset values/counts, available XML, content/order, profile settings and scanned messages. This is the incremental Character Editor feature benefit with the existing optimizer searches enabled, not a universal absent-versus-mod percentage. Qualification times are not pooled into these results.
+The two-run medians are **39.203782 seconds versus 29.244868 seconds, a 25.40% reduction**. Both orders favor reuse; the difference is roughly 9â€“11 seconds in these pairs. All four final comparisons passed normal automatic exit and matched preset values/counts, available XML, content/order, profile settings and scanned messages. This is the incremental Character Editor feature benefit with the existing optimizer searches enabled, not a universal absent-versus-mod percentage. Qualification times are not pooled into these results.
 
 For final optional-absence validation, Character Editor is re-excluded through the fixture tool and physically parked outside the game mod directory, restoring the original benchmark exclusion. The new feature and the existing Loading Progress selector are both enabled on the unchanged UI selection, with neither optional supplier active. `ce-final-absent` reached the completed menu in 17.656740 seconds and exited normally with `automaticTestPassed=true`. Character Editor reported only `inactive: character-editor-not-active`, installed no preset hooks, and Loading Progress emitted no coalescer receipt. Available XML, content/order, settings and scanned messages matched the preceding accepted UI qualification. This demonstrates that an enabled selector with Character Editor physically absent remains safe in the exercised startup; it is not a new speed comparison.
 

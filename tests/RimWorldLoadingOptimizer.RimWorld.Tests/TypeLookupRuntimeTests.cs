@@ -31,7 +31,8 @@ public sealed class TypeLookupRuntimeTests
             Assert.That(activeGuard.PatchInfoReads, Is.EqualTo(1));
             foreign.Patch(target, prefix: new HarmonyMethod(typeof(TypeLookupRuntimeTests), nameof(SkipWithReplacement)));
             Assert.That(activeGuard.AllowsOriginalContract(), Is.False, "A prefix can change enumeration without loading another assembly.");
-            for (int i = 0; i < 100; i++) Assert.That(activeGuard.AllowsOriginalContract(), Is.False);
+            for (int i = 0; i < 100; i++)
+                Assert.That(activeGuard.AllowsOriginalContract(), Is.False);
             Assert.That(activeGuard.PatchInfoReads, Is.EqualTo(2));
             foreign.Unpatch(target, HarmonyPatchType.All, foreignId);
             Assert.That(activeGuard.AllowsOriginalContract(), Is.True);
@@ -44,7 +45,10 @@ public sealed class TypeLookupRuntimeTests
     private static Type[] GuardTarget() => new[] { typeof(string) };
 
     private static bool SkipWithReplacement(ref Type[] __result)
-    { __result = new[] { typeof(int) }; return false; }
+    {
+        __result = new[] { typeof(int) };
+        return false;
+    }
 
     [Test]
     public void OrderedIndexMatchesOriginalFullAndSimpleNamePredicates()
@@ -65,7 +69,8 @@ public sealed class TypeLookupRuntimeTests
     {
         int count = 250000, characters = 0;
         Assert.That(TypeLookupIndex.Create(new[] { typeof(string) }, ref count, ref characters), Is.Null);
-        count = 0; characters = 16000000;
+        count = 0;
+        characters = 16000000;
         Assert.That(TypeLookupIndex.Create(new[] { typeof(string) }, ref count, ref characters), Is.Null);
     }
 
@@ -88,6 +93,16 @@ public sealed class TypeLookupRuntimeTests
         Assert.That(TypeLookupRuntime.Transpiler(foreign).Count(), Is.EqualTo(foreign.Count), "Foreign altered incoming body is left intact.");
     }
 
-    public static class First { public sealed class Duplicate { } }
-    public static class Second { public sealed class Duplicate { } }
+    public static class First
+    {
+        public sealed class Duplicate
+        {
+        }
+    }
+    public static class Second
+    {
+        public sealed class Duplicate
+        {
+        }
+    }
 }

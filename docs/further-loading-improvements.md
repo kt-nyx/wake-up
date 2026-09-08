@@ -1,5 +1,7 @@
 # Further loading improvements: Giddy-Up texture preparation
 
+> Dated qualification record. Identities, activation defaults, permissions and proposed next steps describe this investigation, not the current release. See [current state](current-state.md), [support policy](user-guide.md#supported-build-policy) and [results](results.md) for current decisions.
+
 Giddy-Up now prepares animal riding offsets using only the center image column it actually reads. The final build saves **0.45-0.51 seconds (1.6-1.8%)** on the small sorted combat/races/genes selection plus Giddy-Up, with accepted searches already enabled. Medians are 28.070793 versus 27.588108 seconds: **1.72% shorter startup on this workload**, not a general modlist average.
 
 Work started from main `b0a0a60dbe0a85a9382ea8d1a0e38ec3f5e5a55d` on `codex/further-loading-improvements`. The preceding accepted package was `743ecabb5043d360698b90815895c5fbab7f95a5`. Only the canonical checkout and fixture were used, with no other agents or worktrees. Normal installations, Workshop subscriptions, profiles and saves were untouched.

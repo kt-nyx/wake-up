@@ -102,7 +102,8 @@ public sealed class CharacterPresetRuntimeTests
         Assert.That(scope.RetainedEntries, Is.Zero);
         scope.Get();
         var worker = new Thread(() => scope.Get());
-        worker.Start(); worker.Join();
+        worker.Start();
+        worker.Join();
         Assert.That(calls, Is.EqualTo(3));
         Assert.That(scope.RetainedEntries, Is.Zero);
     }
@@ -145,7 +146,8 @@ public sealed class CharacterPresetRuntimeTests
     public void ScopePatchSnapshotDetectsLaterForeignPrefixAndRefusesAlreadyPatchedChain()
     {
         const string owner = "Rlo.CharacterPreset.Tests.Own", other = "Rlo.CharacterPreset.Tests.Foreign";
-        var own = new Harmony(owner); var foreign = new Harmony(other);
+        var own = new Harmony(owner);
+        var foreign = new Harmony(other);
         MethodInfo target = AccessTools.Method(typeof(CharacterPresetRuntimeTests), nameof(SnapshotTarget));
         var prefix = new HarmonyMethod(typeof(CharacterPresetRuntimeTests), nameof(EmptyPrefix));
         try
@@ -164,9 +166,11 @@ public sealed class CharacterPresetRuntimeTests
     public void PinnedCharacterEditorBodiesMatchPhysicalSupplier()
     {
         string? managed = Environment.GetEnvironmentVariable("RLO_RIMWORLD_MANAGED_DIR");
-        if (string.IsNullOrEmpty(managed)) Assert.Ignore("Select pinned fixture references to validate the optional Character Editor supplier.");
+        if (string.IsNullOrEmpty(managed))
+            Assert.Ignore("Select pinned fixture references to validate the optional Character Editor supplier.");
         string path = Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(managed!))!, "Mods", "1874644848", "v1.6", "Assemblies", "CharacterEditor.dll");
-        if (!File.Exists(path)) Assert.Ignore("Character Editor is not available beside these game references.");
+        if (!File.Exists(path))
+            Assert.Ignore("Character Editor is not available beside these game references.");
         Assembly supplier = Assembly.LoadFrom(path);
         Assert.That(CharacterPresetRuntime.ValidateSupplier(supplier, path), Is.True);
         Assert.That(CharacterPresetRuntime.ValidateBodies(supplier, out string reason), Is.True, reason);
@@ -175,5 +179,7 @@ public sealed class CharacterPresetRuntimeTests
     private static Dictionary<string, ThingDef> OriginalDictionary() => new();
     private static Dictionary<string, ThingDef> ReplacementDictionary() => new();
     [MethodImpl(MethodImplOptions.NoInlining)] private static int SnapshotTarget(int value) => value + 1;
-    private static void EmptyPrefix() { }
+    private static void EmptyPrefix()
+    {
+    }
 }

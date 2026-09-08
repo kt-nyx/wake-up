@@ -24,16 +24,21 @@ internal static class RepaintCoalescer
     internal static void TryInitialize(string[] args)
     {
         string[] selectors = args.Where(a => a.StartsWith("--rlo-loading-progress=", StringComparison.Ordinal)).ToArray();
-        if (selectors.Length != 1) return;
-        if (selectors[0] != "--rlo-loading-progress=coalesce") return;
+        if (selectors.Length != 1)
+            return;
+        if (selectors[0] != "--rlo-loading-progress=coalesce")
+            return;
         var choice = StartupLaunchSelector.Parse(args);
-        if (!LoadedModManager.RunningModsListForReading.Any(m => m.PackageId == LoadingProgressCompatibility.PackageId)) return;
-        if (choice.Selection != StartupSelection.Candidate || !RuntimeIdentity.ValidateBinaryIdentity(out _)) return;
+        if (!LoadedModManager.RunningModsListForReading.Any(m => m.PackageId == LoadingProgressCompatibility.PackageId))
+            return;
+        if (choice.Selection != StartupSelection.Candidate || !RuntimeIdentity.ValidateBinaryIdentity(out _))
+            return;
         path = Path.Combine(choice.SaveDataRoot!, "RimWorldLoadingOptimizer", "repaint-coalescing.jsonl");
         var harmony = new Harmony(Owner);
         try
         {
-            if (!LoadingProgressCompatibility.TryInitialize()) throw new InvalidOperationException("unsupported-loading-framework");
+            if (!LoadingProgressCompatibility.TryInitialize())
+                throw new InvalidOperationException("unsupported-loading-framework");
             Assembly assembly = LoadingProgressCompatibility.FrameworkAssembly!;
             Type type = assembly.GetType("ilyvion.LoadingProgress.LongEventHandler_UpdateCurrentEnumeratorEvent_Patches", true)!;
             MethodInfo stop = AccessTools.Method(type, "ShouldStopEarly"), transpiler = AccessTools.Method(type, "Transpiler");
@@ -49,7 +54,7 @@ internal static class RepaintCoalescer
             active = true;
             Write("{\"event\":\"installed\",\"nativeTimeBudgetUnchanged\":true}");
         }
-        catch (Exception e) { harmony.UnpatchAll(Owner); Write("{\"event\":\"refused\",\"reason\":\"" + e.Message.Replace("\"", "'") + "\"}"); }
+        catch (Exception e) { harmony.UnpatchAll(Owner); JsonLineLog.WriteReceipt(path, "refused", e.Message); }
     }
     private static void Check(MethodInfo method, string expected)
     {
@@ -59,20 +64,24 @@ internal static class RepaintCoalescer
     }
     private static void Coalesce(ref bool __result)
     {
-        if (!active || !__result || !UnityData.IsInMainThread) return;
-        if (!stopGuard!.AllowsOriginalContract() || !loopGuard!.AllowsOriginalContract() || !transpilerGuard!.AllowsOriginalContract()) { refused++; return; }
+        if (!active || !__result || !UnityData.IsInMainThread)
+            return;
+        if (!stopGuard!.AllowsOriginalContract() || !loopGuard!.AllowsOriginalContract() || !transpilerGuard!.AllowsOriginalContract())
+        {
+            refused++;
+            return;
+        }
         // The original has already consumed its repaint request. Its caller's
         // unmodified elapsed-time condition still decides when to end this frame.
-        __result = false; suppressed++;
+        __result = false;
+        suppressed++;
     }
     private static void Menu()
     {
-        if (!active || Current.ProgramState != ProgramState.Entry || !PlayDataLoader.Loaded) return;
+        if (!active || Current.ProgramState != ProgramState.Entry || !PlayDataLoader.Loaded)
+            return;
         active = false;
         Write("{\"event\":\"complete\",\"suppressed\":" + suppressed + ",\"refused\":" + refused + "}");
     }
-    private static void Write(string json)
-    {
-        try { Directory.CreateDirectory(Path.GetDirectoryName(path)!); File.AppendAllText(path, json + Environment.NewLine); } catch { }
-    }
+    private static void Write(string json) => JsonLineLog.Append(path, json);
 }

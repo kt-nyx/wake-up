@@ -1,5 +1,7 @@
 # Retained-feature benchmark results
 
+> Dated qualification record. Identities, activation defaults, permissions and proposed next steps describe this investigation, not the current release. See [current state](current-state.md), [support policy](user-guide.md#supported-build-policy) and [results](results.md) for current decisions.
+
 **Smaller-list measurements complete, 2026-09-07; larger mixed-list comparison held. Yes, the current general-purpose mod can approximately halve startup on a suitable workload:** the completed patch-heavy fresh-cache comparison is **77.7 → 39.0 seconds, 49.9% shorter**, with all three pairs between 49% and 51%. Character Editor and Loading Progress are absent. Across all four completed smaller lists, the equally weighted fresh-cache reduction is **16.6%**, with individual list estimates from 1.2% to 49.9%. That describes these selected lists under concurrent gaming, not a player-wide average. The originally planned broader comparison still lacks its larger mixed list.
 
 The completed scored results below were collected while STALKER 2 ran on the same machine. A brief quieter interval produced qualification launches only; none contribute to these percentages. Only the fixture process has below-normal CPU priority. The machine has a Ryzen 9 7950X3D, approximately 32 GiB RAM (31.1 GiB OS-reported usable physical memory), RTX 4080 SUPER, and Windows 11 build 26200. There is no adjustment that pretends to remove competing CPU, GPU or memory use from the observed times.
@@ -8,13 +10,13 @@ The completed scored results below were collected while STALKER 2 ran on the sam
 
 Every scored time ends when the independent observer sees the usable menu. Each run then exits normally and is captured with automatic startup checks passed. The optimizer is physically absent in the baseline. Character Editor and its dependent EyePatch are excluded throughout. Gagarin itself remains present in both arms.
 
-“RLO” or “suite” here means the retained search optimizations, Gagarin reuse and PNG cache are explicitly enabled through the fixture launch configuration. Installation alone does not currently enable them. Unsupported conditions retain the original path, and a feature with no eligible work contributes no demonstrated saving.
+“RLO” or “suite” here means the retained search optimizations, Gagarin reuse and PNG cache are explicitly enabled through the fixture launch configuration. This campaign used explicit fixture selectors; ordinary activation through settings was implemented later. Unsupported conditions retain the original path, and a feature with no eligible work contributes no demonstrated saving.
 
 “Fresh” means the application caches are reset; it does not mean Windows's file cache is cold. “Warm” means the matching captured Gagarin cache is restored, and its actual reuse is confirmed. First qualification launches are excluded from scored comparisons. The industrial baseline's first qualification took 99.55 seconds, whereas scored fresh baselines took approximately 29–31 seconds. Comparing that first launch with a later optimized run would produce a misleading large gain.
 
 The accepted runtime is `382996ca20863e2da88f7bb01758ecb9dacf3cbd`, DLL SHA-256 `ef8e69ce0b5d13965be17cc7e73078487993c67c935761a4c3daa4b38575480a`. This campaign changes benchmark tooling and documentation, not runtime features. The earlier experimental Loading Progress bridge and repaint changes are absent. See the [campaign method and selection rules](feature-benchmark-campaign.md).
 
-![Individual paired reductions and median-based summaries for the four smaller lists](../artifacts/feature-benchmarks/paired-startup-results.png)
+The private plot is retained at `artifacts/feature-benchmarks/paired-startup-results.png`; the tables below contain the published measurements.
 
 ## Completed smaller-list comparison at a glance
 
@@ -149,7 +151,7 @@ Separate medians are **30.785969 → 30.174052 seconds**, saving **0.611917 seco
 
 The feature receipts confirm the intended isolated activation, and available loading-data checks match throughout the search and Gagarin comparisons.
 
-The processed-PNG cache has **no measured contribution in this campaign**: all native-texture candidate captures have zero eligible PNG calls. Many frozen packages provide DDS textures, which the normal loader selects. The earlier explicitly selected PNG workload remains separate evidence: the retained package's `png-p19-integrated-warm` / `png-p20-integrated-control` captures were **21.171827 / 24.311461 seconds**, a **12.9% additional reduction**, with 4,320 restored textures. Their source/package identities, menu observations and normal successful exits were rechecked from the captured records. Earlier forward/reverse observations on the pre-integration implementation supported roughly 11.5–12.7%. First cache construction was slower (the retained build took 39.327 seconds), so there is no first-launch benefit claim. See the [PNG investigation](results.md#2026-09-07-png-processing-implementations). None of those deliberately selected PNG runs enter this campaign's representative-list average.
+The processed-PNG cache has **no measured contribution in this campaign**: all native-texture candidate captures have zero eligible PNG calls. Many frozen packages provide DDS textures, which the normal loader selects. The earlier explicitly selected PNG workload remains separate evidence: the retained package's `png-p19-integrated-warm` / `png-p20-integrated-control` captures were **21.171827 / 24.311461 seconds**, a **12.9% additional reduction**, with 4,320 restored textures. Their source/package identities, menu observations and normal successful exits were rechecked from the captured records. Earlier forward/reverse observations on the pre-integration implementation supported roughly 11.5–12.7%. First cache construction was slower (the retained build took 39.327 seconds), so there is no first-launch benefit claim. See the [PNG investigation](archive/investigation-results.md#2026-09-07-png-processing-implementations). None of those deliberately selected PNG runs enter this campaign's representative-list average.
 
 ## Remaining coverage and limitations
 
@@ -163,7 +165,7 @@ One later interaction launch lost its run record to a Windows atomic-replacement
 
 All selections use one frozen installed library with different enabled subsets. Disabled packages remain installed except the explicit parked exclusions and physically absent optimizer. An eventual average describes the named tested lists under their stated conditions; it must not be presented as an average for all players or silently combine idle large-list runs with concurrent-game small-list runs.
 
-The [readable fixture catalog](../artifacts/feature-benchmarks/fixture-catalog.md) lists the exact ordered package names for all eight selections, including the held mixed variants. The selection JSON files retain dependency/order provenance and frozen identities.
+The readable fixture catalog (private: `artifacts/feature-benchmarks/fixture-catalog.md`) lists the exact ordered package names for all eight selections, including the held mixed variants. The selection JSON files retain dependency/order provenance and frozen identities.
 
 At this checkpoint, the last capture is `fb-a-g3-biocombat-suite`, with normal exit and automatic startup checks passed. The fixture audit passed and the accepted runtime is installed. No further test batch is running. Runtime source is unchanged from `382996ca...`; the only implementation changes are benchmark selection support and the observed atomic-record write repair. No push or publication occurred.
 

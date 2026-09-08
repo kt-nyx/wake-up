@@ -59,7 +59,9 @@ public sealed class GagarinCacheRuntimeTests
         Assert.Throws<InvalidOperationException>((Action)(() => GagarinCacheRuntime.RewriteConstructor(original.Concat(original))));
     }
 
-    private static void ForeignXmlPrefix() { }
+    private static void ForeignXmlPrefix()
+    {
+    }
 
     [Test]
     public void UnknownXmlParserHookRefusesReuse()
@@ -94,7 +96,10 @@ public sealed class GagarinCacheRuntimeTests
         Assert.That(result.Length, Is.EqualTo(original.Count));
         Assert.That(result[0].blocks.Count, Is.EqualTo(1));
         foreach (int index in new[] { 2, 7, 8, 9, 10 })
-        { Assert.That(result[index].opcode, Is.EqualTo(original[index].opcode)); Assert.That(result[index].operand, Is.EqualTo(original[index].operand)); }
+        {
+            Assert.That(result[index].opcode, Is.EqualTo(original[index].opcode));
+            Assert.That(result[index].operand, Is.EqualTo(original[index].operand));
+        }
         Assert.That(((MethodInfo)result[1].operand).Name, Is.EqualTo("CreateAsset"));
         Assert.That(original[1].opcode, Is.EqualTo(OpCodes.Newobj));
         Assert.Throws<InvalidOperationException>((Action)(() => GagarinCacheRuntime.RewriteLoad(original.Skip(1))));
@@ -129,14 +134,16 @@ public sealed class GagarinCacheRuntimeTests
             foreach (XmlElement item in reused.DocumentElement!.ChildNodes)
             {
                 XmlNode node = destination.ImportNode(item.FirstChild!, true);
-                if (sources.TryGetValue(item.GetAttribute("path"), out object value)) mapped[node] = value;
+                if (sources.TryGetValue(item.GetAttribute("path"), out object value))
+                    mapped[node] = value;
                 destination.DocumentElement!.AppendChild(node);
             }
             Assert.That(source.OuterXml, Is.EqualTo(before));
             Assert.That(mapped.Count, Is.EqualTo(2));
             Assert.That(mapped.Values.All(v => ReferenceEquals(v, asset)), Is.True);
             Assert.That(destination.DocumentElement!.ChildNodes.Count, Is.EqualTo(3));
-            foreach (XmlNode node in destination.SelectNodes("//*")!) Assert.That(node.OwnerDocument, Is.SameAs(destination));
+            foreach (XmlNode node in destination.SelectNodes("//*")!)
+                Assert.That(node.OwnerDocument, Is.SameAs(destination));
             destination.DocumentElement.FirstChild!.FirstChild!.InnerText = "changed";
             Assert.That(source.OuterXml, Is.EqualTo(before));
         }

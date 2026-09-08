@@ -1,5 +1,7 @@
 # Whole loading assessment — 2026-09-07
 
+> Dated qualification record. Identities, activation defaults, permissions and proposed next steps describe this investigation, not the current release. See [current state](current-state.md), [support policy](user-guide.md#supported-build-policy) and [results](results.md) for current decisions.
+
 The full suite shortened representative startup by **17.0–17.2% with fresh supplier caches** and **10.5–11.5% with warm caches**, after a temporary Loading Progress compatibility fix made all retained improvements reachable. A separate experiment combining unnecessary progress-repaint stops reduced two warm launches from roughly **14½ minutes to 7 minutes 43 seconds and 4 minutes**. The slower trial remains part of the result; texture-loading variability prevents a single reliable percentage for that experiment.
 
 The representative workload revealed an important difference from the smaller XML-heavy tests: Loading Progress replaces part of the game's loading loop. Two accepted improvements could not operate on that replacement path. Gagarin XML reuse safely fell back because it did not recognize Loading Progress's attached code (hooks), while the PNG improvement never reached the texture-loading call it needed to intercept. Enabling every switch therefore did not enable every improvement in practice.
@@ -64,10 +66,10 @@ These four timing-only runs used the same comparison package identity; RLO was p
 
 | Order | Capture | Mode | Independent menu seconds |
 |---:|---|---|---:|
-| 1 | [whole-f03-absent](../artifacts/whole-loading/whole-f03-absent-summary.json) | Absent | 1091.945396 |
-| 2 | [whole-f04-suite](../artifacts/whole-loading/whole-f04-suite-summary.json) | Full suite with compatibility bridge | 904.209762 |
-| 3 | [whole-f05-suite](../artifacts/whole-loading/whole-f05-suite-summary.json) | Same suite, repeated | 902.617396 |
-| 4 | [whole-f06-absent](../artifacts/whole-loading/whole-f06-absent-summary.json) | Reverse absent control | 1087.359847 |
+| 1 | whole-f03-absent (private: `artifacts/whole-loading/whole-f03-absent-summary.json`) | Absent | 1091.945396 |
+| 2 | whole-f04-suite (private: `artifacts/whole-loading/whole-f04-suite-summary.json`) | Full suite with compatibility bridge | 904.209762 |
+| 3 | whole-f05-suite (private: `artifacts/whole-loading/whole-f05-suite-summary.json`) | Same suite, repeated | 902.617396 |
+| 4 | whole-f06-absent (private: `artifacts/whole-loading/whole-f06-absent-summary.json`) | Reverse absent control | 1087.359847 |
 
 The forward pair saved **187.735634 seconds (17.19%)**; the second candidate versus its following absent control saved **184.742451 seconds (16.99%)**. Candidate repeats differed by 1.592366 seconds and absent controls by 4.585549 seconds. This supports a repeatable fresh-cache suite benefit on this representative workload and host condition. It is not a universal average, a PNG saving, or a result for the unmodified accepted package without the compatibility bridge. The large remaining frame-related interval also explains why a percentage from the earlier smaller XML-heavy workload cannot simply be carried over here.
 
@@ -79,10 +81,10 @@ All four warm timing arms restored their own matching supplier cache: absent run
 
 | Order | Capture | Mode | Independent menu seconds |
 |---:|---|---|---:|
-| 1 | [whole-h01-absent](../artifacts/whole-loading/whole-h01-absent-summary.json) | Warm absent | 983.571816 |
-| 2 | [whole-h02-suite](../artifacts/whole-loading/whole-h02-suite-summary.json) | Warm full suite with compatibility bridge | 870.314809 |
-| 3 | [whole-h03-suite](../artifacts/whole-loading/whole-h03-suite-summary.json) | Same warm suite, repeated | 871.523316 |
-| 4 | [whole-h04-absent](../artifacts/whole-loading/whole-h04-absent-summary.json) | Reverse warm absent control | 974.296652 |
+| 1 | whole-h01-absent (private: `artifacts/whole-loading/whole-h01-absent-summary.json`) | Warm absent | 983.571816 |
+| 2 | whole-h02-suite (private: `artifacts/whole-loading/whole-h02-suite-summary.json`) | Warm full suite with compatibility bridge | 870.314809 |
+| 3 | whole-h03-suite (private: `artifacts/whole-loading/whole-h03-suite-summary.json`) | Same warm suite, repeated | 871.523316 |
+| 4 | whole-h04-absent (private: `artifacts/whole-loading/whole-h04-absent-summary.json`) | Reverse warm absent control | 974.296652 |
 
 The forward pair saved **113.257007 seconds (11.51%)**; the second candidate versus its following control saved **102.773336 seconds (10.55%)**. Candidate repeats differed by 1.208507 seconds and absent controls by 9.275164 seconds. Both directions support a warm-suite benefit under these conditions. Keep this result separate from the fresh-cache 17% result; the absent supplier cache has already removed much of the patch work in the warm comparison.
 
@@ -90,7 +92,7 @@ Both warm candidates reported admitted, reused Gagarin documents, one unchanged 
 
 The first warm absent/suite pair both loaded supplier XML from cache. Their scanned messages match each other. Relative to fresh runs, XML Extensions reports zero operations rather than 16,878 (both report zero failures), the cache-miss notice is absent, and eight earlier SafePatcher missing-target messages are not repeated. These are consequences of skipping the original patch work. The analysis preserves those fresh/warm differences and uses the warm absent run as the warm error-message reference.
 
-Loading Progress also reports `defsParsed=47388` in fresh runs and `45388` in both first warm arms. [Its counter](../artifacts/whole-loading/LoadingProgress-session-stats.cs) records a stage's advertised maximum, taken from the [native loading-progress label](../artifacts/whole-loading/LoadingProgress-window.cs), rather than counting final objects in the definition database. It is not a final-definition checksum. The report checks it within the same cache condition and does not claim complete runtime-object equivalence from it or from matching XML files alone.
+Loading Progress also reports `defsParsed=47388` in fresh runs and `45388` in both first warm arms. Its counter (private: `artifacts/whole-loading/LoadingProgress-session-stats.cs`) records a stage's advertised maximum, taken from the native loading-progress label (private: `artifacts/whole-loading/LoadingProgress-window.cs`), rather than counting final objects in the definition database. It is not a final-definition checksum. The report checks it within the same cache condition and does not claim complete runtime-object equivalence from it or from matching XML files alone.
 
 ## Where the remaining time goes
 
@@ -125,7 +127,7 @@ This differs from the earlier unexplained-delay investigation: that smaller work
 
 ### Repaint experiment and the newly located late interval
 
-The diagnostic [whole-p02-coalesce-verify](../artifacts/whole-loading/whole-p02-coalesce-verify-summary.json) reached the independently observed menu in **241.949873 seconds** and exited normally. It suppressed 2,463 extra stop decisions with zero refusals. The probe still observed 2,563 repaint requests, but no resulting early-stop returns. Gagarin verification found the same source parse, 45,388 roots, 45,072 expected mappings, zero bad mappings and zero ownership errors. The selected textures and available XML/error checks matched the warm comparison workload. No frames were dropped and no observed frame or menu-drawing exception occurred.
+The diagnostic whole-p02-coalesce-verify (private: `artifacts/whole-loading/whole-p02-coalesce-verify-summary.json`) reached the independently observed menu in **241.949873 seconds** and exited normally. It suppressed 2,463 extra stop decisions with zero refusals. The probe still observed 2,563 repaint requests, but no resulting early-stop returns. Gagarin verification found the same source parse, 45,388 roots, 45,072 expected mappings, zero bad mappings and zero ownership errors. The selected textures and available XML/error checks matched the warm comparison workload. No frames were dropped and no observed frame or menu-drawing exception occurred.
 
 | Finishing-phase observation | Initial uncoalesced diagnostic | Coalesced diagnostic |
 |---|---:|---:|
@@ -158,9 +160,9 @@ These trials keep the full bridged suite, native texture selection and supplier 
 | Capture | Repaint coalescing | Menu seconds | Texture-holder seconds |
 |---|---|---:|---:|
 | `whole-h03-suite` | Off; preceding warm suite | 871.523316 | 8.554749 |
-| [whole-p03-coalesce](../artifacts/whole-loading/whole-p03-coalesce-summary.json) | On | 462.535953 | 186.679963 |
-| [whole-p04-coalesce](../artifacts/whole-loading/whole-p04-coalesce-summary.json) | On, repeated | 240.438655 | 9.373120 |
-| [whole-p05-suite-control](../artifacts/whole-loading/whole-p05-suite-control-summary.json) | Off; following control | 871.976522 | 8.352838 |
+| whole-p03-coalesce (private: `artifacts/whole-loading/whole-p03-coalesce-summary.json`) | On | 462.535953 | 186.679963 |
+| whole-p04-coalesce (private: `artifacts/whole-loading/whole-p04-coalesce-summary.json`) | On, repeated | 240.438655 | 9.373120 |
+| whole-p05-suite-control (private: `artifacts/whole-loading/whole-p05-suite-control-summary.json`) | Off; following control | 871.976522 | 8.352838 |
 
 The slower first timing trial is retained in the result. It actually suppressed 2,347 stops, with zero refusals; the second suppressed 2,458, also without refusal. Its 186.680-second texture-loader cost explains much of the gap from the four-minute diagnostic/repeat. It also had an earlier slowdown: vanilla loading took 20.918570 seconds and the observer installed at 31.067633 seconds, versus roughly eight seconds for observer installation in nearby suite runs. That early delay precedes the optimizer's mod-stage behavior. Sampled game CPU remained similar: 310.828 seconds in the slow trial, 305.531 in the diagnostic and 308.750 / 313.891 in the preceding warm suites.
 
@@ -246,7 +248,7 @@ This is a serial reduction in comparisons, not the rejected parallel query split
 
 ### 5. Reassess exact DDS-cache validation with native hashing
 
-**Avoidable work:** the expensive managed hash implementation in the [rejected validated DDS pack](results.md#2026-09-07-texture-implementation-experiments). **Changed premise:** [retained PNG work](results.md#2026-09-07-png-processing-implementations) demonstrated much cheaper Windows-native computation of the same SHA-256, including actual Mono execution and byte-equivalence checks. That directly addresses one recorded reason the old pack lost.
+**Avoidable work:** the expensive managed hash implementation in the [rejected validated DDS pack](archive/investigation-results.md#2026-09-07-texture-implementation-experiments). **Changed premise:** [retained PNG work](archive/investigation-results.md#2026-09-07-png-processing-implementations) demonstrated much cheaper Windows-native computation of the same SHA-256, including actual Mono execution and byte-equivalence checks. That directly addresses one recorded reason the old pack lost.
 
 The earlier pack paid about 2.9 seconds during installation/full-pack validation and roughly 2.8 seconds of additional DDS-stage cost versus following controls. Those numbers are historical, not current representative costs. Faster hashing does not remove the requirement to read every current source or validate cached payloads; it cannot honestly be described as eliminating all original file opens or reads.
 
@@ -275,6 +277,6 @@ The separate small native-selection restoration capture **`restored-whole-native
 
 Restoring accepted code also restores its known representative Loading Progress limitation: Gagarin refuses those unrecognized hooks and the normal PNG interception does not reach the replacement iterator. The temporary bridged-suite percentages must not be attributed to the currently deployed unmodified package. The compatibility bridge and repaint experiment remain at source `56612c63b01fc02018f16525e46608e70ba5a893` for deliberate future qualification. No probe or prototype speed claim implies gameplay, other-modlist, latest-Steam or cross-platform qualification.
 
-Raw evidence: [analysis](../artifacts/whole-loading/analysis.json), [run helper](../artifacts/whole-loading/run.py), [analysis helper](../artifacts/whole-loading/analyze.py), [probe/package tests](../artifacts/whole-loading/comparison-package-tests-final.log), [package build](../artifacts/whole-loading/comparison-package-build.log), [Loading Progress replacement source inspection](../artifacts/whole-loading/LoadingProgress-reload-replacement.cs), [finishing loop inspection](../artifacts/whole-loading/LoadingProgress-finish.cs), and [early-stop inspection](../artifacts/whole-loading/LoadingProgress-enumerator.cs). Authoritative private captures remain under `.rlo-test-instance/results/<label>/`. These ignored artifacts are local evidence, not public package contents.
+Raw evidence: analysis (private: `artifacts/whole-loading/analysis.json`), run helper (private: `artifacts/whole-loading/run.py`), analysis helper (private: `artifacts/whole-loading/analyze.py`), probe/package tests (private: `artifacts/whole-loading/comparison-package-tests-final.log`), package build (private: `artifacts/whole-loading/comparison-package-build.log`), Loading Progress replacement source inspection (private: `artifacts/whole-loading/LoadingProgress-reload-replacement.cs`), finishing loop inspection (private: `artifacts/whole-loading/LoadingProgress-finish.cs`), and early-stop inspection (private: `artifacts/whole-loading/LoadingProgress-enumerator.cs`). Authoritative private captures remain under `.rlo-test-instance/results/<label>/`. These ignored artifacts are local evidence, not public package contents.
 
-The [closeout receipt](../artifacts/whole-loading/closeout.json) records all representative labels, final source/package verification, the restoration capture, frozen-file receipt and closed-process check. The investigation began from local main `ec2edce` on `codex/whole-loading-assessment`; its report and restoration are integrated into local main after closeout. No push or publication occurred.
+The closeout receipt (private: `artifacts/whole-loading/closeout.json`) records all representative labels, final source/package verification, the restoration capture, frozen-file receipt and closed-process check. The investigation began from local main `ec2edce` on `codex/whole-loading-assessment`; its report and restoration are integrated into local main after closeout. No push or publication occurred.

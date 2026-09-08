@@ -14,6 +14,7 @@
     <ProjectReference Include="..\..\src\RimWorldLoadingOptimizer.RimWorld\RimWorldLoadingOptimizer.RimWorld.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="UnityEngine.CoreModule"><HintPath>$(RLO_RIMWORLD_MANAGED_DIR)\UnityEngine.CoreModule.dll</HintPath><Private>true</Private></Reference>
     <Reference Include="UnityEngine.ImageConversionModule"><HintPath>$(RLO_RIMWORLD_MANAGED_DIR)\UnityEngine.ImageConversionModule.dll</HintPath><Private>true</Private></Reference>
     <Reference Include="Assembly-CSharp">

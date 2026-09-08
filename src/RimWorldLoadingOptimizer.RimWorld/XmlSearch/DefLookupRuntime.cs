@@ -31,8 +31,10 @@ internal static class DefLookupRuntime
 
     internal static bool TryInitialize(IReadOnlyList<string> arguments)
     {
-        if (!arguments.Any(a => a != null && a.StartsWith("--rlo-strategy=def-lookup", StringComparison.Ordinal))) return false;
-        if (attempted) return true;
+        if (!arguments.Any(a => a != null && a.StartsWith("--rlo-strategy=def-lookup", StringComparison.Ordinal)))
+            return false;
+        if (attempted)
+            return true;
         attempted = true;
         var harmony = new Harmony(Owner);
         try
@@ -40,19 +42,29 @@ internal static class DefLookupRuntime
             string[] strategies = arguments.Where(a => a != null && a.StartsWith("--rlo-strategy=", StringComparison.Ordinal)).ToArray();
             StartupLaunchDecision mode = StartupLaunchSelector.Parse(arguments);
             if (strategies.Length != 1 || strategies[0] != "--rlo-strategy=def-lookup" || mode.Selection == StartupSelection.Off || PlayDataLoader.Loaded)
-            { Receipt("refused", "selector-or-startup-window"); return true; }
+            {
+                Receipt("refused", "selector-or-startup-window");
+                return true;
+            }
             evidencePath = Path.Combine(mode.SaveDataRoot!, "RimWorldLoadingOptimizer", "def-lookup.jsonl");
             candidate = mode.Selection == StartupSelection.Candidate;
             if (!ReferenceEquals(GameBuildContract.Current, GameBuildContract.GogRev573)
                 || !RuntimeIdentity.ValidateBinaryIdentity(out _))
-            { Receipt("refused", "pinned-binary-identity"); return true; }
+            {
+                Receipt("refused", "pinned-binary-identity");
+                return true;
+            }
             Assembly game = typeof(LoadedModManager).Assembly;
             if (candidate)
             {
                 foreach (string name in new[] { "Add", "AddModExtension", "Insert", "Remove", "Replace", "SetName",
                     "AttributeAdd", "AttributeRemove", "AttributeSet", "Test", "Conditional" })
                     InstallWorker(harmony, game.GetType("Verse.PatchOperation" + name, true)!);
-                if (Targets.Count == 0) { Receipt("refused", "no-compatible-query-workers"); return true; }
+                if (Targets.Count == 0)
+                {
+                    Receipt("refused", "no-compatible-query-workers");
+                    return true;
+                }
             }
             harmony.Patch(AccessTools.Method(typeof(LoadedModManager), "ApplyPatches"),
                 prefix: new HarmonyMethod(typeof(DefLookupRuntime), nameof(StagePrefix)) { priority = Priority.Last },
@@ -63,7 +75,11 @@ internal static class DefLookupRuntime
         }
         catch (Exception exception)
         {
-            try { harmony.UnpatchAll(Owner); } catch { }
+            try
+            {
+                harmony.UnpatchAll(Owner);
+            }
+            catch { }
             installed = false;
             Receipt("refused", "installation-" + exception.GetType().Name);
         }
@@ -74,34 +90,43 @@ internal static class DefLookupRuntime
     {
         MethodInfo? worker = type.GetMethod("ApplyWorker", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly,
             null, new[] { typeof(XmlDocument) }, null);
-        if (worker == null || worker.ReturnType != typeof(bool) || Harmony.GetPatchInfo(worker)?.Transpilers.Any(p => p.owner != Owner) == true) return;
+        if (worker == null || worker.ReturnType != typeof(bool) || Harmony.GetPatchInfo(worker)?.Transpilers.Any(p => p.owner != Owner) == true)
+            return;
         // Recheck published Harmony state without deserializing unchanged records.
-        if (!PublishedPatchGuard.TryCreate(worker, Owner, out PublishedPatchGuard? guard)) return;
-        Targets.Add(worker); Guards.Add(guard!);
+        if (!PublishedPatchGuard.TryCreate(worker, Owner, out PublishedPatchGuard? guard))
+            return;
+        Targets.Add(worker);
+        Guards.Add(guard!);
         harmony.Patch(worker, transpiler: new HarmonyMethod(typeof(DefLookupRuntime), nameof(Transpiler)) { priority = Priority.Last });
     }
 
     internal static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, MethodBase __originalMethod)
     {
         int target = Targets.IndexOf(__originalMethod);
-        if (target < 0) throw new InvalidOperationException("Def lookup worker is not registered.");
+        if (target < 0)
+            throw new InvalidOperationException("Def lookup worker is not registered.");
         List<CodeInstruction> code = instructions.Select(i => new CodeInstruction(i)).ToList();
-        if (Harmony.GetPatchInfo(__originalMethod)?.Transpilers.Any(p => p.owner != Owner) == true) return code;
+        if (Harmony.GetPatchInfo(__originalMethod)?.Transpilers.Any(p => p.owner != Owner) == true)
+            return code;
         int replacements = 0;
         for (int index = 0; index < code.Count; index++)
         {
             CodeInstruction instruction = code[index];
-            if (instruction.opcode != OpCodes.Callvirt || (!Equals(instruction.operand, NativeNodes) && !Equals(instruction.operand, NativeSingle))) continue;
+            if (instruction.opcode != OpCodes.Callvirt || (!Equals(instruction.operand, NativeNodes) && !Equals(instruction.operand, NativeSingle)))
+                continue;
             bool single = Equals(instruction.operand, NativeSingle);
             var argument = new CodeInstruction(OpCodes.Ldc_I4, target);
-            argument.labels.AddRange(instruction.labels); instruction.labels.Clear();
-            argument.blocks.AddRange(instruction.blocks); instruction.blocks.Clear();
+            argument.labels.AddRange(instruction.labels);
+            instruction.labels.Clear();
+            argument.blocks.AddRange(instruction.blocks);
+            instruction.blocks.Clear();
             code.Insert(index++, argument);
             instruction.opcode = OpCodes.Call;
             instruction.operand = AccessTools.Method(typeof(DefLookupRuntime), single ? nameof(SelectSingleNode) : nameof(SelectNodes));
             replacements++;
         }
-        if (replacements != 1) throw new InvalidOperationException("Unique native worker XPath callsite unavailable.");
+        if (replacements != 1)
+            throw new InvalidOperationException("Unique native worker XPath callsite unavailable.");
         return code;
     }
 
@@ -114,15 +139,18 @@ internal static class DefLookupRuntime
     private static void StagePrefix(XmlDocument __0, bool __runOriginal, out StageState? __state)
     {
         __state = null;
-        if (!installed || consumed || !__runOriginal) return;
+        if (!installed || consumed || !__runOriginal)
+            return;
         consumed = true;
         __state = new StageState();
-        if (candidate) active = __state.Lookup = new ScopedDefLookup(__0);
+        if (candidate)
+            active = __state.Lookup = new ScopedDefLookup(__0);
     }
 
     private static Exception? StageFinalizer(Exception? __exception, StageState? __state)
     {
-        if (__state == null) return __exception;
+        if (__state == null)
+            return __exception;
         __state.Watch.Stop();
         ScopedDefLookup? lookup = __state.Lookup;
         active = null;
@@ -147,14 +175,5 @@ internal static class DefLookupRuntime
     }
 
     private static void Receipt(string kind, string reason, string? fields = null)
-    {
-        try
-        {
-            if (evidencePath == null) return;
-            Directory.CreateDirectory(Path.GetDirectoryName(evidencePath)!);
-            File.AppendAllText(evidencePath, "{\"event\":\"" + kind + "\",\"reason\":\"" + reason + "\""
-                + (fields == null ? "" : "," + fields) + "}" + Environment.NewLine);
-        }
-        catch { }
-    }
+        => JsonLineLog.WriteReceipt(evidencePath, kind, reason, fields);
 }

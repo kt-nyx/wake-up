@@ -1,5 +1,7 @@
 # Retained-feature benchmark campaign
 
+> Dated qualification record. Identities, activation defaults, permissions and proposed next steps describe this investigation, not the current release. See [current state](current-state.md), [support policy](user-guide.md#supported-build-policy) and [results](results.md) for current decisions.
+
 Started 2026-09-07 from local main `1282ae3` on `codex/feature-benchmarks`. The owner requests reliable measurements of retained features, Loading Progress's effect and interaction, and several internally compatible modlists. No new runtime features are being developed. Representative live tests are authorized for this campaign; the owner will play another game during testing.
 
 The question is how much sooner the actual menu becomes usable with the current mod. The headline will describe this machine and these curated lists, with fresh and reused application caches reported separately. An average across hand-selected lists is not an estimate of all RimWorld players. Individual seconds saved, percentage changes and variation will remain visible, including neutral or slower results.
@@ -73,7 +75,7 @@ Raw source/package/selection identities, complete successful or failed capture r
 
 ## Progress
 
-Selection support and the observed atomic-write repair pass all 28 Python fixture checks. Four smaller suite comparisons, both industrial/patch-heavy Loading Progress comparisons and the selected individual-feature comparisons are complete. The original broader average remains pending because mixed is held; the completed smaller-list average is explicitly secondary. Last capture `fb-a-g3-biocombat-suite` passed, the fixture audit passed, and no test batch remains running. See the [results](feature-benchmark-results.md) for current numbers and the [ordered fixture catalog](../artifacts/feature-benchmarks/fixture-catalog.md) for exact contents.
+Selection support and the observed atomic-write repair pass all 28 Python fixture checks. Four smaller suite comparisons, both industrial/patch-heavy Loading Progress comparisons and the selected individual-feature comparisons are complete. The original broader average remains pending because mixed is held; the completed smaller-list average is explicitly secondary. Last capture `fb-a-g3-biocombat-suite` passed, the fixture audit passed, and no test batch remains running. See the [results](feature-benchmark-results.md) for current numbers and the ordered fixture catalog (private: `artifacts/feature-benchmarks/fixture-catalog.md`) for exact contents.
 
 The industrial comparison completed five paired repetitions per cache/Loading Progress condition. The later patch-heavy interaction completed five four-way rounds for each cache condition, with matching available loading-data checks in all 47 successful/qualifying captures. Its interrupted original warm round is excluded as a whole; the replacement uses distinct labels. No additional runtime feature was integrated.
 

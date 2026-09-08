@@ -52,7 +52,9 @@ public sealed class GiddyTextureRuntimeTests
         Assert.That(guard.AllowsOriginalContract(), Is.True);
     }
 
-    private static void Noop() { }
+    private static void Noop()
+    {
+    }
     private static System.Collections.Generic.IEnumerable<CodeInstruction> Identity(System.Collections.Generic.IEnumerable<CodeInstruction> code) => code;
 
     [Test]

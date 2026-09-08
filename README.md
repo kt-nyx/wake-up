@@ -1,6 +1,6 @@
 # RimWorld Loading Optimizer
 
-RimWorld Loading Optimizer reduces repeated searches during game startup. The runtime accelerates supported XML definition and named-template searches and Harmony type searches, with optional reuse of XML already parsed by a supported Gagarin loading framework.
+RimWorld Loading Optimizer provides targeted startup improvements. It accelerates supported XML definition/template and Harmony type searches, with optional improvements for Gagarin, Character Editor, Loading Progress, Giddy-Up and processed PNG textures. The [results and decisions](docs/results.md) page summarizes what is retained and why.
 
 The XML search feature builds a temporary lookup table (an index) from the active mod XML when needed. It finds a definition's `defName` or a template's `Name` directly, then lets the normal XML engine evaluate the rest of the query. Relevant changes invalidate the affected index; patch completion releases it. No prebuilt modlist data or persistent XML cache is shipped.
 

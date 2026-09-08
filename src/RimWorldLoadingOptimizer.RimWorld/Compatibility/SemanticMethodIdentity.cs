@@ -26,7 +26,8 @@ internal static class SemanticMethodIdentity
     // These values are not learned from an optimized or Prepatcher-modified body.
     internal static string? ExpectedFor(GameBuildContract build, int token)
     {
-        if (!ReferenceEquals(build, GameBuildContract.GogRev573)) return null;
+        if (!ReferenceEquals(build, GameBuildContract.GogRev573))
+            return null;
         return token switch
         {
             0x060035A2 => "8672989FE7B5FF5D424A18EDBF1F6890A590E20C6C993737552A05A3A90491D5",
@@ -46,7 +47,8 @@ internal static class SemanticMethodIdentity
         {
             MethodBody? body = method.GetMethodBody();
             byte[]? il = body?.GetILAsByteArray();
-            if (body is null || il is null) return false;
+            if (body is null || il is null)
+                return false;
 
             var canonical = new StringBuilder(il.Length * 3);
             // Harmony sets NoInlining when it detours a method. It changes the
@@ -95,7 +97,8 @@ internal static class SemanticMethodIdentity
                     case OperandType.InlineSwitch:
                         {
                             int count = ReadInt32(il, ref index);
-                            if (count < 0 || count > (il.Length - index) / 4) throw new InvalidOperationException("Invalid switch table.");
+                            if (count < 0 || count > (il.Length - index) / 4)
+                                throw new InvalidOperationException("Invalid switch table.");
                             int tableEnd = checked(index + count * 4);
                             for (int item = 0; item < count; item++)
                             {
@@ -174,7 +177,7 @@ internal static class SemanticMethodIdentity
 
             canonicalText = canonical.ToString();
             using SHA256 algorithm = SHA256.Create();
-            hash = BitConverter.ToString(algorithm.ComputeHash(Encoding.UTF8.GetBytes(canonical.ToString())))
+            hash = BitConverter.ToString(algorithm.ComputeHash(Encoding.UTF8.GetBytes(canonicalText)))
                 .Replace("-", string.Empty);
             reason = "semantic-il-exact";
             return true;
@@ -188,7 +191,8 @@ internal static class SemanticMethodIdentity
 
     private static string Member(MemberInfo member)
     {
-        if (member is Type type) return "T|" + TypeName(type);
+        if (member is Type type)
+            return "T|" + TypeName(type);
         if (member is FieldInfo field)
             return "F|" + TypeName(field.DeclaringType) + "|" + field.Name + "|" + ModifiedTypeName(field.FieldType, field.GetRequiredCustomModifiers(), field.GetOptionalCustomModifiers()) + "|" + (field.IsStatic ? "S" : "I");
         if (member is MethodBase method)
@@ -209,18 +213,25 @@ internal static class SemanticMethodIdentity
     private static string ModifiedTypeName(Type type, Type[] required, Type[] optional)
     {
         string result = TypeName(type);
-        foreach (Type modifier in required) result += " modreq(" + TypeName(modifier) + ")";
-        foreach (Type modifier in optional) result += " modopt(" + TypeName(modifier) + ")";
+        foreach (Type modifier in required)
+            result += " modreq(" + TypeName(modifier) + ")";
+        foreach (Type modifier in optional)
+            result += " modopt(" + TypeName(modifier) + ")";
         return result;
     }
 
     private static string TypeName(Type? type)
     {
-        if (type is null) return "<global>";
-        if (type.IsGenericParameter) return (type.DeclaringMethod is null ? "!" : "!!") + type.GenericParameterPosition;
-        if (type.IsByRef) return TypeName(type.GetElementType()) + "&";
-        if (type.IsPointer) return TypeName(type.GetElementType()) + "*";
-        if (type.IsArray) return TypeName(type.GetElementType()) + "[" + new string(',', type.GetArrayRank() - 1) + "]";
+        if (type is null)
+            return "<global>";
+        if (type.IsGenericParameter)
+            return (type.DeclaringMethod is null ? "!" : "!!") + type.GenericParameterPosition;
+        if (type.IsByRef)
+            return TypeName(type.GetElementType()) + "&";
+        if (type.IsPointer)
+            return TypeName(type.GetElementType()) + "*";
+        if (type.IsArray)
+            return TypeName(type.GetElementType()) + "[" + new string(',', type.GetArrayRank() - 1) + "]";
         if (type.IsGenericType)
         {
             Type definition = type.GetGenericTypeDefinition();
@@ -266,6 +277,7 @@ internal static class SemanticMethodIdentity
 
     private static void Require(byte[] source, int index, int count)
     {
-        if (index < 0 || count < 0 || index > source.Length - count) throw new InvalidOperationException("Truncated IL.");
+        if (index < 0 || count < 0 || index > source.Length - count)
+            throw new InvalidOperationException("Truncated IL.");
     }
 }

@@ -728,7 +728,7 @@ def test(root, test_filter=None):
                 ["dotnet", "build", "--configuration", "Release", "--no-restore"],
                 ["dotnet", "test", "tests/RimWorldLoadingOptimizer.RimWorld.Tests", "-c", "Release", "--no-build",
                  "--logger", "trx;LogFileName=features.trx", "--results-directory", str(output)],
-                [sys.executable, "-m", "unittest", "discover", "-s", "tests", "-p", "test_op7_*.py", "-q"]]
+                [sys.executable, "-m", "unittest", "discover", "-s", "tests", "-p", "test_*.py", "-q"]]
     if test_filter:
         commands[2].extend(["--filter", test_filter])
     for command in commands:

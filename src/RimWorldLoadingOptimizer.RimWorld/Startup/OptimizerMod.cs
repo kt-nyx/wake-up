@@ -18,7 +18,8 @@ public sealed class OptimizerMod : Mod
     {
         try
         {
-            if (PlayDataLoader.Loaded) return;
+            if (PlayDataLoader.Loaded)
+                return;
             string[] arguments = Environment.GetCommandLineArgs();
             if (!UserStartupSelection.HasExplicitSelection(arguments))
             {
@@ -30,14 +31,14 @@ public sealed class OptimizerMod : Mod
                         : "This game or Harmony build is not supported. Ordinary loading is preserved.";
                 Log.Message("[RimWorld Loading Optimizer] " + launchStatus);
             }
-            else launchStatus = "This launch uses explicit development controls instead of these settings.";
-            CharacterPresetRuntime.TryInitialize(arguments);
-            GiddyTextureRuntime.TryInitialize(arguments);
-            RepaintCoalescer.TryInitialize(arguments);
-            PngRuntime.TryInitialize(arguments);
-            GagarinCacheRuntime.TryInitialize(arguments);
-            if (!StartupSearchRuntime.TryInitialize(arguments) && !DefLookupRuntime.TryInitialize(arguments))
-                TypeLookupRuntime.TryInitialize(arguments);
+            else
+                launchStatus = "This launch uses explicit development controls instead of these settings.";
+            StartupFeatureRunner.Run("Character Editor", () => CharacterPresetRuntime.TryInitialize(arguments));
+            StartupFeatureRunner.Run("Giddy-Up", () => GiddyTextureRuntime.TryInitialize(arguments));
+            StartupFeatureRunner.Run("Loading Progress", () => RepaintCoalescer.TryInitialize(arguments));
+            StartupFeatureRunner.Run("PNG cache", () => PngRuntime.TryInitialize(arguments));
+            StartupFeatureRunner.Run("Gagarin", () => GagarinCacheRuntime.TryInitialize(arguments));
+            StartupSearchRuntime.Initialize(arguments);
         }
         catch (Exception exception)
         {

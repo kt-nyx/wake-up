@@ -1,5 +1,7 @@
 # Normal activation and final bounded investigations
 
+> Dated qualification record. Identities, activation defaults, permissions and proposed next steps describe this investigation, not the current release. See [current state](current-state.md), [support policy](user-guide.md#supported-build-policy) and [results](results.md) for current decisions.
+
 The owner authorized all three recommendations on September 7, 2026: make the retained improvements usable and supportable, complete the deferred HugsLib warning-report comparison, and assess remaining loading costs on the latest combined build using a meaningful larger workload.
 
 Work starts from clean local main `0ba650d` on `codex/product-activation-and-final-opportunities`. This task owns the single checkout and fixture. Existing game, profile and Workshop data outside the fixture remain untouched; publication is not included.

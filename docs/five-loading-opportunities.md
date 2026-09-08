@@ -1,5 +1,7 @@
 # Five loading opportunities: investigation and integration
 
+> Dated qualification record. Identities, activation defaults, permissions and proposed next steps describe this investigation, not the current release. See [current state](current-state.md), [support policy](user-guide.md#supported-build-policy) and [results](results.md) for current decisions.
+
 The owner authorizes investigation, implementation, matched live testing and integration of useful improvements in five specific areas. Testing uses the existing isolated fixture while another game may run. Character Editor remains excluded; the smaller qualified selections and their established memory admission limits are retained. No larger test is admitted merely to rescue a weak result.
 
 Work starts from local main `fa45d82` on `codex/five-loading-opportunities`. The preceding benchmark commits are fast-forward integrated into main; the retained runtime baseline remains `382996ca20863e2da88f7bb01758ecb9dacf3cbd`. One task owns all source, builds, deployment and sequential launches.
@@ -124,7 +126,7 @@ Runtime/package `6b1eed1d29de156609bd5d76b73313d3254dcd1f` passes 57 managed tes
 | Warm, old first | 22.537593 | 20.372321 | 9.61% |
 | Warm, new first | 21.775921 | 20.287971 | 6.83% |
 
-The two-run medians improve from **23.4554045 to 21.544261 seconds (8.15%)** with fresh application caches and from **22.156757 to 20.330146 seconds (8.24%)** with restored Gagarin caches. Every paired order favors the final build. This is about 1.8–1.9 seconds beyond the previously accepted mod on this industrial + Loading Progress selection. It is not an absent-versus-mod comparison or a new average across modlists. The warm comparisons reuse Gagarin's normal cache in both arms; our rejected XML bridge is absent from the final package.
+The two-run medians improve from **23.4554045 to 21.544261 seconds (8.15%)** with fresh application caches and from **22.156757 to 20.330146 seconds (8.24%)** with restored Gagarin caches. Every paired order favors the final build. This is about 1.8â€“1.9 seconds beyond the previously accepted mod on this industrial + Loading Progress selection. It is not an absent-versus-mod comparison or a new average across modlists. The warm comparisons reuse Gagarin's normal cache in both arms; our rejected XML bridge is absent from the final package.
 
 All eight scored runs and three final qualifications exited normally with `automaticTestPassed=true`, matching available XML, settings, content order and scanned messages. Empty game inventories before and after all eleven runs support the owner's stable-background report. The five final industrial candidate launches recorded actual repaint suppression and zero guard refusals. `five-final-q03-optional-absent` exercised the enabled selector without Loading Progress: it emitted no coalescer receipt, matched the UI fixture's loading data and exited normally in 17.652457 seconds. That timing is a qualification, not another performance comparison.
 

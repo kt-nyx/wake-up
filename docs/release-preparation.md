@@ -13,6 +13,11 @@ the corresponding fields from the JSON so a later rename does not require
 changing the tested runtime's namespaces, assembly name, settings type, cache
 paths, diagnostic names or patch-owner identifiers.
 
+The template leaves generated identity fields empty. Edit the JSON values, not
+duplicate copies of them in XML. The current in-game display label remains in
+`OptimizerMod`; naming work will update that label separately. The DLL's stable
+assembly version and the distribution version are separate identifiers.
+
 The public package ID is `kt.nyx.startupfixes`, deliberately independent of the
 eventual brand. Keep this ID stable after publication. The private fixture keeps
 its existing local validation ID and two-file contract. Release metadata flags
@@ -88,7 +93,7 @@ permission review; our exception cannot extend another author's rights.
 
 The current development bundle is not a Workshop-ready compatibility claim.
 
-## Preparation verification, 2026-09-08
+## Initial preparation verification, 2026-09-08
 
 The `765dff45b29e9bc239990489938267d277631e57` build and source-inclusive
 `0.1.0-dev` bundle were produced successfully. The DLL is unchanged between
@@ -100,3 +105,13 @@ fixture. No game was launched and the earlier deployed fixture was preserved.
 
 The canonical CC legal text ends with a blank line; it is retained verbatim
 despite Git's end-of-file whitespace warning. This is not an edited license.
+
+## Cleanup verification, 2026-09-08
+
+The later `f14ec1bf5575f4150b612720c86f67cad137bf76` build includes shared
+diagnostic writing, independent feature setup and documentation consolidation.
+It passed 81 managed checks with the same optional supplier skip, all 35 Python
+checks, and a build with zero warnings/errors. All 41 tracked Markdown files
+decoded correctly and their 262 local links resolved to tracked material.
+The source-inclusive bundle was regenerated and verified; its exact identity
+is in [current state](current-state.md). No deployment or live test occurred.

@@ -14,17 +14,23 @@ internal static class StartupSearchRuntime
 {
     private const string Selector = "--rlo-strategy=startup-searches";
 
-    internal static bool TryInitialize(IReadOnlyList<string> arguments)
+    internal static void Initialize(IReadOnlyList<string> arguments)
     {
-        if (!arguments.Contains(Selector)) return false;
+        if (!arguments.Contains(Selector))
+        {
+            // Each explicit single-search selector remains interpreted by its
+            // own component; missing/conflicting selectors still refuse work.
+            StartupFeatureRunner.Run("Definition searches", () => DefLookupRuntime.TryInitialize(arguments));
+            StartupFeatureRunner.Run("Type searches", () => TypeLookupRuntime.TryInitialize(arguments));
+            return;
+        }
         // Retain every other argument, including the comparison mode and
         // isolated profile path. Multiple strategy arguments stay invalid in
         // each component's existing selector validation.
         if (!arguments.Contains("--rlo-user-type-search=off"))
-            TypeLookupRuntime.TryInitialize(For(arguments, "type-lookup"));
+            StartupFeatureRunner.Run("Type searches", () => TypeLookupRuntime.TryInitialize(For(arguments, "type-lookup")));
         if (!arguments.Contains("--rlo-user-def-search=off"))
-            DefLookupRuntime.TryInitialize(For(arguments, "def-lookup"));
-        return true;
+            StartupFeatureRunner.Run("Definition searches", () => DefLookupRuntime.TryInitialize(For(arguments, "def-lookup")));
     }
 
     private static string[] For(IReadOnlyList<string> arguments, string strategy)

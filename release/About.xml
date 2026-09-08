@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ModMetaData>
-  <packageId>kt.nyx.startupfixes</packageId>
-  <name>RimWorld Loading Optimizer</name>
-  <author>kt-nyx</author>
-  <modVersion>0.1.0-dev</modVersion>
-  <url>https://github.com/kt-nyx/rimworld-loading-optimizer</url>
+  <!-- The packager fills these fields from product.json. This is a template,
+       not an installable mod folder. -->
+  <packageId />
+  <name />
+  <author />
+  <modVersion />
+  <url />
   <supportedVersions><li>1.6</li></supportedVersions>
   <modDependencies>
     <li>

@@ -34,16 +34,19 @@ internal static class GagarinCacheRuntime
     internal static void TryInitialize(IReadOnlyList<string> arguments)
     {
         string[] selectors = arguments.Where(a => a.StartsWith("--rlo-gagarin-cache=", StringComparison.Ordinal)).ToArray();
-        if (path != null || selectors.Length != 1) return;
+        if (path != null || selectors.Length != 1)
+            return;
         mode = selectors[0].Substring("--rlo-gagarin-cache=".Length);
         var selection = StartupLaunchSelector.Parse(arguments);
         if (!new[] { "timing", "on", "verify" }.Contains(mode)
-            || selection.Selection != StartupSelection.Candidate || !arguments.Contains("--rlo-strategy=startup-searches")) return;
+            || selection.Selection != StartupSelection.Candidate || !arguments.Contains("--rlo-strategy=startup-searches"))
+            return;
         path = Path.Combine(selection.SaveDataRoot!, "RimWorldLoadingOptimizer", "gagarin-cache.jsonl");
         try
         {
             if (!ReferenceEquals(GameBuildContract.Current, GameBuildContract.GogRev573)
-                || !RuntimeIdentity.ValidateBinaryIdentity(out _)) throw new InvalidOperationException("runtime-identity");
+                || !RuntimeIdentity.ValidateBinaryIdentity(out _))
+                throw new InvalidOperationException("runtime-identity");
             var harmony = new Harmony(Owner);
             // All mod constructors have completed here, including memory-loaded plugins.
             harmony.Patch(AccessTools.Method(typeof(LoadedModManager), "LoadModXML"),
@@ -57,19 +60,24 @@ internal static class GagarinCacheRuntime
 
     private static void InstallLate()
     {
-        if (installed) return;
+        if (installed)
+            return;
         installed = true;
         long start = Stopwatch.GetTimestamp();
         try
         {
             Assembly[] matches = AppDomain.CurrentDomain.GetAssemblies().Where(a => a.GetType("Gagarin.CachedDefHelper") != null).ToArray();
-            if (matches.Length != 1) throw new InvalidOperationException(matches.Length == 0 ? "optional-supplier-absent" : "ambiguous-supplier");
+            if (matches.Length != 1)
+                throw new InvalidOperationException(matches.Length == 0 ? "optional-supplier-absent" : "ambiguous-supplier");
             supplier = matches[0];
-            if (supplier.ManifestModule.ModuleVersionId != new Guid("23d812a3-057c-4caf-aa0c-6aa2e37e1ba3")) throw new InvalidOperationException("unsupported-supplier-module");
+            if (supplier.ManifestModule.ModuleVersionId != new Guid("23d812a3-057c-4caf-aa0c-6aa2e37e1ba3"))
+                throw new InvalidOperationException("unsupported-supplier-module");
             var mod = LoadedModManager.RunningModsListForReading.SingleOrDefault(m => m.PackageId == "vr.missilegirl");
-            if (mod == null) throw new InvalidOperationException("supplier-not-active");
+            if (mod == null)
+                throw new InvalidOperationException("supplier-not-active");
             using (var file = File.OpenRead(Path.Combine(mod.RootDir, "1.6", "Plugins", "Stable", "Gagarin.dll")))
-                if (Hash(file) != "D83EDC9FE3AE0381A71EE460F766563F1CB078F61211D8388614BAB3B0E1250C") throw new InvalidOperationException("unsupported-supplier-file");
+                if (Hash(file) != "D83EDC9FE3AE0381A71EE460F766563F1CB078F61211D8388614BAB3B0E1250C")
+                    throw new InvalidOperationException("unsupported-supplier-file");
             string[] types = { "CachedDefHelper", "LoadableXmlAsset_Constructor_Patch", "LoadableXmlAsset_Constructor_Patch", "Context", "Context", "Context", "GagarinEnvironmentInfo", "LoadedModManager_Patch+CombineIntoUnifiedXML_Patch", "LoadedModManager_Patch+CombineIntoUnifiedXML_Patch", "LoadedModManager_Profiler+CombineIntoUnifiedXML_Profiler", "LoadedModManager_Profiler+CombineIntoUnifiedXML_Profiler" };
             string[] names = { "Load", "Postfix_FileInfo", "Process", "get_IsUsingCache", "get_IsLoadingModXML", "get_IsLoadingPatchXML", "get_UnifiedXmlFilePath", "Prefix", "Postfix", "Prefix", "Postfix" };
             string[] hashes = {
@@ -80,7 +88,8 @@ internal static class GagarinCacheRuntime
             for (int i = 0; i < guarded.Length; i++)
             {
                 using var body = new MemoryStream(guarded[i].GetMethodBody()!.GetILAsByteArray());
-                if (Hash(body) != hashes[i]) throw new InvalidOperationException("loaded-body-mismatch-" + names[i]);
+                if (Hash(body) != hashes[i])
+                    throw new InvalidOperationException("loaded-body-mismatch-" + names[i]);
             }
             assetPostfix = guarded[1];
             usingCache = (Func<bool>)Delegate.CreateDelegate(typeof(Func<bool>), guarded[3]);
@@ -88,8 +97,10 @@ internal static class GagarinCacheRuntime
             loadingPatches = (Func<bool>)Delegate.CreateDelegate(typeof(Func<bool>), guarded[5]);
             ConstructorInfo ctor = AssetConstructor;
             if (!SemanticMethodIdentity.TryHash(ctor, out string actual, out string reason)
-                || actual != SemanticMethodIdentity.ExpectedFor(GameBuildContract.GogRev573, 0x060035A2)) throw new InvalidOperationException("asset-constructor-" + reason);
-            if (!SafeHooks() && mode != "timing") throw new InvalidOperationException("unknown-interfering-hooks");
+                || actual != SemanticMethodIdentity.ExpectedFor(GameBuildContract.GogRev573, 0x060035A2))
+                throw new InvalidOperationException("asset-constructor-" + reason);
+            if (!SafeHooks() && mode != "timing")
+                throw new InvalidOperationException("unknown-interfering-hooks");
             var harmony = new Harmony(Owner);
             harmony.Patch(guarded[0], prefix: new HarmonyMethod(typeof(GagarinCacheRuntime), nameof(LoadBegin)) { priority = Priority.First },
                 transpiler: new HarmonyMethod(typeof(GagarinCacheRuntime), nameof(RewriteLoad)),
@@ -107,12 +118,16 @@ internal static class GagarinCacheRuntime
         foreach (MethodBase method in guarded.Cast<MethodBase>().Concat(new MethodBase[] { AssetConstructor, AccessTools.Method(typeof(LoadedModManager), "CombineIntoUnifiedXML"), AccessTools.Method(typeof(XmlDocument), "Load", new[] { typeof(XmlReader) }), AccessTools.PropertyGetter(typeof(XmlNode), "OuterXml"), AccessTools.PropertyGetter(typeof(XmlDocument), "OuterXml"), AccessTools.Constructor(typeof(XmlDocument), Type.EmptyTypes), AccessTools.Method(typeof(XmlNode), "RemoveAll"), AccessTools.Method(typeof(XmlDocument), "RemoveAll"), AccessTools.Constructor(typeof(StringReader), new[] { typeof(string) }) }))
         {
             Patches? patches = Harmony.GetPatchInfo(method);
-            if (patches == null) continue;
+            if (patches == null)
+                continue;
             foreach (Patch patch in patches.Prefixes.Concat(patches.Postfixes).Concat(patches.Transpilers).Concat(patches.Finalizers))
             {
-                if (patch.owner == Owner && patch.PatchMethod.DeclaringType == typeof(GagarinCacheRuntime)) continue;
-                if (Equals(method, AssetConstructor) && Equals(patch.PatchMethod, assetPostfix) && patches.Postfixes.Contains(patch)) continue;
-                if (method.DeclaringType == typeof(LoadedModManager) && (Equals(patch.PatchMethod, guarded[7]) || Equals(patch.PatchMethod, guarded[8]) || Equals(patch.PatchMethod, guarded[9]) || Equals(patch.PatchMethod, guarded[10]))) continue;
+                if (patch.owner == Owner && patch.PatchMethod.DeclaringType == typeof(GagarinCacheRuntime))
+                    continue;
+                if (Equals(method, AssetConstructor) && Equals(patch.PatchMethod, assetPostfix) && patches.Postfixes.Contains(patch))
+                    continue;
+                if (method.DeclaringType == typeof(LoadedModManager) && (Equals(patch.PatchMethod, guarded[7]) || Equals(patch.PatchMethod, guarded[8]) || Equals(patch.PatchMethod, guarded[9]) || Equals(patch.PatchMethod, guarded[10])))
+                    continue;
                 Write("unknown-hook", "\"target\":" + Quote(method.ToString()!) + ",\"callback\":" + Quote(patch.PatchMethod.DeclaringType?.FullName + "." + patch.PatchMethod.Name) + ",\"owner\":" + Quote(patch.owner));
                 return false;
             }
@@ -139,7 +154,8 @@ internal static class GagarinCacheRuntime
     private static void LoadEnd(Scope __state, XmlDocument document, Dictionary<XmlNode, LoadableXmlAsset> assets, Exception? __exception)
     {
         current = __state.Parent;
-        if (mode == "verify" && __exception == null && __state.Reused) VerifyProjection(__state, document, assets);
+        if (mode == "verify" && __exception == null && __state.Reused)
+            VerifyProjection(__state, document, assets);
         Write("load", "\"elapsedMs\":" + Ms(__state.Start) + ",\"admissionMs\":" + Ticks(__state.AdmissionTicks)
             + ",\"admitted\":" + (__state.Admitted ? "true" : "false") + ",\"reused\":" + (__state.Reused ? "true" : "false")
             + ",\"constructors\":" + __state.Constructors + ",\"outerXmlSkipped\":" + __state.OuterSkipped
@@ -159,8 +175,16 @@ internal static class GagarinCacheRuntime
         foreach (CodeInstruction c in code)
             for (int i = 0; i < originals.Length; i++)
                 if (Equals(c.operand, originals[i]) && (c.opcode == OpCodes.Call || c.opcode == OpCodes.Callvirt || c.opcode == OpCodes.Newobj))
-                { counts[i]++; if (i == 5) break; c.opcode = OpCodes.Call; c.operand = AccessTools.Method(typeof(GagarinCacheRuntime), replacements[i]); break; }
-        if (!counts.SequenceEqual(new[] { 1, 1, 1, 2, 1, 1 })) throw new InvalidOperationException("cache-load-call-shape-" + string.Join(",", counts));
+                {
+                    counts[i]++;
+                    if (i == 5)
+                        break;
+                    c.opcode = OpCodes.Call;
+                    c.operand = AccessTools.Method(typeof(GagarinCacheRuntime), replacements[i]);
+                    break;
+                }
+        if (!counts.SequenceEqual(new[] { 1, 1, 1, 2, 1, 1 }))
+            throw new InvalidOperationException("cache-load-call-shape-" + string.Join(",", counts));
         return code;
     }
     internal static IEnumerable<CodeInstruction> RewriteOuterXml(IEnumerable<CodeInstruction> instructions)
@@ -169,8 +193,13 @@ internal static class GagarinCacheRuntime
         var code = instructions.Select(c => new CodeInstruction(c)).ToArray();
         foreach (CodeInstruction c in code)
             if (c.Calls(AccessTools.PropertyGetter(typeof(XmlNode), "OuterXml")))
-            { count++; c.opcode = OpCodes.Call; c.operand = AccessTools.Method(typeof(GagarinCacheRuntime), nameof(OuterXml)); }
-        if (count != 1) throw new InvalidOperationException("outer-xml-call-shape");
+            {
+                count++;
+                c.opcode = OpCodes.Call;
+                c.operand = AccessTools.Method(typeof(GagarinCacheRuntime), nameof(OuterXml));
+            }
+        if (count != 1)
+            throw new InvalidOperationException("outer-xml-call-shape");
         return code;
     }
 
@@ -181,8 +210,13 @@ internal static class GagarinCacheRuntime
         ConstructorInfo target = AccessTools.Constructor(typeof(StringReader), new[] { typeof(string) });
         foreach (CodeInstruction c in code)
             if (c.opcode == OpCodes.Newobj && Equals(c.operand, target))
-            { count++; c.opcode = OpCodes.Call; c.operand = AccessTools.Method(typeof(GagarinCacheRuntime), nameof(CaptureReader)); }
-        if (count != 1) throw new InvalidOperationException("constructor-reader-shape");
+            {
+                count++;
+                c.opcode = OpCodes.Call;
+                c.operand = AccessTools.Method(typeof(GagarinCacheRuntime), nameof(CaptureReader));
+            }
+        if (count != 1)
+            throw new InvalidOperationException("constructor-reader-shape");
         return code;
     }
     private static StringReader CaptureReader(string text)
@@ -199,7 +233,8 @@ internal static class GagarinCacheRuntime
     {
         using var sha = SHA256.Create();
         using var stream = new CryptoStream(Stream.Null, sha, CryptoStreamMode.Write);
-        using (var writer = XmlWriter.Create(stream, new XmlWriterSettings { CheckCharacters = false, CloseOutput = false })) document.Save(writer);
+        using (var writer = XmlWriter.Create(stream, new XmlWriterSettings { CheckCharacters = false, CloseOutput = false }))
+            document.Save(writer);
         stream.FlushFinalBlock();
         return BitConverter.ToString(sha.Hash!).Replace("-", "");
     }
@@ -213,26 +248,40 @@ internal static class GagarinCacheRuntime
         {
             roots++;
             bool expected = sourceAssets.TryGetValue(item.GetAttribute("path"), out LoadableXmlAsset asset);
-            if (destination == null) { badMapping++; continue; }
+            if (destination == null)
+            {
+                badMapping++;
+                continue;
+            }
             bool present = assets.TryGetValue(destination, out LoadableXmlAsset actual);
-            if (present) mapped++;
-            if (present != expected || (present && !ReferenceEquals(asset, actual))) badMapping++;
+            if (present)
+                mapped++;
+            if (present != expected || (present && !ReferenceEquals(asset, actual)))
+                badMapping++;
             destination = destination.NextSibling;
         }
-        if (destination != null || mapped != assets.Count) badMapping++;
+        if (destination != null || mapped != assets.Count)
+            badMapping++;
         // Depth-first walk with no per-node collection or document copy.
         XmlNode? node = document.DocumentElement;
         while (node != null)
         {
-            if (!ReferenceEquals(node.OwnerDocument, document)) badOwnership++;
-            if (node.FirstChild != null) { node = node.FirstChild; continue; }
-            while (node != null && node != document && node.NextSibling == null) node = node.ParentNode;
+            if (!ReferenceEquals(node.OwnerDocument, document))
+                badOwnership++;
+            if (node.FirstChild != null)
+            {
+                node = node.FirstChild;
+                continue;
+            }
+            while (node != null && node != document && node.NextSibling == null)
+                node = node.ParentNode;
             node = node == document ? null : node?.NextSibling;
         }
         Write("verification", "\"sameSourceParse\":" + (scope.ParseMatched ? "true" : "false") + ",\"roots\":" + roots
             + ",\"mapped\":" + mapped + ",\"badMapping\":" + badMapping + ",\"badOwnership\":" + badOwnership
             + ",\"outputSha256\":" + Quote(DocumentHash(document)) + ",\"verificationMs\":" + Ms(start));
-        if (badMapping != 0 || badOwnership != 0) throw new InvalidOperationException("cache-projection-verification-mismatch");
+        if (badMapping != 0 || badOwnership != 0)
+            throw new InvalidOperationException("cache-projection-verification-mismatch");
     }
 
     private static string ReadText(string filename)
@@ -257,19 +306,22 @@ internal static class GagarinCacheRuntime
         {
             scope.Constructors++;
             scope.ConstructorTicks += Stopwatch.GetTimestamp() - start;
-            if (scope.Admitted && scope.SameText && asset.xmlDoc?.DocumentElement?.Name == "DefXmlStorage") scope.Parsed = asset.xmlDoc;
+            if (scope.Admitted && scope.SameText && asset.xmlDoc?.DocumentElement?.Name == "DefXmlStorage")
+                scope.Parsed = asset.xmlDoc;
         }
         return asset;
     }
     private static XmlDocument CreateDocument()
     {
-        if (current?.Parsed == null) return new XmlDocument();
+        if (current?.Parsed == null)
+            return new XmlDocument();
         current.Reused = true;
         return current.Parsed;
     }
     private static void RemoveAll(XmlNode document)
     {
-        if (current?.Reused == true && ReferenceEquals(current.Parsed, document)) return;
+        if (current?.Reused == true && ReferenceEquals(current.Parsed, document))
+            return;
         document.RemoveAll();
     }
     private static void LoadDocument(XmlDocument document, XmlReader reader)
@@ -281,32 +333,41 @@ internal static class GagarinCacheRuntime
                 var original = new XmlDocument();
                 original.Load(reader);
                 current.ParseMatched = DocumentHash(original) == DocumentHash(document);
-                if (!current.ParseMatched) throw new InvalidOperationException("cache-parse-verification-mismatch");
+                if (!current.ParseMatched)
+                    throw new InvalidOperationException("cache-parse-verification-mismatch");
             }
             return;
         }
         long start = Stopwatch.GetTimestamp();
         document.Load(reader);
-        if (current != null) current.ParseTicks += Stopwatch.GetTimestamp() - start;
+        if (current != null)
+            current.ParseTicks += Stopwatch.GetTimestamp() - start;
     }
     private static string OuterXml(XmlNode node)
     {
         if (current?.Admitted == true && node != null && !loadingMods() && !loadingPatches())
-        { current.OuterSkipped++; return string.Empty; } // Process still executes its original early return.
-        if (current == null) return node!.OuterXml;
+        {
+            current.OuterSkipped++;
+            return string.Empty;
+        } // Process still executes its original early return.
+        if (current == null)
+            return node!.OuterXml;
         long start = Stopwatch.GetTimestamp();
         string result = node!.OuterXml;
-        if (current != null) current.OuterTicks += Stopwatch.GetTimestamp() - start;
+        if (current != null)
+            current.OuterTicks += Stopwatch.GetTimestamp() - start;
         return result;
     }
-    private static string Hash(Stream stream) { using var sha = SHA256.Create(); return BitConverter.ToString(sha.ComputeHash(stream)).Replace("-", ""); }
+    private static string Hash(Stream stream)
+    {
+        using var sha = SHA256.Create();
+        return BitConverter.ToString(sha.ComputeHash(stream)).Replace("-", "");
+    }
     private static string Ms(long start) => Ticks(Stopwatch.GetTimestamp() - start);
     private static string Ticks(long ticks) => (ticks * 1000.0 / Stopwatch.Frequency).ToString("F3", CultureInfo.InvariantCulture);
-    private static string Quote(string text) => "\"" + text.Replace("\\", "/").Replace("\"", "'").Replace("\r", " ").Replace("\n", " ") + "\"";
+    private static string Quote(string text) => JsonLineLog.Quote(text);
     private static void Write(string kind, string fields)
-    {
-        try { Directory.CreateDirectory(Path.GetDirectoryName(path!)!); File.AppendAllText(path!, "{\"event\":" + Quote(kind) + "," + fields + "}\n"); } catch { }
-    }
+        => JsonLineLog.WriteEvent(path, kind, fields);
     private sealed class Scope
     {
         internal readonly long Start = Stopwatch.GetTimestamp();

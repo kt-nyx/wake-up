@@ -25,12 +25,30 @@ internal sealed class ScopedDefLookup : IDisposable
     private bool refused;
     private int pendingMutations;
     private int entries;
-    internal long Hits { get; private set; }
-    internal long AttributeHits { get; private set; }
-    internal long Fallbacks { get; private set; }
-    internal long Rebuilds { get; private set; }
-    internal long Invalidations { get; private set; }
-    internal int PeakEntries { get; private set; }
+    internal long Hits
+    {
+        get; private set;
+    }
+    internal long AttributeHits
+    {
+        get; private set;
+    }
+    internal long Fallbacks
+    {
+        get; private set;
+    }
+    internal long Rebuilds
+    {
+        get; private set;
+    }
+    internal long Invalidations
+    {
+        get; private set;
+    }
+    internal int PeakEntries
+    {
+        get; private set;
+    }
     internal int QueryCount => queries.Count;
 
     internal ScopedDefLookup(XmlDocument document, int maximumEntries = MaximumEntries)
@@ -38,7 +56,8 @@ internal sealed class ScopedDefLookup : IDisposable
         this.document = document;
         this.maximumEntries = maximumEntries;
         refused = document.GetType() != typeof(XmlDocument);
-        if (refused) return;
+        if (refused)
+            return;
         // Before AND after: callbacks during a changing event may query the
         // old tree, whereas callbacks after it must see the new tree. Removing
         // events supply the former parent after the node is disconnected.
@@ -61,7 +80,8 @@ internal sealed class ScopedDefLookup : IDisposable
             if (result.Item(1) == null)
             {
                 Hits++;
-                if (query.Attribute) AttributeHits++;
+                if (query.Attribute)
+                    AttributeHits++;
                 return result;
             }
         }
@@ -74,7 +94,8 @@ internal sealed class ScopedDefLookup : IDisposable
         if (TryFind(context, xpath, out XmlElement? def, out Query? query))
         {
             Hits++;
-            if (query!.Attribute) AttributeHits++;
+            if (query!.Attribute)
+                AttributeHits++;
             return def!.SelectSingleNode(query!.Relative);
         }
         Fallbacks++;
@@ -85,19 +106,24 @@ internal sealed class ScopedDefLookup : IDisposable
     {
         def = null;
         query = null;
-        if (disposed || refused || pendingMutations != 0 || !ReferenceEquals(context, document) || xpath == null || xpath.Length > 4096) return false;
+        if (disposed || refused || pendingMutations != 0 || !ReferenceEquals(context, document) || xpath == null || xpath.Length > 4096)
+            return false;
         XmlElement? root = document.DocumentElement;
-        if (root == null || root.GetType() != typeof(XmlElement) || root.Name != "Defs" || root.NamespaceURI.Length != 0) return false;
+        if (root == null || root.GetType() != typeof(XmlElement) || root.Name != "Defs" || root.NamespaceURI.Length != 0)
+            return false;
         if (!queries.TryGetValue(xpath, out query))
         {
             query = Parse(xpath);
-            if (queries.Count < MaximumQueries) queries.Add(xpath, query);
+            if (queries.Count < MaximumQueries)
+                queries.Add(xpath, query);
         }
-        if (query == null) return false;
+        if (query == null)
+            return false;
         if (!types.TryGetValue(query.IndexKey, out Dictionary<string, XmlElement?>? names))
         {
             names = Build(root, query);
-            if (names == null) return false;
+            if (names == null)
+                return false;
         }
         // Missing and duplicate names stay native. In particular, never claim
         // an absent result using an index which excludes unfamiliar XML nodes.
@@ -111,24 +137,50 @@ internal sealed class ScopedDefLookup : IDisposable
         {
             // XPath exposes expanded entity children, which this direct-node
             // walk does not index. Keep those documents on the native path.
-            if (child.NodeType == XmlNodeType.EntityReference) { Refuse(); return null; }
-            if (child.NodeType != XmlNodeType.Element) continue;
-            if (child.GetType() != typeof(XmlElement)) { Refuse(); return null; }
-            if (child.Name != query.Type || child.NamespaceURI.Length != 0) continue;
+            if (child.NodeType == XmlNodeType.EntityReference)
+            {
+                Refuse();
+                return null;
+            }
+            if (child.NodeType != XmlNodeType.Element)
+                continue;
+            if (child.GetType() != typeof(XmlElement))
+            {
+                Refuse();
+                return null;
+            }
+            if (child.Name != query.Type || child.NamespaceURI.Length != 0)
+                continue;
             if (query.Attribute)
             {
                 XmlAttribute? name = ((XmlElement)child).GetAttributeNode("Name", string.Empty);
-                if (name == null) continue;
-                if (name.GetType() != typeof(XmlAttribute) || !NativeTextTree(name)) { Refuse(); return null; }
-                if (!AddName(names, name.Value, (XmlElement)child)) return null;
+                if (name == null)
+                    continue;
+                if (name.GetType() != typeof(XmlAttribute) || !NativeTextTree(name))
+                {
+                    Refuse();
+                    return null;
+                }
+                if (!AddName(names, name.Value, (XmlElement)child))
+                    return null;
                 continue;
             }
             foreach (XmlNode name in child.ChildNodes)
             {
-                if (name.NodeType == XmlNodeType.EntityReference) { Refuse(); return null; }
-                if (name.NodeType != XmlNodeType.Element || name.Name != "defName" || name.NamespaceURI.Length != 0) continue;
-                if (name.GetType() != typeof(XmlElement) || !NativeTextTree(name)) { Refuse(); return null; }
-                if (!AddName(names, name.InnerText, (XmlElement)child)) return null;
+                if (name.NodeType == XmlNodeType.EntityReference)
+                {
+                    Refuse();
+                    return null;
+                }
+                if (name.NodeType != XmlNodeType.Element || name.Name != "defName" || name.NamespaceURI.Length != 0)
+                    continue;
+                if (name.GetType() != typeof(XmlElement) || !NativeTextTree(name))
+                {
+                    Refuse();
+                    return null;
+                }
+                if (!AddName(names, name.InnerText, (XmlElement)child))
+                    return null;
             }
         }
         types.Add(query.IndexKey, names);
@@ -142,11 +194,16 @@ internal sealed class ScopedDefLookup : IDisposable
     {
         if (names.TryGetValue(key, out XmlElement? previous))
         {
-            if (!ReferenceEquals(previous, child)) names[key] = null;
+            if (!ReferenceEquals(previous, child))
+                names[key] = null;
         }
         else
         {
-            if (entries + names.Count >= maximumEntries) { Refuse(); return false; }
+            if (entries + names.Count >= maximumEntries)
+            {
+                Refuse();
+                return false;
+            }
             names.Add(key, child);
         }
         return true;
@@ -156,31 +213,41 @@ internal sealed class ScopedDefLookup : IDisposable
     {
         // Names containing nested markup are uncommon; reject custom nodes at
         // any depth because their string-value or navigation may be overridden.
-        if (node.GetType().Assembly != typeof(XmlNode).Assembly) return false;
-        foreach (XmlNode child in node.ChildNodes) if (!NativeTextTree(child)) return false;
+        if (node.GetType().Assembly != typeof(XmlNode).Assembly)
+            return false;
+        foreach (XmlNode child in node.ChildNodes)
+        if (!NativeTextTree(child))
+            return false;
         return true;
     }
 
     private static Query? Parse(string xpath)
     {
         Match match = Prefix.Match(xpath);
-        if (!match.Success) return null;
+        if (!match.Success)
+            return null;
         string tail = match.Groups["tail"].Value;
-        if (tail.Length != 0 && tail[0] != '/') return null;
+        if (tail.Length != 0 && tail[0] != '/')
+            return null;
         // Only downward paths. Predicates can still use normal XPath functions
         // and comparisons; reject escape/union syntax conservatively, including
         // when quoted, rather than partially implementing the XPath language.
-        if (tail.Contains("|") || tail.Contains("..") || tail.Contains("::") || tail.Contains("/Defs")) return null;
+        if (tail.Contains("|") || tail.Contains("..") || tail.Contains("::") || tail.Contains("/Defs"))
+            return null;
         string relative = "self::" + match.Groups["type"].Value
             + xpath.Substring(xpath.IndexOf('['));
-        try { XPathExpression.Compile(xpath); }
+        try
+        {
+            XPathExpression.Compile(xpath);
+        }
         catch (XPathException) { return null; } // Original call reproduces its error.
         return new Query(match.Groups["type"].Value, match.Groups["name"].Value, relative, match.Groups["key"].Value == "@Name");
     }
 
     private void Changing(object sender, XmlNodeChangedEventArgs args)
     {
-        if (disposed || refused) return;
+        if (disposed || refused)
+            return;
         // Event subscribers can query before or after our own callback. Do
         // not let a before-event query rebuild an index which another
         // subscriber would observe after the tree changes. If a subscriber
@@ -192,18 +259,25 @@ internal sealed class ScopedDefLookup : IDisposable
 
     private void Changed(object sender, XmlNodeChangedEventArgs args)
     {
-        if (disposed || refused) return;
+        if (disposed || refused)
+            return;
         InvalidateChanged(args);
-        if (pendingMutations > 0) pendingMutations--;
+        if (pendingMutations > 0)
+            pendingMutations--;
     }
 
     private void InvalidateChanged(XmlNodeChangedEventArgs args)
     {
-        if (disposed || refused) return;
+        if (disposed || refused)
+            return;
         XmlElement? root = document.DocumentElement;
         if (ReferenceEquals(args.OldParent, document) || ReferenceEquals(args.NewParent, document))
-        { InvalidateAll(); return; }
-        if (root == null) return;
+        {
+            InvalidateAll();
+            return;
+        }
+        if (root == null)
+            return;
         InvalidateFor(args.Node, args.OldParent, root);
         InvalidateFor(args.Node, args.NewParent, root);
     }
@@ -220,11 +294,17 @@ internal sealed class ScopedDefLookup : IDisposable
                 Invalidate("@" + owner.Name);
             return;
         }
-        if (parent == null) parent = node.ParentNode;
+        if (parent == null)
+            parent = node.ParentNode;
         if (ReferenceEquals(parent, root))
         {
-            if (node.NodeType == XmlNodeType.EntityReference) InvalidateAll();
-            else { Invalidate(node.Name); Invalidate("@" + node.Name); }
+            if (node.NodeType == XmlNodeType.EntityReference)
+                InvalidateAll();
+            else
+            {
+                Invalidate(node.Name);
+                Invalidate("@" + node.Name);
+            }
             return;
         }
         XmlNode current = node;
@@ -241,7 +321,8 @@ internal sealed class ScopedDefLookup : IDisposable
             if (ReferenceEquals(ancestor.ParentNode, root))
             {
                 if (current.NodeType == XmlNodeType.EntityReference
-                    || (current.Name == "defName" && current.NamespaceURI.Length == 0)) Invalidate(ancestor.Name);
+                    || (current.Name == "defName" && current.NamespaceURI.Length == 0))
+                    Invalidate(ancestor.Name);
                 return;
             }
             current = ancestor;
@@ -251,20 +332,31 @@ internal sealed class ScopedDefLookup : IDisposable
 
     private void Invalidate(string type)
     {
-        if (!types.TryGetValue(type, out Dictionary<string, XmlElement?>? names)) return;
+        if (!types.TryGetValue(type, out Dictionary<string, XmlElement?>? names))
+            return;
         entries -= names.Count;
         types.Remove(type);
         Invalidations++;
     }
 
     private void InvalidateAll()
-    { if (types.Count != 0) Invalidations++; types.Clear(); entries = 0; }
+    {
+        if (types.Count != 0)
+            Invalidations++;
+        types.Clear();
+        entries = 0;
+    }
 
-    private void Refuse() { refused = true; InvalidateAll(); }
+    private void Refuse()
+    {
+        refused = true;
+        InvalidateAll();
+    }
 
     public void Dispose()
     {
-        if (disposed) return;
+        if (disposed)
+            return;
         disposed = true;
         document.NodeInserting -= Changing;
         document.NodeInserted -= Changed;
@@ -272,7 +364,9 @@ internal sealed class ScopedDefLookup : IDisposable
         document.NodeRemoved -= Changed;
         document.NodeChanging -= Changing;
         document.NodeChanged -= Changed;
-        types.Clear(); queries.Clear(); entries = 0;
+        types.Clear();
+        queries.Clear();
+        entries = 0;
     }
 
     private sealed class Query
@@ -286,7 +380,10 @@ internal sealed class ScopedDefLookup : IDisposable
         internal readonly string IndexKey;
         internal Query(string type, string name, string relative, bool attribute)
         {
-            Type = type; Name = name; Relative = relative; Attribute = attribute;
+            Type = type;
+            Name = name;
+            Relative = relative;
+            Attribute = attribute;
             IndexKey = attribute ? "@" + type : type;
         }
     }

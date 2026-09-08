@@ -111,7 +111,8 @@ public sealed class ScopedDefLookupTests
             // This callback runs after the lookup's before-event callback.
             document.NodeInserting += (_, args) =>
             {
-                if (!ReferenceEquals(args.Node, duplicate)) return;
+                if (!ReferenceEquals(args.Node, duplicate))
+                    return;
                 Assert.That(lookup.SelectNodes(document, beer).Count, Is.EqualTo(1));
                 document.DocumentElement.FirstChild!["statBases"]!["MarketValue"]!.FirstChild!.Value = "99";
             };
@@ -291,14 +292,16 @@ public sealed class ScopedDefLookupTests
         XmlAttribute name = ((XmlElement)document.DocumentElement!.FirstChild!).GetAttributeNode("Name")!;
         document.NodeChanged += (_, args) =>
         {
-            if (ReferenceEquals(args.Node, name.FirstChild)) afterCount = lookup!.SelectNodes(document, food).Count;
+            if (ReferenceEquals(args.Node, name.FirstChild))
+                afterCount = lookup!.SelectNodes(document, food).Count;
         };
         using (lookup = new ScopedDefLookup(document))
         {
             lookup.SelectSingleNode(document, drink);
             document.NodeChanging += (_, args) =>
             {
-                if (!ReferenceEquals(args.Node, name.FirstChild)) return;
+                if (!ReferenceEquals(args.Node, name.FirstChild))
+                    return;
                 long hits = lookup.Hits;
                 Assert.That(lookup.SelectNodes(document, drink).Count, Is.EqualTo(1));
                 Assert.That(lookup.Hits, Is.EqualTo(hits));
@@ -381,7 +384,8 @@ public sealed class ScopedDefLookupTests
         XmlDocument document = Sample();
         using var lookup = new ScopedDefLookup(document, maximumEntries: 2);
         string[] paths = { "Defs/ThingDef[defName='Beer']", "Defs/ThingDef[@Name='Drink']" };
-        if (attributeFirst) Array.Reverse(paths);
+        if (attributeFirst)
+            Array.Reverse(paths);
         foreach (string xpath in paths)
             Assert.That(lookup.SelectSingleNode(document, xpath), Is.SameAs(document.SelectSingleNode(xpath)));
         Assert.That(lookup.Hits, Is.EqualTo(1));

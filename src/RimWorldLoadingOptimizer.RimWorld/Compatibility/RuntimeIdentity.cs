@@ -26,25 +26,52 @@ internal static class RuntimeIdentity
             AssemblyName game = module.Assembly.GetName();
             Assembly harmony = typeof(Harmony).Assembly;
             if (!string.Equals(game.Name, "Assembly-CSharp", StringComparison.Ordinal))
-            { reason = "game-assembly-name-mismatch"; return false; }
+            {
+                reason = "game-assembly-name-mismatch";
+                return false;
+            }
             if (!string.Equals(game.Version?.ToString(), GameBuildContract.Current.Version, StringComparison.Ordinal))
-            { reason = "game-assembly-version-mismatch"; return false; }
+            {
+                reason = "game-assembly-version-mismatch";
+                return false;
+            }
             if (module.ModuleVersionId != GameBuildContract.Current.Mvid)
-            { reason = "game-module-mvid-mismatch"; return false; }
+            {
+                reason = "game-module-mvid-mismatch";
+                return false;
+            }
             string? gameAssemblyPath = ResolveGameAssemblyPath(module);
             if (gameAssemblyPath is null)
-            { reason = "game-module-file-unavailable"; return false; }
+            {
+                reason = "game-module-file-unavailable";
+                return false;
+            }
             if (!string.Equals(HashFile(gameAssemblyPath), AssemblySha, StringComparison.Ordinal))
-            { reason = "game-module-sha-mismatch"; return false; }
+            {
+                reason = "game-module-sha-mismatch";
+                return false;
+            }
             if (!string.Equals(harmony.GetName().Version?.ToString(), "2.4.2.0", StringComparison.Ordinal))
-            { reason = "harmony-assembly-version-mismatch"; return false; }
+            {
+                reason = "harmony-assembly-version-mismatch";
+                return false;
+            }
             if (harmony.ManifestModule.ModuleVersionId != new Guid("024a0e6e-c8c2-437e-ad04-7b6279389c23"))
-            { reason = "harmony-module-mvid-mismatch"; return false; }
+            {
+                reason = "harmony-module-mvid-mismatch";
+                return false;
+            }
             string? harmonyPath = harmonyResolver(harmony);
             if (harmonyPath is null)
-            { reason = "harmony-file-unavailable"; return false; }
+            {
+                reason = "harmony-file-unavailable";
+                return false;
+            }
             if (!string.Equals(HashFile(harmonyPath), HarmonySha, StringComparison.Ordinal))
-            { reason = "harmony-file-sha-mismatch"; return false; }
+            {
+                reason = "harmony-file-sha-mismatch";
+                return false;
+            }
             reason = "binary-identity-exact";
             return true;
         }
@@ -74,7 +101,8 @@ internal static class RuntimeIdentity
         {
             try
             {
-                if (!string.IsNullOrWhiteSpace(candidate) && File.Exists(candidate)) return Path.GetFullPath(candidate);
+                if (!string.IsNullOrWhiteSpace(candidate) && File.Exists(candidate))
+                    return Path.GetFullPath(candidate);
             }
             catch { }
         }
@@ -85,11 +113,14 @@ internal static class RuntimeIdentity
         if (!string.IsNullOrWhiteSpace(harmony.Location) && File.Exists(harmony.Location))
             return Path.GetFullPath(harmony.Location);
         string? codeBasePath = ResolveAssemblyCodeBasePath(harmony);
-        if (codeBasePath is not null) return codeBasePath;
+        if (codeBasePath is not null)
+            return codeBasePath;
         string? localGamePath = ResolveLocalPrepatcherHarmonyPath(AppDomain.CurrentDomain.BaseDirectory);
-        if (localGamePath is not null) return localGamePath;
+        if (localGamePath is not null)
+            return localGamePath;
         string? sameLibraryWorkshopPath = ResolveSameLibraryPrepatcherHarmonyPath();
-        if (sameLibraryWorkshopPath is not null) return sameLibraryWorkshopPath;
+        if (sameLibraryWorkshopPath is not null)
+            return sameLibraryWorkshopPath;
         return null;
     }
 
@@ -112,7 +143,8 @@ internal static class RuntimeIdentity
             DirectoryInfo? steamApps = common?.Parent;
             if (common is null || steamApps is null
                 || !string.Equals(common.Name, "common", StringComparison.OrdinalIgnoreCase)
-                || !string.Equals(steamApps.Name, "steamapps", StringComparison.OrdinalIgnoreCase)) return null;
+                || !string.Equals(steamApps.Name, "steamapps", StringComparison.OrdinalIgnoreCase))
+                return null;
             string path = Path.GetFullPath(Path.Combine(
                 steamApps.FullName, "workshop", "content", "294100", "2934420800", "Assemblies", "0Harmony.dll"));
             return File.Exists(path) ? path : null;
@@ -126,7 +158,8 @@ internal static class RuntimeIdentity
             string? codeBase = assembly.CodeBase;
             if (string.IsNullOrWhiteSpace(codeBase)
                 || !Uri.TryCreate(codeBase, UriKind.Absolute, out Uri? uri)
-                || !uri.IsFile) return null;
+                || !uri.IsFile)
+                return null;
             string path = Path.GetFullPath(uri.LocalPath);
             return File.Exists(path) ? path : null;
         }

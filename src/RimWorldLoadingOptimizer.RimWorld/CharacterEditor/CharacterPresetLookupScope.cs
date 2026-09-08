@@ -19,21 +19,38 @@ internal sealed class CharacterPresetLookupScope : IDisposable
     private readonly Func<bool> unchanged;
     private Dictionary<string, ThingDef>? cached;
     private bool disabled;
-    internal int Builds { get; private set; }
-    internal int Hits { get; private set; }
-    internal int Fallbacks { get; private set; }
+    internal int Builds
+    {
+        get; private set;
+    }
+    internal int Hits
+    {
+        get; private set;
+    }
+    internal int Fallbacks
+    {
+        get; private set;
+    }
     internal int RetainedEntries => cached?.Count ?? 0;
 
     internal CharacterPresetLookupScope(Func<Dictionary<string, ThingDef>> original, Func<bool> unchanged)
-    { this.original = original; this.unchanged = unchanged; }
+    {
+        this.original = original;
+        this.unchanged = unchanged;
+    }
 
     internal Dictionary<string, ThingDef> Get()
     {
         // Cross-thread callers neither see nor mutate the owner's cached object.
-        if (Thread.CurrentThread.ManagedThreadId != ownerThread) return original();
+        if (Thread.CurrentThread.ManagedThreadId != ownerThread)
+            return original();
         bool valid = false;
         if (!disabled)
-            try { valid = unchanged(); } catch { }
+            try
+            {
+                valid = unchanged();
+            }
+            catch { }
         if (!valid)
         {
             disabled = true;
@@ -41,12 +58,21 @@ internal sealed class CharacterPresetLookupScope : IDisposable
             Fallbacks++;
             return original();
         }
-        if (cached != null) { Hits++; return cached; }
+        if (cached != null)
+        {
+            Hits++;
+            return cached;
+        }
         Builds++;
         // Exceptions propagate exactly once through the original callback.
         Dictionary<string, ThingDef> result = original();
-        if (result.Count <= MaximumEntries) cached = result;
-        else { disabled = true; Fallbacks++; }
+        if (result.Count <= MaximumEntries)
+            cached = result;
+        else
+        {
+            disabled = true;
+            Fallbacks++;
+        }
         return result;
     }
 

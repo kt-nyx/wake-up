@@ -1,5 +1,7 @@
 # Historical evidence
 
+Start with the [consolidated investigation log](investigation-results.md) and [package checkpoints](development-checkpoints.md). Historical commit-recovery commands require the maintainer's local Git history; the public repository starts at a later source snapshot. Archived scope restrictions and future-work proposals are not current instructions.
+
 This archive keeps decisions and measurements that still explain the product. It is not the active development procedure. Start with [current state](../current-state.md), [development](../development.md) and [results](../results.md).
 
 The 2026-09-06 cleanup removed obsolete implementations and repetitive plans, task prompts, review dispositions, authority ledgers and work-item registries. Those documents described earlier development phases. Their exact contents remain recoverable through Git and the local bundle. The source cleanup checkpoint is `f886277ace5ed9b71fb044e69b57cb2cee5269f3`.

@@ -23,16 +23,26 @@ internal readonly struct StartupLaunchDecision
         SaveDataRoot = saveDataRoot;
     }
 
-    internal StartupSelection Selection { get; }
-    internal string Reason { get; }
-    internal string? SaveDataRoot { get; }
+    internal StartupSelection Selection
+    {
+        get;
+    }
+    internal string Reason
+    {
+        get;
+    }
+    internal string? SaveDataRoot
+    {
+        get;
+    }
 }
 
 internal static class StartupLaunchSelector
 {
     internal static StartupLaunchDecision Parse(IReadOnlyList<string> arguments)
     {
-        if (arguments is null) throw new ArgumentNullException(nameof(arguments));
+        if (arguments is null)
+            throw new ArgumentNullException(nameof(arguments));
         string? selected = null;
         string? saveDataRoot = null;
         bool conflict = false;
@@ -49,7 +59,8 @@ internal static class StartupLaunchSelector
             if (argument.StartsWith("--rlo-op7=", StringComparison.Ordinal))
             {
                 string value = argument.Substring("--rlo-op7=".Length);
-                if (selected is not null) conflict = true;
+                if (selected is not null)
+                    conflict = true;
                 selected = value;
             }
 
@@ -59,14 +70,18 @@ internal static class StartupLaunchSelector
                     || string.Equals(argument.Substring(0, separator), "savedatafolder", StringComparison.OrdinalIgnoreCase)))
             {
                 string value = argument.Substring(separator + 1);
-                if (saveDataRoot is not null || value.Length == 0) conflict = true;
+                if (saveDataRoot is not null || value.Length == 0)
+                    conflict = true;
                 saveDataRoot = value;
             }
         }
 
-        if (conflict) return new StartupLaunchDecision(StartupSelection.Off, "selector-ambiguous", null);
-        if (selected is null) return new StartupLaunchDecision(StartupSelection.Off, "selector-absent", null);
-        if (reference) return new StartupLaunchDecision(StartupSelection.Off, "reference-precedence", null);
+        if (conflict)
+            return new StartupLaunchDecision(StartupSelection.Off, "selector-ambiguous", null);
+        if (selected is null)
+            return new StartupLaunchDecision(StartupSelection.Off, "selector-absent", null);
+        if (reference)
+            return new StartupLaunchDecision(StartupSelection.Off, "reference-precedence", null);
         StartupSelection selection = string.Equals(selected, "baseline", StringComparison.Ordinal)
             ? StartupSelection.Baseline
             : string.Equals(selected, "candidate", StringComparison.Ordinal)
