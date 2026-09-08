@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
     <AssemblyName>WakeUp</AssemblyName>
-    <Title>Wake-Up: Loading Optimizations</Title>
+    <AssemblyTitle>Wake-Up: Loading Optimizations</AssemblyTitle>
     <Product>Wake-Up</Product>
     <Version>1.0.0</Version>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>

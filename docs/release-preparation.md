@@ -122,7 +122,7 @@ No deployment or live test occurred.
 
 ## Wake-Up rename verification, 2026-09-08
 
-The `5ab28547cc9e002e89f39dd15bd41733f9294398` source revision builds `WakeUp.dll`
+The `30f005188ee17ac505845344f7a3541235cc4dd5` source revision builds `WakeUp.dll`
 and a `wake-up` distribution folder with the formal title, public package ID,
 new source URL and matching source archive. Project references, test namespaces,
 settings identity, diagnostic/cache paths, patch owners, build variables and
