@@ -37,3 +37,5 @@ code are rejected. Independent feature resolution and the existing real-supplier
 patch conflict, original-output and cleanup checks remain covered. The suite
 passed 106 managed checks (one existing optional Character Editor fixture skip)
 and 35 Python checks. The release notes record the Windows live-check outcome.
+Compilation against the captured Linux references also passed with zero warnings
+or errors; no new Linux live launch is claimed.

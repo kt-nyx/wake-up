@@ -42,7 +42,7 @@ future fixture runs. Old captures remain evidence of their recorded builds.
 
 ## Build and offline checks
 
-The repository pins .NET SDK `10.0.400` in [global.json](../global.json). The existing fixture supplies the reviewed GOG `Assembly-CSharp.dll` and frozen Harmony references. Do not substitute a convenient installed game DLL. Run from the checkout:
+The repository pins .NET SDK `10.0.401` in [global.json](../global.json). The existing fixture supplies the reviewed GOG `Assembly-CSharp.dll` and frozen Harmony references. Do not substitute a convenient installed game DLL. Run from the checkout:
 
 The [Linux preview](linux-support.md) separately permits offline runtime-only
 compilation against the captured exact `linux-rev600` references under ignored

@@ -1,5 +1,18 @@
 # Current state
 
+**0.2.1 Windows live check passed, 2026-09-08:** Candidate source `cc25421`, DLL
+`9ae61f038ec6c5778ee9241264b1aff8a3a323ab0c2e88855253ab0f270fb123`,
+reached the main menu at 23:50:01 UTC and exited normally with code 0 at 23:50:13.
+All 1,682 Giddy-Up and seven PNG comparisons matched original output, with zero
+texture/cache errors or mismatches. Character Editor's 9,182 objects and 82
+turrets completed without fallback/errors; Loading Progress repainting and its
+313 PNG content reloads completed. Gagarin passed required-function checks and
+retained the known XML-hook fallback. No new error headlines appeared versus the
+preceding PC log. Modern Dev Tools was temporarily disabled for unattended tests.
+Release metadata/docs are being finalized with no further optimization changes;
+the exact release package must pass an additional cache-reuse launch before
+publication. Raw evidence: `artifacts/release-0.2.1-live/pc-forward-first/`.
+
 **0.2.1 supplier compatibility candidate, 2026-09-08:** Four optional supplier
 integrations now discover and validate their required functions without whole-DLL
 version/MVID/hash restrictions. Loading Progress repaint and PNG checks are

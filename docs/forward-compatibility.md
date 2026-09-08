@@ -1,9 +1,8 @@
 # Game updates and compatibility
 
-The working source lets new Windows and native Linux RimWorld builds attempt
+Version 0.2.1 lets new Windows and native Linux RimWorld builds attempt
 the selected improvements. An unrelated game revision no longer disables the
-entire mod. Published 0.2.0 still uses the previous exact-game restriction;
-this source change has not been released or installed.
+entire mod. Version 0.2.0 used the previous exact-game restriction.
 
 The previous gate compared the game assembly version, module identifier (MVID)
 and complete file hash against three reviewed builds. Runtime selection now
@@ -18,7 +17,8 @@ the reviewed Harmony search implementation. PNG caching checks the relevant
 loader method fingerprints, and Gagarin checks the XML constructor fingerprint.
 These fingerprints compare instructions with resolved references, so merely
 renumbering assembly metadata does not invalidate identical method code.
-Optional integrations still require their reviewed supplier files and methods.
+Optional integrations use [required-function checks](supplier-forward-compatibility.md)
+without whole-supplier version or file restrictions.
 Existing patch-conflict checks, startup limits, graphics restrictions and
 feature-local setup exception handling remain in place.
 
@@ -40,7 +40,8 @@ to the recorded builds, not hypothetical future versions.
 Offline validation simulates unknown versions and MVIDs on both platforms,
 checks that future games reach the unchanged Harmony gate, retains the existing
 method/patch regression tests, and verifies cache separation after a game update.
-No live launch or normal-game deployment is part of this source change.
+The combined 0.2.1 release includes an owner-authorized Windows live check;
+the release notes record its outcome separately from the prior Linux baseline.
 
 The offline suite passed 105 managed checks (one existing optional supplier skip)
 and all 35 Python checks. Normal and captured-Linux-reference builds completed

@@ -1,6 +1,6 @@
 # Using Wake-Up
 
-Wake-Up avoids repeated work during startup without special launch arguments. The working source attempts its improvements on new Windows and native Linux game revisions automatically. Each feature retains its own compatibility checks; a future update can still require a fix. Published 0.2.0 has the older exact-game restriction until this change is released.
+Wake-Up avoids repeated work during startup without special launch arguments. Version 0.2.1 attempts its improvements on new Windows and native Linux game revisions and updated optional mods automatically. Each feature retains its own compatibility checks; a future update can still require a fix.
 
 ## Installation and settings
 
@@ -24,7 +24,7 @@ the current emergency bypass is `--wake-up-bypass`.
 
 ## Supported-build policy
 
-Wake-Up no longer rejects a game solely because its version, revision or whole-file fingerprint changed. New Windows and native Linux builds attempt each selected feature. Required methods and call patterns, PNG/XML method fingerprints, graphics support and conflicting patches still constrain individual features. Harmony and optional supplier binaries retain their exact identity checks. A changed feature can fall back to ordinary loading while the others continue; future compatibility is attempted, not guaranteed. See [forward compatibility](forward-compatibility.md).
+Wake-Up no longer rejects a game or optional supplier solely because its version, revision or whole-file fingerprint changed. New Windows and native Linux builds attempt each selected feature. Required methods and call patterns, method fingerprints, graphics support and conflicting patches still constrain individual features. Harmony retains its exact identity check. A changed feature can fall back to ordinary loading while the others continue; future compatibility is attempted, not guaranteed. See [game](forward-compatibility.md) and [optional mod](supplier-forward-compatibility.md) compatibility.
 
 | Component | Current development contract |
 |---|---|
@@ -33,10 +33,10 @@ Wake-Up no longer rejects a game solely because its version, revision or whole-f
 | Harmony | Exact reviewed 2.4.2.0 binary supplied by the frozen Prepatcher environment |
 | Definition/template searches | Required vanilla XML patch worker signatures, unique XPath call patterns and patch checks |
 | Type searches | Reviewed Harmony fallback search and patch checks; no game revision restriction |
-| Gagarin reuse | Exact frozen Missile Girl/Gagarin implementation; the known Loading Progress XML replacement causes ordinary fallback |
-| Character Editor | Exact 1.6.3.3 binary and preset-construction methods |
-| Loading Progress | Exact 0.14.0 binary and loading-loop hooks; progress may redraw less frequently within its original time budget |
-| Giddy-Up | Exact 2.2.5.0 binary; Windows Direct3D 11 and Linux OpenGL |
+| Gagarin reuse | Required XML/cache functions; the known Loading Progress XML replacement causes ordinary fallback |
+| Character Editor | Required preset-construction and lookup functions |
+| Loading Progress | Independent repaint and PNG-loader function checks; progress may redraw less frequently within its original time budget |
+| Giddy-Up | Required texture/setup functions; Windows Direct3D 11 and Linux OpenGL |
 | PNG cache | Windows Direct3D 11 compute or CPU processing; Linux OpenGL CPU processing; other backends retain original loading |
 
 The precise hashes and implementation checks are documented in [architecture](architecture.md), [Character Editor qualification](character-editor-reintegration.md), [Loading Progress qualification](five-loading-opportunities.md), and [Giddy-Up qualification](further-loading-improvements.md). [Current state](current-state.md) records the actual tested package and live coverage.

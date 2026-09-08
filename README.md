@@ -4,7 +4,7 @@ Wake-Up provides targeted startup improvements. It accelerates supported XML def
 
 The XML search feature builds a temporary lookup table (an index) from the active mod XML when needed. It finds a definition's `defName` or a template's `Name` directly, then lets the normal XML engine evaluate the rest of the query. Relevant changes invalidate the affected index; patch completion releases it. No prebuilt modlist data or persistent XML cache is shipped.
 
-**Unreleased source change:** Future Windows and native Linux game revisions now attempt feature compatibility checks instead of being rejected by whole-game identity. Harmony and optional supplier restrictions remain. PNG entries are separated by game build. See [forward compatibility](docs/forward-compatibility.md); this does not change the already published 0.2.0 package.
+**0.2.1 adds automatic compatibility attempts after updates.** Future Windows and native Linux game revisions, and updated Character Editor, Giddy-Up, Loading Progress and Gagarin suppliers, reach feature-specific checks instead of being rejected by whole-file identity. Harmony remains pinned. PNG entries are separated by game build. See [game compatibility](docs/forward-compatibility.md), [optional mod compatibility](docs/supplier-forward-compatibility.md) and the [release notes](release/notes-0.2.1.md).
 
 **0.2.0 supports Windows Steam and native Linux / Steam Deck.** The exact added game builds are Windows Steam 1.6.4871 rev590 and Linux 1.6.4871 rev600. It includes OpenGL Giddy-Up texture readback, CPU PNG texture caching with Steam's default Linux settings, and PNG integration with Loading Progress. No extra launch flag is required. See the [release notes](release/notes-0.2.0.md).
 

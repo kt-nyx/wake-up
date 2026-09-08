@@ -16,7 +16,7 @@ Do not weaken identity checks to make another build compile; see the
 [Linux qualification limits](linux-support.md).
 
 These exact references keep builds reproducible. They are separate from the
-unreleased [runtime forward compatibility policy](forward-compatibility.md),
+0.2.1 [runtime forward compatibility policy](forward-compatibility.md),
 which permits future game revisions to attempt each feature's checks.
 
 From a source checkout or extracted source archive, set the paths for your own

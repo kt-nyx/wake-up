@@ -7,7 +7,7 @@
   "sourceUrl": "https://github.com/kt-nyx/wake-up",
   "status": "release",
   "steamQualified": false,
-  "steamStartupValidated": false,
+  "steamStartupValidated": true,
   "linuxStartupValidated": false,
-  "validationScope": "106 managed and 35 Python checks; Windows live release check pending. Linux live baseline is 0.2.0. Gameplay/save-load qualification remains separate."
+  "validationScope": "Windows startup, automatic normal exit, 1682 Giddy-Up comparisons and 7 PNG comparisons passed. Linux live baseline remains 0.2.0; this update adds no Deck live test. Gameplay/save-load qualification remains separate."
 }
