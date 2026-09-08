@@ -1,0 +1,2 @@
+# Even rg --hidden must not enumerate the private game/mod payload.
+.rlo-test-instance/

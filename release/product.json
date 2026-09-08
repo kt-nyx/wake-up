@@ -1,0 +1,10 @@
+{
+  "displayName": "RimWorld Loading Optimizer",
+  "folderName": "RimWorldLoadingOptimizer",
+  "packageId": "kt.nyx.startupfixes",
+  "version": "0.1.0-dev",
+  "author": "kt-nyx",
+  "sourceUrl": "https://github.com/kt-nyx/rimworld-loading-optimizer",
+  "status": "development",
+  "steamQualified": false
+}

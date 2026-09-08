@@ -1,0 +1,72 @@
+// Copyright (c) 2026 kt-nyx and contributors.
+// Licensed under GPL-3.0-or-later with LICENSE-EXCEPTION.md.
+
+using System;
+using Verse;
+using UnityEngine;
+
+namespace RimWorldLoadingOptimizer.RimWorld;
+
+// RimWorld constructs Mod subclasses before LoadModXML. No early assembly rewrite
+// or diagnostic pipeline is needed by the retained startup optimizations.
+public sealed class OptimizerMod : Mod
+{
+    private OptimizerSettings? settings;
+    private string launchStatus = "Startup optimizations are unavailable for this launch.";
+
+    public OptimizerMod(ModContentPack content) : base(content)
+    {
+        try
+        {
+            if (PlayDataLoader.Loaded) return;
+            string[] arguments = Environment.GetCommandLineArgs();
+            if (!UserStartupSelection.HasExplicitSelection(arguments))
+            {
+                settings = GetSettings<OptimizerSettings>();
+                arguments = UserStartupSelection.Resolve(arguments, settings, GenFilePaths.SaveDataFolderPath);
+                launchStatus = !settings.Enabled ? "Startup optimizations were disabled for this launch."
+                    : RuntimeIdentity.ValidateBinaryIdentity(out _)
+                        ? "Recognized game and Harmony build. Selected features use their own compatibility checks."
+                        : "This game or Harmony build is not supported. Ordinary loading is preserved.";
+                Log.Message("[RimWorld Loading Optimizer] " + launchStatus);
+            }
+            else launchStatus = "This launch uses explicit development controls instead of these settings.";
+            CharacterPresetRuntime.TryInitialize(arguments);
+            GiddyTextureRuntime.TryInitialize(arguments);
+            RepaintCoalescer.TryInitialize(arguments);
+            PngRuntime.TryInitialize(arguments);
+            GagarinCacheRuntime.TryInitialize(arguments);
+            if (!StartupSearchRuntime.TryInitialize(arguments) && !DefLookupRuntime.TryInitialize(arguments))
+                TypeLookupRuntime.TryInitialize(arguments);
+        }
+        catch (Exception exception)
+        {
+            Log.Warning("[RimWorld Loading Optimizer] Startup setup stopped: " + exception.GetType().Name + ". Ordinary fallback remains available.");
+        }
+    }
+
+    public override string SettingsCategory() => "RimWorld Loading Optimizer";
+
+    public override void DoSettingsWindowContents(Rect inRect)
+    {
+        settings ??= GetSettings<OptimizerSettings>();
+        var list = new Listing_Standard();
+        list.Begin(inRect);
+        list.Label("Changes take effect after restarting RimWorld.");
+        list.Label(launchStatus);
+        list.Gap();
+        list.CheckboxLabeled("Enable startup optimizations", ref settings.Enabled);
+        list.CheckboxLabeled("Faster definition and template searches", ref settings.DefinitionSearches);
+        list.CheckboxLabeled("Faster code type searches", ref settings.TypeSearches);
+        list.Gap();
+        list.Label("Optional mod improvements: missing or unsupported versions keep ordinary loading.");
+        list.CheckboxLabeled("Reuse Gagarin's parsed XML", ref settings.GagarinReuse);
+        list.CheckboxLabeled("Reuse Character Editor preset lookups", ref settings.CharacterPresets);
+        list.CheckboxLabeled("Reduce Loading Progress repaint pauses", ref settings.LoadingProgress);
+        list.CheckboxLabeled("Reduce Giddy-Up texture readback", ref settings.GiddyTextures);
+        list.Gap();
+        list.CheckboxLabeled("Cache processed PNG textures (up to 512 MiB)", ref settings.PngCache);
+        list.Label("PNG caching can slow the first launch while building its cache. Later launches may be faster. DDS textures are unaffected. Supported Windows Direct3D 11 graphics only.");
+        list.End();
+    }
+}

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ModMetaData>
+  <packageId>kt.nyx.startupfixes</packageId>
+  <name>RimWorld Loading Optimizer</name>
+  <author>kt-nyx</author>
+  <modVersion>0.1.0-dev</modVersion>
+  <url>https://github.com/kt-nyx/rimworld-loading-optimizer</url>
+  <supportedVersions><li>1.6</li></supportedVersions>
+  <modDependencies>
+    <li>
+      <packageId>zetrith.prepatcher</packageId>
+      <displayName>Prepatcher</displayName>
+      <steamWorkshopUrl>steam://url/CommunityFilePage/2934420800</steamWorkshopUrl>
+      <downloadUrl>https://github.com/Zetrith/Prepatcher</downloadUrl>
+    </li>
+  </modDependencies>
+  <loadAfter><li>zetrith.prepatcher</li><li>brrainz.harmony</li></loadAfter>
+  <incompatibleWith><li>local.rimworldloadingoptimizer.op7validation</li></incompatibleWith>
+  <description>Development build: targeted startup improvements with optional integrations. Current qualification covers the exact recorded Windows/GOG environment; Steam qualification and final release copy are pending. Settings changes require restart. Unsupported implementations keep ordinary behavior. Do not enable alongside the old local validation package.
+
+Original code: GNU GPL v3 or later with the included linking permission. Original documentation: CC BY-SA 4.0. Matching source and notices are included.
+
+Portions of the materials used to create this content/mod are trademarks and/or copyrighted works of Ludeon Studios Inc. All rights reserved by Ludeon. This content/mod is not official and is not endorsed by Ludeon.</description>
+</ModMetaData>

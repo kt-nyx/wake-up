@@ -1,0 +1,6 @@
+validation/live-package/About/About.xml text eol=lf
+.githooks/* text eol=lf
+validation/*.json text eol=lf
+validation/examples/*.json text eol=lf
+src/RimWorldLoadingOptimizer.Core/*.cs -text
+src/RimWorldLoadingOptimizer.RimWorld/*.cs -text

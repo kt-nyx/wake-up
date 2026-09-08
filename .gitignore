@@ -1,0 +1,10 @@
+# Private builds, research, package output and recovery bundles.
+artifacts/
+
+# Permanent private fixture, including accidentally nested copies.
+.rlo-test-instance/
+__pycache__/
+
+# Historical private collector output is never source.
+.collector/
+runs/

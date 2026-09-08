@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ModMetaData>
+  <packageId>local.rimworldloadingoptimizer.op7validation</packageId>
+  <name>RimWorld Loading Optimizer</name>
+  <author>RimWorld Loading Optimizer contributors</author>
+  <supportedVersions>
+    <li>1.6</li>
+  </supportedVersions>
+  <modDependencies>
+    <li>
+      <packageId>zetrith.prepatcher</packageId>
+      <displayName>Prepatcher</displayName>
+    </li>
+  </modDependencies>
+  <loadAfter>
+    <li>zetrith.prepatcher</li>
+  </loadAfter>
+  <description>Reduces repeated work during startup. Supported definition and type searches and optional Gagarin, Character Editor, Loading Progress and Giddy-Up improvements activate automatically. Configure features in Options / Mod settings / RimWorld Loading Optimizer; changes require restart. Processed-PNG caching is opt-in because its first build can slow loading. Missing or unsupported game, framework and mod versions retain ordinary behavior. This development build has exact Windows GOG and dependency compatibility checks; it is not a public release or a general RimWorld 1.6 compatibility claim.</description>
+</ModMetaData>

@@ -1,0 +1,2 @@
+#!/bin/sh
+exec pwsh -NoProfile -File build/Verify-FixtureBoundary.ps1
