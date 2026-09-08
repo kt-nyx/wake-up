@@ -2,9 +2,12 @@
   "displayName": "Wake-Up: Loading Optimizations",
   "folderName": "wake-up",
   "packageId": "kt.nyx.wakeup",
-  "version": "0.2.0-preview.1",
+  "version": "0.2.0",
   "author": "kt-nyx",
   "sourceUrl": "https://github.com/kt-nyx/wake-up",
-  "status": "preview",
-  "steamQualified": false
+  "status": "release",
+  "steamQualified": false,
+  "steamStartupValidated": true,
+  "linuxStartupValidated": true,
+  "validationScope": "Live startup, normal exit and texture output; new-platform gameplay/save-load qualification remains pending."
 }

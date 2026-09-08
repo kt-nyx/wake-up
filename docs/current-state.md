@@ -1,5 +1,17 @@
 # Current state
 
+**0.2.0 promotion after live checks, 2026-09-08:** Both the Windows Steam rev590
+and native Steam Deck rev600 checks reached the menu and exited normally. Each
+verified 1,682 Giddy-Up reads and six PNG cache hits against original output,
+with zero mismatches, errors or texture-loader fallbacks. Modern Dev Tools was
+temporarily disabled at the owner's request; original settings/load orders were
+restored and temporary test assets removed. No new error headlines appeared.
+See the [live validation record](steam-linux-live-validation.md) and
+[0.2.0 release notes](../release/notes-0.2.0.md). The owner authorized a regular
+release after these passes. Only release metadata/docs and the settings screen's
+obsolete preview label differ from the tested implementation. Broader gameplay
+qualification remains pending, separately from the completed startup checks.
+
 **0.2.0-preview.1 release:** This compatibility preview packages the Windows
 Steam rev590 and Linux rev600 support, Linux graphics ports, PNG / Loading
 Progress integration and clearer startup diagnostics described below. The

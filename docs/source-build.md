@@ -13,7 +13,7 @@ the captured native Linux references for offline compilation. The historical
 `steam-rev590` target remains available. Runtime platform support and the build
 host are separate: these instructions still use Windows and PowerShell 7.
 Do not weaken identity checks to make another build compile; see the
-[Linux preview's qualification limits](linux-support.md).
+[Linux qualification limits](linux-support.md).
 
 From a source checkout or extracted source archive, set the paths for your own
 copies, then restore and build:

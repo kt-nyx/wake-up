@@ -4,8 +4,9 @@ Wake-Up now admits the owner's installed Windows Steam **RimWorld 1.6.4871
 rev590** for all seven features' existing compatibility checks. The relevant
 loading and texture methods match the reviewed Windows GOG code, so this adds
 an exact supported build without replacing the optimization algorithms or
-loosening checks for unknown game/mod versions. This change has passed offline
-tests but has not been installed or exercised in a Steam game launch.
+loosening checks for unknown game/mod versions. It has passed offline checks and
+a live startup/normal-exit check, including Giddy-Up output comparisons and
+sampled PNG cache creation/reuse. See the [live validation record](steam-linux-live-validation.md).
 
 ## Exact build and review
 
@@ -63,9 +64,8 @@ Private comparison data and Steam-reference test results are under
 `artifacts/windows-steam-support/`; the full suite is under
 `artifacts/fixture-tests/f5f0edaf2cd241f79b8484c51347b532/`.
 
-After installing this build, the owner's Steam launch should be checked for
-actual feature work and normal completion. The new PNG/Loading Progress bridge
-still needs live cache creation/reuse and output checks, and focused gameplay /
-save-load checks remain distinct from successful startup. The known Gagarin /
+The subsequent live checks completed actual feature work, normal menu startup,
+PNG/Loading Progress cache creation/reuse and texture output comparisons.
+Focused gameplay/save-load checks remain distinct from successful startup. The known Gagarin /
 Loading Progress XML conflict still causes ordinary fallback on both operating
 systems; it is not an unsupported Windows build.

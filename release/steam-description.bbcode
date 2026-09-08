@@ -33,7 +33,7 @@ Choose companions for the features you want. Loading Progress can prevent Wake-U
 [h2]Compatibility[/h2]
 Improvements activate only for supported versions and setups; otherwise normal loading is preserved. Some loading optimizations overlap, so their savings won't always add together.
 
-[b]0.2.0-preview.1 — Windows Steam and Linux / Steam Deck support:[/b] Adds Windows Steam 1.6.4871 rev590 and native Linux 1.6.4871 rev600 support. No extra launch flag is required. Includes OpenGL Giddy-Up improvements, CPU PNG caching with Steam's default Linux settings, and PNG integration with Loading Progress. Five features completed startup on a Steam Deck; final Windows Steam and PNG cache live validation remains pending. PNG caching remains opt-in and can slow the first launch while building its cache. Earlier Windows benchmark figures are not Linux or Windows Steam performance claims.
+[b]0.2.0 — Windows Steam and Linux / Steam Deck support:[/b] Supports Windows Steam 1.6.4871 rev590 and native Linux 1.6.4871 rev600. Both passed live startup, normal exit, Giddy-Up original-output comparisons and sampled PNG cache creation/reuse checks. No extra launch flag is required. Modern Dev Tools was temporarily disabled for the final unattended checks because its log window blocks the menu. PNG caching remains opt-in and can slow the first launch while building its cache. Gameplay/save-load qualification and new-platform speed measurements are separate from these completed startup checks.
 
 [h2]More information[/h2]
 [url=https://github.com/kt-nyx/wake-up]Visit Wake-Up on GitHub[/url] for technical details, benchmark results, compatibility notes, source code and credits.

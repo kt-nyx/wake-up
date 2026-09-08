@@ -61,7 +61,7 @@ public sealed class WakeUpMod : Mod
         list.Label("Changes take effect after restarting RimWorld.");
         list.Label(launchStatus);
         if (linuxPreview)
-            list.Label("Linux compatibility preview: PNG caching and the Giddy-Up texture improvement support OpenGL. Their live-game validation is pending.");
+            list.Label("Linux OpenGL support: PNG caching and the Giddy-Up texture improvement support the reviewed game build. No extra launch flag is required.");
         list.Gap();
         list.CheckboxLabeled("Enable startup optimizations", ref settings.Enabled);
         list.CheckboxLabeled("Faster definition and template searches", ref settings.DefinitionSearches);

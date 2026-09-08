@@ -21,7 +21,7 @@
     <li>local.rimworldloadingoptimizer.op7validation</li>
     <li>kt.nyx.startupfixes</li>
   </incompatibleWith>
-  <description>Compatibility preview: adds Windows Steam 1.6.4871 rev590 and native Linux / Steam Deck 1.6.4871 rev600 support, including Linux texture processing and PNG caching alongside Loading Progress. No extra launch flag is required. PNG caching is opt-in and its first cache build can slow loading. Initial Steam Deck startup checks passed for five features; final Windows Steam and PNG cache live validation is pending. Settings changes require restart. Unsupported game/mod versions keep ordinary behavior. Do not enable alongside an older local copy of Wake-Up or the old validation package.
+  <description>Supports Windows Steam 1.6.4871 rev590 and native Linux / Steam Deck 1.6.4871 rev600, including OpenGL texture processing and PNG caching alongside Loading Progress. Both platforms passed live startup, normal exit and texture-output checks. No extra launch flag is required. PNG caching is opt-in and its first cache build can slow loading. These checks do not establish every mod combination or gameplay/save-load behavior. Settings changes require restart. Unsupported game/mod versions keep ordinary behavior. Do not enable alongside another copy of Wake-Up or the old validation package.
 
 Original code: GNU GPL v3 or later with the included linking permission. Original documentation: CC BY-SA 4.0. Matching source and notices are included.
 

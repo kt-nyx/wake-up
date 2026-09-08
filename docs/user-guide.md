@@ -28,34 +28,32 @@ Wake-Up checks actual game and dependency code, including file identity and the 
 
 | Component | Current development contract |
 |---|---|
-| Operating system | Windows; native Linux preview with initial non-graphics startup evidence and graphics ports awaiting live validation |
-| Game | Exact pinned GOG 1.6.4871 rev574 fixture (`gog-rev573`), Windows Steam 1.6.4871 rev590 (`steam-rev590`) and native Linux 1.6.4871 rev600 (`linux-rev600`); Steam/graphics live validation remains pending; this is not all 1.6 builds |
+| Operating system | Windows and native Linux / Steam Deck; live startup and texture checks completed on the reviewed builds |
+| Game | Exact pinned GOG 1.6.4871 rev574 fixture (`gog-rev573`), Windows Steam 1.6.4871 rev590 (`steam-rev590`) and native Linux 1.6.4871 rev600 (`linux-rev600`); this is not all 1.6 builds |
 | Harmony | Exact reviewed 2.4.2.0 binary supplied by the frozen Prepatcher environment |
 | Definition/template searches | Reviewed GOG methods and matching Windows Steam/Linux methods; supported vanilla XML patch workers |
 | Type searches | Reviewed Harmony fallback search; exact reviewed Windows GOG, Windows Steam and Linux game identities |
 | Gagarin reuse | Exact frozen Missile Girl/Gagarin implementation; the known Loading Progress XML replacement causes ordinary fallback |
 | Character Editor | Exact 1.6.3.3 binary and preset-construction methods |
 | Loading Progress | Exact 0.14.0 binary and loading-loop hooks; progress may redraw less frequently within its original time budget |
-| Giddy-Up | Exact 2.2.5.0 binary; Windows Direct3D 11 and Linux OpenGL preview |
-| PNG cache | Windows Direct3D 11 compute or CPU processing; Linux OpenGL CPU-processing preview; other backends retain original loading |
+| Giddy-Up | Exact 2.2.5.0 binary; Windows Direct3D 11 and Linux OpenGL |
+| PNG cache | Windows Direct3D 11 compute or CPU processing; Linux OpenGL CPU processing; other backends retain original loading |
 
 The precise hashes and implementation checks are documented in [architecture](architecture.md), [Character Editor qualification](character-editor-reintegration.md), [Loading Progress qualification](five-loading-opportunities.md), and [Giddy-Up qualification](further-loading-improvements.md). [Current state](current-state.md) records the actual tested package and live coverage.
 
 The [Windows Steam rev590 support change](windows-steam-support.md) admits all
 seven features to their existing checks. It was verified against the owner's
-actual installed game files and still needs installation and a live launch.
-The known Gagarin/Loading Progress conflict remains an ordinary fallback, and
-the PNG/Loading Progress integration awaits live cache validation.
+actual installed game files and passed a live startup, normal exit and sampled
+cache/output checks. The known Gagarin/Loading Progress conflict remains an ordinary fallback.
 
-The [Linux and Steam Deck preview](linux-support.md) supports the game's default
+The [Linux and Steam Deck support](linux-support.md) uses the game's default
 Linux launch settings without adding any manual flag. Steam supplies
 `-disable-compute-shaders`, and the captured Linux game also disables compute
 processing internally; PNG caching uses its CPU texture-processing path.
-Enable the cache through mod settings if desired. The first installed preview
-completed four non-graphics improvements in the owner's launch. The subsequent
-PNG and Giddy-Up graphics ports were installed as a private Deck preview on
-2026-09-08; their in-game validation is pending. Existing releases do not gain
-these ports until a new build is installed.
+Enable the cache through mod settings if desired. Both platforms completed
+[live startup and texture checks](steam-linux-live-validation.md). Modern Dev
+Tools was temporarily disabled during the final unattended checks because its
+log window blocks the menu. Gameplay/save-load coverage remains separate.
 
 ## Expectations and limits
 

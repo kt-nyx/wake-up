@@ -1,34 +1,30 @@
-# Linux and Steam Deck compatibility preview
+# Linux and Steam Deck compatibility
 
-Wake-Up recognizes the exact native Linux game build captured from the owner's
-Steam Deck. The installed first preview reached the menu in the owner's launch:
-four non-graphics improvements completed, and Gagarin reuse correctly declined
-a known Loading Progress conflict. Current source also implements the two
-graphics ports: Giddy-Up on OpenGL and PNG caching with CPU texture processing.
-Those graphics changes passed offline checks and were installed at the owner's
-request on 2026-09-08 at 20:07 UTC. All 15 package files were hash-verified and
-the previous version was backed up outside game discovery. They have not yet
-been tested in the game. See [current state](current-state.md) for the installed
-DLL identity and installation receipt.
+Wake-Up supports the reviewed native Linux game build from the owner's Steam
+Deck. The final 2026-09-08 live check reached the menu and exited normally,
+verified all 1,682 Giddy-Up reads against the original, and restored six PNG
+cache entries with matching rendered output and zero errors. No extra launch
+flag is required. See the [validation scope](steam-linux-live-validation.md)
+and [current state](current-state.md); historical implementation evidence follows.
 
 ## What is implemented
 
-| Feature | Linux preview behavior |
+| Feature | Linux behavior |
 |---|---|
 | Definition and named-template searches | Admitted for the reviewed Linux game; existing query and conflicting-patch checks remain |
 | Harmony type searches | Admitted with the exact reviewed Harmony library; original fallback and startup cleanup remain |
 | Character Editor preset lookups | Admitted with the exact reviewed optional 1.6.3.3 supplier and unchanged method checks |
 | Gagarin parsed-XML reuse | Admitted with the exact reviewed optional supplier; interfering hooks, including the known Loading Progress XML replacement, still cause fallback |
 | Loading Progress repaint pauses | Admitted with the exact reviewed optional 0.14.0 supplier and loading-loop checks |
-| PNG cache | OpenGL CPU-processing path, selected automatically with the game's defaults; cache setting remains opt-in; live validation pending |
-| Giddy-Up texture readback | Center-column readback on OpenGL with exact 2.2.5.0 supplier checks; live validation pending |
+| PNG cache | OpenGL CPU-processing path, selected automatically with the game's defaults; cache setting remains opt-in; sampled live creation/reuse checks passed |
+| Giddy-Up texture readback | Center-column readback on OpenGL with exact 2.2.5.0 supplier checks; live original-output checks passed |
 
 Admitted means the game version is allowed to reach the feature's checks. It
 does not mean the feature installed, encountered eligible work or saved time.
 Updated or missing optional mods still preserve their ordinary behavior.
 
 The existing single runtime DLL supports the reviewed Windows and Linux game
-identities. Users do not need a different Linux DLL or Proton for this preview.
+identities. Users do not need a different Linux DLL or Proton.
 This does not extend support to every Linux or RimWorld 1.6 build.
 
 ## Evidence and exact identity
@@ -89,7 +85,7 @@ An unknown game now reports that the RimWorld build has not been reviewed,
 instead of blaming either the game or Harmony. Missing game/Harmony files and
 changed Harmony identities have separate explanations. `Player.log` records the
 specific rejection code, and feature receipts retain their own reasons. Settings
-identify successful Linux admission as a preview, with graphics validation pending.
+identify successful Linux OpenGL admission without requiring an extra launch flag.
 
 ## Graphics ports and default launch settings
 
@@ -229,9 +225,8 @@ lookups and Loading Progress coalescing. Gagarin reuse's interfering-hook refusa
 is the same known compatibility restriction as Windows. The process remained
 alive at capture, so that review did not establish normal exit or gameplay safety.
 
-The new graphics build is installed. During separately authorized live
-testing, check first-build and warm-cache PNG output against the original,
-Giddy-Up alpha/offset equality, receipt errors, startup cleanup and normal exit.
-Focused gameplay/save-reload checks remain before feature-parity qualification;
-matched controls remain necessary before speed claims. No Windows benchmark
-percentage applies to this preview.
+The subsequent [live validation](steam-linux-live-validation.md) completed
+sampled PNG creation/reuse, Giddy-Up output comparisons, startup cleanup and
+normal exit. Focused gameplay/save-reload checks remain separate; matched
+controls remain necessary before speed claims. No Windows benchmark percentage
+is a Linux performance result.

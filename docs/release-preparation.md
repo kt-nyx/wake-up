@@ -1,10 +1,11 @@
 # Release preparation
 
-The owner authorized the 0.2.0-preview.1 Windows Steam/Linux update on 2026-09-08.
-The [release notes](../release/notes-0.2.0-preview.1.md) state its exact supported
-builds and pending live checks. Uploading does not establish additional runtime
-or performance qualification. Preserve the owner's existing Workshop copy and
-preview image; update its compatibility section and change notes for this release.
+The owner authorized regular 0.2.0 publication after both live platform checks
+passed on 2026-09-08. The [release notes](../release/notes-0.2.0.md) and
+[validation record](steam-linux-live-validation.md) state the exact scope.
+Uploading does not establish additional gameplay or performance qualification.
+Preserve the owner's existing Workshop copy and preview image; update its
+compatibility section and change notes for this release.
 
 ## Workshop description and performance claims
 
@@ -80,7 +81,8 @@ fields and capture Steam's completion result. Publish the matching source tag
 and downloadable ZIP on GitHub's public history.
 
 The generated public manifest records source and package identities and marks
-Steam qualification pending. The source archive contains only the current tree,
+broader gameplay qualification pending, with explicit flags for the completed
+Windows Steam and Linux startup checks. The source archive contains only the current tree,
 not Git history. This avoids dependence on an external source offer or a link
 remaining available. Include the source archive and legal material in Workshop
 uploads too; do not upload just the DLL.
@@ -128,8 +130,8 @@ permission review; our exception cannot extend another author's rights.
    Preserve the publishing folder's `About/PublishedFileId.txt` so the update
    targets the existing listing recorded in [current state](current-state.md).
 
-The preview may be distributed with the stated limits; it must not be relabelled
-as fully qualified merely because publication succeeds.
+Regular release status reflects the owner's completed startup-test condition.
+It must not be described as universal gameplay qualification or a speed result.
 
 ## Initial preparation verification, 2026-09-08
 
