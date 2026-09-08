@@ -1,6 +1,6 @@
 # Preserve existing source line endings; normalize new source through Git.
 .githooks/* text eol=lf
-.github/*.yml text eol=lf
+.github/**/*.yml text eol=lf
 *.md text eol=lf
 *.py text eol=lf
 *.xml text eol=lf
