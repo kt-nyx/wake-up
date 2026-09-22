@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <RuntimeFrameworkVersion>10.0.12</RuntimeFrameworkVersion>
+    <PublishSingleFile>false</PublishSingleFile>
+    <AssemblyName>WakeUp.Preparation</AssemblyName>
+    <Product>Wake-Up Texture Preparation</Product>
+    <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\WakeUp\Textures\PreparationContract.cs" Link="Shared\PreparationContract.cs" />
+    <Compile Include="..\WakeUp\Textures\PreparationEncoder.cs" Link="Shared\PreparationEncoder.cs" />
+    <Compile Include="..\WakeUp\Textures\PreparationImageInspection.cs" Link="Shared\PreparationImageInspection.cs" />
+    <Compile Include="..\WakeUp\Textures\PreparationBuiltinUi.cs" Link="Shared\PreparationBuiltinUi.cs" />
+    <Compile Include="..\WakeUp\Textures\PreparationTerrainPolicy.cs" Link="Shared\PreparationTerrainPolicy.cs" />
+    <Compile Include="..\WakeUp\Textures\PsdTextureDecoder.cs" Link="Shared\PsdTextureDecoder.cs" />
+    <Compile Include="..\WakeUp\Textures\PreparationStorage.cs" Link="Shared\PreparationStorage.cs" />
+    <Compile Include="..\WakeUp\Textures\GroupedTextureBlocks.cs" Link="Shared\GroupedTextureBlocks.cs" />
+    <Compile Include="..\WakeUp\Caching\OwnedCacheStore.cs" Link="Shared\OwnedCacheStore.cs" />
+    <Compile Include="..\WakeUp\Caching\SharedCacheBudget.cs" Link="Shared\SharedCacheBudget.cs" />
+    <Compile Include="..\WakeUp\Caching\CacheLaunchPolicy.cs" Link="Shared\CacheLaunchPolicy.cs" />
+    <Compile Include="..\WakeUp\Caching\CacheDigest.cs" Link="Shared\CacheDigest.cs" />
+  </ItemGroup>
+</Project>

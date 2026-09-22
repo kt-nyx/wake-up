@@ -16,7 +16,7 @@ internal sealed class ScopedDefLookup : IDisposable
 {
     internal const int MaximumEntries = 65536;
     internal const int MaximumQueries = 4096;
-    private static readonly Regex Prefix = new("^/?Defs/(?<type>[A-Za-z_][A-Za-z0-9_.-]*)\\[(?<key>defName|@Name)\\s*=\\s*(?<quote>['\"])(?<name>[^'\"]*)\\k<quote>\\](?<tail>.*)$", RegexOptions.CultureInvariant);
+    private static readonly Regex Prefix = new("^/?Defs/(?<type>[A-Za-z_][A-Za-z0-9_.-]*)\\[(?<leading>\\s*)(?<key>defName|@Name)\\s*=\\s*(?<quote>['\"])(?<name>[^'\"]*)\\k<quote>(?<trailing>\\s*)\\](?<tail>.*)$", RegexOptions.CultureInvariant | RegexOptions.Singleline);
     private readonly XmlDocument document;
     private readonly Dictionary<string, Dictionary<string, XmlElement?>> types = new(StringComparer.Ordinal);
     private readonly Dictionary<string, Query?> queries = new(StringComparer.Ordinal);
@@ -50,6 +50,7 @@ internal sealed class ScopedDefLookup : IDisposable
         get; private set;
     }
     internal int QueryCount => queries.Count;
+    internal long ExpandedSyntaxHits { get; private set; }
 
     internal ScopedDefLookup(XmlDocument document, int maximumEntries = MaximumEntries)
     {
@@ -71,6 +72,17 @@ internal sealed class ScopedDefLookup : IDisposable
 
     internal XmlNodeList SelectNodes(XmlNode context, string xpath)
     {
+        if (TrySelectNodes(context, xpath, out XmlNodeList? result))
+            return result!;
+        Fallbacks++;
+        return context.SelectNodes(xpath)!;
+    }
+
+    // Fall through to the caller's native invocation without calling it twice.
+    // Retain the existing bounded-list admission for ordinary native workers.
+    internal bool TrySelectNodes(XmlNode context, string xpath, out XmlNodeList? selected)
+    {
+        selected = null;
         if (TryFind(context, xpath, out XmlElement? def, out Query? query))
         {
             XmlNodeList result = def!.SelectNodes(query!.Relative)!;
@@ -79,27 +91,52 @@ internal sealed class ScopedDefLookup : IDisposable
             // original document iterator and its mutation behavior.
             if (result.Item(1) == null)
             {
-                Hits++;
-                if (query.Attribute)
-                    AttributeHits++;
-                return result;
+                RecordHit(query);
+                selected = result;
+                return true;
             }
         }
-        Fallbacks++;
-        return context.SelectNodes(xpath)!;
+        return false;
     }
 
     internal XmlNode? SelectSingleNode(XmlNode context, string xpath)
     {
-        if (TryFind(context, xpath, out XmlElement? def, out Query? query))
-        {
-            Hits++;
-            if (query!.Attribute)
-                AttributeHits++;
-            return def!.SelectSingleNode(query!.Relative);
-        }
+        if (TrySelectSingleNode(context, xpath, out XmlNode? result))
+            return result;
         Fallbacks++;
         return context.SelectSingleNode(xpath);
+    }
+
+    // Only for a reviewed caller that consumes the complete list before it can
+    // mutate XML. The caller still performs that native consumption itself.
+    internal bool TrySelectNodesEager(XmlNode context, string xpath, out XmlNodeList? result)
+    {
+        result = null;
+        if (!TryFind(context, xpath, out XmlElement? def, out Query? query)) return false;
+        result = def!.SelectNodes(query!.Relative);
+        RecordHit(query);
+        return true;
+    }
+
+    internal bool TrySelectSingleNode(XmlNode context, string xpath, out XmlNode? result)
+    {
+        result = null;
+        if (TryFind(context, xpath, out XmlElement? def, out Query? query))
+        {
+            RecordHit(query!);
+            result = def!.SelectSingleNode(query!.Relative);
+            return true;
+        }
+        return false;
+    }
+
+    private void RecordHit(Query query)
+    {
+        Hits++;
+        if (query.Attribute)
+            AttributeHits++;
+        if (query.ExpandedSyntax)
+            ExpandedSyntaxHits++;
     }
 
     private bool TryFind(XmlNode context, string xpath, out XmlElement? def, out Query? query)
@@ -227,7 +264,7 @@ internal sealed class ScopedDefLookup : IDisposable
         if (!match.Success)
             return null;
         string tail = match.Groups["tail"].Value;
-        if (tail.Length != 0 && tail[0] != '/')
+        if (tail.Length != 0 && tail[0] != '/' && tail[0] != '[')
             return null;
         // Only downward paths. Predicates can still use normal XPath functions
         // and comparisons; reject escape/union syntax conservatively, including
@@ -241,7 +278,12 @@ internal sealed class ScopedDefLookup : IDisposable
             XPathExpression.Compile(xpath);
         }
         catch (XPathException) { return null; } // Original call reproduces its error.
-        return new Query(match.Groups["type"].Value, match.Groups["name"].Value, relative, match.Groups["key"].Value == "@Name");
+        // The first predicate identifies exactly one Def. Further predicates
+        // have the same position/last context on the native self axis, and
+        // still execute on each call, including after XML changes.
+        bool expanded = match.Groups["leading"].Length != 0 || match.Groups["trailing"].Length != 0
+            || (tail.Length != 0 && tail[0] == '[') || xpath.IndexOf('\n') >= 0 || xpath.IndexOf('\r') >= 0;
+        return new Query(match.Groups["type"].Value, match.Groups["name"].Value, relative, match.Groups["key"].Value == "@Name", expanded);
     }
 
     private void Changing(object sender, XmlNodeChangedEventArgs args)
@@ -353,6 +395,11 @@ internal sealed class ScopedDefLookup : IDisposable
         InvalidateAll();
     }
 
+    internal bool OwnsObserver(Delegate observer)
+        => ReferenceEquals(observer.Target, this)
+            && (observer.Method == ((XmlNodeChangedEventHandler)Changing).Method
+                || observer.Method == ((XmlNodeChangedEventHandler)Changed).Method);
+
     public void Dispose()
     {
         if (disposed)
@@ -375,15 +422,17 @@ internal sealed class ScopedDefLookup : IDisposable
         internal readonly string Name;
         internal readonly string Relative;
         internal readonly bool Attribute;
+        internal readonly bool ExpandedSyntax;
         // Cache the index identity with the parsed query. '@' cannot begin an
         // admitted element type, so template and defName keys cannot collide.
         internal readonly string IndexKey;
-        internal Query(string type, string name, string relative, bool attribute)
+        internal Query(string type, string name, string relative, bool attribute, bool expandedSyntax)
         {
             Type = type;
             Name = name;
             Relative = relative;
             Attribute = attribute;
+            ExpandedSyntax = expandedSyntax;
             IndexKey = attribute ? "@" + type : type;
         }
     }

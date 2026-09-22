@@ -21,9 +21,17 @@ using Object = UnityEngine.Object;
 
 namespace WakeUp;
 
-internal static class PngRuntime
+internal static partial class PngRuntime
 {
     internal const string Owner = "wakeup.png-processing";
+    private static bool cacheRequested;
+    private static string cacheRefusal = "";
+    // Sampled only by the optional display's formatting budget; no per-image
+    // formatting, disk reads, new receipt writes or change to supplier routing.
+    internal static LoadingCacheSnapshot DisplaySnapshot()
+        => new(cacheRequested, installed, cacheRefusal, CacheLaunchPolicy.Current.Action,
+            cache?.Hits ?? 0, cache?.Misses ?? 0, cache?.Writes ?? 0,
+            errors + (cache?.Errors ?? 0), cache?.StoredBytes ?? 0, cache?.LastReason ?? "none");
     internal static readonly MethodInfo Reload = AccessTools.Method(typeof(ModContentPack), "ReloadContentInt");
     internal static readonly MethodInfo Holder = AccessTools.Method(typeof(ModContentHolder<Texture2D>), "ReloadAll");
     internal static readonly MethodInfo LoadAll = AccessTools.Method(typeof(ModContentLoader<Texture2D>), "LoadAllForMod");
@@ -51,44 +59,74 @@ internal static class PngRuntime
         build.IsLinux && method == "LoadItem"
             ? "BA99B5D41EAB8C9EC052A993DB210E88205297F3D51798A9E02DC0B3C29F4509"
             : Expected.TryGetValue(method, out string hash) ? hash : null;
+    internal static bool BodySupported(GameBuildContract build, string method, string hash)
+        => hash == ExpectedBody(build, method) || method == "ReloadAll"
+            // Production hashes the closed texture holder, unlike the open
+            // generic definition used by the separate audio contract.
+            && hash == "4898DC920548ECFC0A95B632A2810F7C30469A96F5E5B37FF194CF7DB9795252";
     internal static string CacheGameIdentity(Guid gameMvid) => "png-v4|" + gameMvid.ToString("D");
+    // JPEG follows the same native image-conversion pipeline as PNG. Optional
+    // PSD decoding is a separate explicit contract; DDS retains its own producer.
+    internal static bool IsCacheableImageSource(string name) =>
+        name.EndsWith(".png", StringComparison.OrdinalIgnoreCase)
+        || name.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase)
+        || name.EndsWith(".jpeg", StringComparison.OrdinalIgnoreCase);
+    internal static string SourceKey(string platformIdentity, PngCapturePath path, bool compression, bool compute,
+        string sourcePath, byte[] source) => PngCache.Hex(PngCache.Hash(Encoding.UTF8.GetBytes(
+            platformIdentity + "|" + path + "|" + compression + "|" + compute + "|" + sourcePath + "|" + PngCache.Hex(PngCache.Hash(source)))));
     private static readonly List<PublishedPatchGuard> Guards = new();
     private delegate Texture2D ImageDelegate(VirtualFile file);
-    private static readonly ImageDelegate NativeImage = (ImageDelegate)Delegate.CreateDelegate(typeof(ImageDelegate), Image);
+    private static readonly ImageDelegate nativeTexture = (ImageDelegate)Delegate.CreateDelegate(typeof(ImageDelegate), LoadTexture);
+    private static readonly ImageDelegate nativeImage = (ImageDelegate)Delegate.CreateDelegate(typeof(ImageDelegate), Image);
+    private static Texture2D NativeTexture(VirtualFile file)
+    { textureReadSession?.Suspend(); return nativeTexture(file); }
+    private static Texture2D NativeImage(VirtualFile file)
+    { textureReadSession?.Suspend(); return nativeImage(file); }
     private static readonly Func<FileInfo, VirtualFile> ToVirtualFile = (Func<FileInfo, VirtualFile>)Delegate.CreateDelegate(typeof(Func<FileInfo, VirtualFile>),
         typeof(VirtualFile).Assembly.GetType("RimWorld.IO.FilesystemFile", true).GetMethods(BindingFlags.Public | BindingFlags.Static)
         .Single(m => (m.Name == "op_Implicit" || m.Name == "op_Explicit") && m.GetParameters().Select(p => p.ParameterType).SequenceEqual(new[] { typeof(FileInfo) })));
     private static string mode = "off", logPath = "", platform = "";
     private static bool installed, finished, verifying, originalPngSource, floatReadback;
+    private static Func<int, bool>? preparationAdmission;
     private static GraphicsDeviceType backend;
     private static PngCapturePath? reportedPath;
-    private static PngCache? cache;
+    private static PreparedTextureStore? cache;
     private static PngLoadingProgressBridge? loadingProgress;
     private static Context? current;
     private static readonly HashSet<string> VerifiedShapes = new();
     private sealed class Context
     {
         internal byte[]? Source, Pixels;
+        internal string? Key;
         internal List<byte[]> Blocks = new();
         internal bool CaptureFailed;
         internal PngCapturePath CapturePath;
+        internal FirstBuildImageData? Prepared;
+        internal readonly List<Texture2D> OwnedTextures = new();
     }
-    private static long calls, errors, verified, verifiedUncompressed, nativeFallbacks, mismatches, pngTicks, reloadTicks, sourceBytes, captureTicks, verifyTicks;
+    private static long restoreTicks, ddsIdentityTicks, preparationPlatformTicks;
+    private static long calls, jpegCalls, errors, verified, verifiedUncompressed, nativeFallbacks, ddsNativePassThrough, mismatches, pngTicks, reloadTicks, sourceBytes, captureTicks, verifyTicks;
     private static long nativeReloads, loadingProgressReloads, reloadFallbacks;
     private static bool CacheMode => mode == "cache" || mode == "verify-cache";
     private static bool Active => installed && !finished && !verifying && UnityData.IsInMainThread;
     private static bool Compatible() => Guards.All(g => g.AllowsOriginalContract()) && (loadingProgress?.Compatible() ?? true);
+    // Atlas capture replaces only the native compression copy operation. Its
+    // exact coordinated patch may arrive after these guards are installed.
+    // Other patches, including other methods under that owner, still refuse.
+    internal static bool AllowsAtlasCompressionPatch(Patch patch) => patch.owner == AtlasRuntime.Owner
+        && patch.PatchMethod == AccessTools.Method(typeof(AtlasRuntime), "CompressionTranspiler");
 
-    internal static void TryInitialize(IReadOnlyList<string> args)
+    internal static void TryInitialize(IReadOnlyList<string> args, bool preparationOnly = false)
     {
         string[] values = args.Where(s => s.StartsWith("--wake-up-png=", StringComparison.Ordinal)).ToArray();
         var launch = StartupLaunchSelector.Parse(args);
-        if (values.Length != 1 || launch.Selection != StartupSelection.Candidate || PlayDataLoader.Loaded)
+        if (installed || values.Length != 1 || launch.Selection != StartupSelection.Candidate || (PlayDataLoader.Loaded && !preparationOnly))
             return;
         mode = values[0].Substring("--wake-up-png=".Length);
         originalPngSource = args.Contains("--wake-up-png-source=original");
-        if (!new[] { "control", "cache", "verify-cache" }.Contains(mode))
+        if (!new[] { "control", "cache", "verify-cache", "prepare" }.Contains(mode))
             return;
+        cacheRequested = CacheMode;
         logPath = Path.Combine(launch.SaveDataRoot!, "WakeUp", "png-processing.jsonl");
         long start = Stopwatch.GetTimestamp();
         var harmony = new Harmony(Owner);
@@ -105,9 +143,11 @@ internal static class PngRuntime
             foreach (var target in Targets)
             {
                 if (!SemanticMethodIdentity.TryHash(target, out string hash, out _)
-                    || hash != ExpectedBody(GameBuildContract.Current, target.Name))
+                    || !BodySupported(GameBuildContract.Current, target.Name, hash))
                     throw new InvalidOperationException("body-" + target.Name);
-                Func<Patch, bool>? allowed = target == Reload && loadingProgress != null ? loadingProgress.AllowsReloadPatch : null;
+                Func<Patch, bool>? allowed = target == Reload ? p => LoadingObservationRuntime.AllowsHook(target, p)
+                    || loadingProgress?.AllowsReloadPatch(p) == true : null;
+                if (target == Compression) allowed = AllowsAtlasCompressionPatch;
                 if (!PublishedPatchGuard.TryCreate(target, Owner, out var guard, true, allowed) || !guard!.AllowsOriginalContract())
                     throw new InvalidOperationException("hook-" + target.Name);
                 Guards.Add(guard!);
@@ -120,13 +160,19 @@ internal static class PngRuntime
             if (loadingProgress != null)
                 harmony.Patch(loadingProgress.Iterator, transpiler: new HarmonyMethod(typeof(PngRuntime), nameof(LoadingProgressTranspiler)));
             harmony.Patch(AccessTools.Method(typeof(Root_Entry), "Update"), postfix: new HarmonyMethod(typeof(PngRuntime), nameof(Menu)));
-            if (CacheMode)
-                cache = new PngCache(Path.Combine(launch.SaveDataRoot!, "WakeUp", "PngCache"));
+            if (CacheMode && CacheLaunchPolicy.Current.AllowWrite)
+                cache = PreparedTextureRuntime.StartupStore;
+            NativeDdsCapture.Initialize(harmony);
+            QualityUnityCallbacks.Initialize();
+            PreparedQualityRuntime.Initialize(harmony);
+            InitializeFirstBuild(args);
             installed = true;
             Write("installed", "\"mode\":\"" + mode + "\",\"loadingProgressBridge\":" + (loadingProgress != null ? "true" : "false")
                 + ",\"ms\":" + Ms(Stopwatch.GetTimestamp() - start));
         }
-        catch (Exception e) { harmony.UnpatchAll(Owner); Write("refused", "\"reason\":\"" + Escape(e.ToString()) + "\""); }
+        catch (Exception e) { cacheRefusal = e.Message; cache?.Dispose(); cache = null; harmony.UnpatchAll(Owner);
+            if (PreparedTextureRuntime.UseAtStartup) PreparedTextureRuntime.Status = "Prepared texture loader refused: " + e.Message;
+            Write("refused", "\"reason\":\"" + Escape(e.ToString()) + "\""); }
     }
     internal static IEnumerable<CodeInstruction> ReloadTranspiler(IEnumerable<CodeInstruction> instructions)
         => Replace(instructions, m => m.DeclaringType == typeof(ModContentHolder<Texture2D>) && m.Name == "ReloadAll", nameof(ReloadTextures), 1);
@@ -139,15 +185,22 @@ internal static class PngRuntime
     private static void ReloadTexturesCore(ModContentHolder<Texture2D> holder, bool hotReload, bool fromLoadingProgress)
     {
         long start = Stopwatch.GetTimestamp();
+        textureReadSession?.RetireForNested(); // Nested work cannot inherit speculative buffers or another queue budget.
         try
         {
-            if (Active && Compatible())
+            if (Active && Compatible() && (mode != "prepare" || PreparedTextureRuntime.UseAtStartup))
             {
                 if (fromLoadingProgress) loadingProgressReloads++; else nativeReloads++;
-                ReloadClone(holder, hotReload);
+                bool previousPreparation = firstBuildReloadAllowed;
+                firstBuildReloadAllowed = !hotReload;
+                var previousHolder = consumerHolder;
+                consumerHolder = holder;
+                try { ReloadClone(holder, hotReload); PreparedQualityRuntime.CompleteReload(); }
+                finally { consumerHolder = previousHolder; firstBuildReloadAllowed = previousPreparation; }
             }
             else
             {
+                PreparedQualityRuntime.UnsafeBoundary("native reload has foreign callbacks");
                 reloadFallbacks++;
                 holder.ReloadAll(hotReload);
             }
@@ -157,7 +210,7 @@ internal static class PngRuntime
     [MethodImpl(MethodImplOptions.NoInlining)]
     private static void ReloadClone(ModContentHolder<Texture2D> holder, bool hotReload)
     {
-        IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> code) => Replace(code, m => m == LoadAll, nameof(Enumerate), 1);
+        IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> code) => Replace(code, m => m == LoadAll, nameof(EnumerateKnownConsumer), 1);
         _ = Transpiler(null!);
         throw new NotImplementedException();
     }
@@ -198,9 +251,103 @@ internal static class PngRuntime
         return Replace(code, m => m == Compression, nameof(Compress), 1);
     }
     // Preserve native file selection, DDS precedence and item/publication order.
+    private static ModContentHolder<Texture2D>? consumerHolder;
+    private static IEnumerable<Pair<string, LoadedContentItem<Texture2D>>> EnumerateKnownConsumer(ModContentPack mod)
+        => EnumerateCore(mod, consumerHolder == null ? null : PngConsumerContract.Capture(consumerHolder));
     private static IEnumerable<Pair<string, LoadedContentItem<Texture2D>>> Enumerate(ModContentPack mod)
+        => EnumerateCore(mod, null);
+    private static IEnumerable<Pair<string, LoadedContentItem<Texture2D>>> EnumerateCore(ModContentPack mod, PngConsumerContract? consumer)
     {
         DeepProfiler.Start("Loading assets of type " + typeof(Texture2D) + " for mod " + mod);
+        var selected = SelectedFiles(mod).ToArray();
+        string selectionIdentity = PreparedTextureRuntime.SelectionIdentity(mod, selected);
+        var previousSession = textureReadSession;
+        previousSession?.RetireForNested();
+        using var preparation = new TextureReadSession(selected, selectionIdentity, allowQueue: previousSession == null);
+        Action beforeQualityCollection = preparation.Suspend;
+        textureReadSession = preparation;
+        void BeforeHolderConstructor()
+        {
+            PreparedQualityRuntime.BeforeCallback();
+            preparation.BeforeCallback();
+        }
+        try
+        {
+        for (int index = 0; index < selected.Length; index++)
+        {
+            var pair = selected[index];
+            PreparedQualityRuntime.BeforeSource(pair.Value);
+            string key = pair.Key;
+            var file = ToVirtualFile(pair.Value);
+            LoadedContentItem<Texture2D> item;
+            FirstBuildImageQueue<FirstBuildImageData>.Lease? lease = null;
+            lease = preparation.Take(index);
+            using (lease)
+            {
+            var previousFlight = firstBuildFlight;
+            firstBuildFlight = lease;
+            try
+            {
+            if ((IsCacheableImageSource(file.Name) || PreparedTextureRuntime.PsdSupport && file.Name.EndsWith(".psd", StringComparison.OrdinalIgnoreCase) || file.Name.EndsWith(".dds", StringComparison.OrdinalIgnoreCase) && NativeDdsCapture.Compatible) && Active && Compatible()
+                && (!PreparedTextureRuntime.UseAtStartup || QualityUnityCallbacks.WarmArrayAllowed))
+            {
+                try
+                {
+                    // Retained PNG/JPEG/PSD reuse precedes native cold loading.
+                    // Authored DDS stays native; C08 quality follows publication.
+                    Texture2D? prepared = file.Exists ? preparation.RestoreWarm(lease) : null;
+                    if (prepared == null && lease?.Released == true) firstBuildFlight = null;
+                    prepared ??= file.Exists && (cache == null || PreparedTextureRuntime.UseAtStartup)
+                        ? PreparedTextureRuntime.TryResolve(mod, pair.Key, pair.Value, selectionIdentity) : null;
+                    Texture2D image = file.Exists ? prepared ?? (file.Name.EndsWith(".psd", StringComparison.OrdinalIgnoreCase) ? LoadProcessedPsd(file, pair.Key, selectionIdentity) : file.Name.EndsWith(".dds", StringComparison.OrdinalIgnoreCase) ? LoadProcessedDds(file, pair.Key, selectionIdentity) : LoadProcessedImage(file, pair.Key, selectionIdentity)) : null!;
+                    BeforeHolderConstructor();
+                    item = new LoadedContentItem<Texture2D>(file, image);
+                }
+                catch (Exception e)
+                {
+                    preparation.Suspend();
+                    errors++;
+                    Log.Error($"Exception loading {typeof(Texture2D)} from file.\nabsFilePath: {file.FullPath}\nException: {e}");
+                    BeforeHolderConstructor();
+                    item = new LoadedContentItem<Texture2D>(file, BaseContent.BadTex);
+                }
+            }
+            else
+            {
+                preparation.Suspend();
+                BeforeHolderConstructor();
+                item = ModContentLoader<Texture2D>.LoadItem(file);
+            }
+            }
+            finally
+            {
+                firstBuildFlight = previousFlight;
+                if (PreparedTextureRuntime.UseAtStartup) QualityUnityCallbacks.Check();
+            }
+            }
+            if (item != null)
+            {
+                PreparedQualityRuntime.Loaded(mod, key, pair.Value, selectionIdentity, item, beforeQualityCollection);
+                preparation.BeforeYield(consumer, key);
+                yield return new Pair<string, LoadedContentItem<Texture2D>>(key, item);
+            }
+        }
+        }
+        finally
+        {
+            preparation.Dispose();
+            textureReadSession = previousSession;
+        DeepProfiler.End();
+        }
+    }
+    internal static bool QualityCallbacksAllowed(FileInfo file) => Active && Compatible() && QualityUnityCallbacks.Check()
+        && (!file.Extension.Equals(".dds", StringComparison.OrdinalIgnoreCase) || NativeDdsCapture.Compatible);
+    internal static bool QualityRouteAllowed(FileInfo file) => QualityCallbacksAllowed(file)
+        && (IsCacheableImageSource(file.Name)
+            || file.Extension.Equals(".dds", StringComparison.OrdinalIgnoreCase) && NativeDdsCapture.Compatible
+            || file.Extension.Equals(".psd", StringComparison.OrdinalIgnoreCase) && PreparedTextureRuntime.PsdSupport);
+    internal static IEnumerable<KeyValuePair<string, FileInfo>> SelectedFiles(ModContentPack mod)
+    {
         var files = ModContentPack.GetAllFilesForMod(mod, GenFilePaths.ContentPath<Texture2D>(), ModContentLoader<Texture2D>.IsAcceptableExtension);
         var png = new HashSet<string>(files.Keys.Select(k => k.ToLowerInvariant()).Where(k => k.EndsWith(".png")));
         var dds = new HashSet<string>(files.Keys.Select(k => k.ToLowerInvariant()).Where(k => k.EndsWith(".dds")
@@ -216,37 +363,45 @@ internal static class PngRuntime
                 if (dds.Contains(lower.Substring(0, lower.Length - 4) + ".dds"))
                     continue;
             }
-            var file = ToVirtualFile(pair.Value);
-            LoadedContentItem<Texture2D> item;
-            if (file.Name.EndsWith(".png", StringComparison.OrdinalIgnoreCase) && Active && Compatible())
-            {
-                try
-                {
-                    item = new LoadedContentItem<Texture2D>(file, file.Exists ? LoadPng(file) : null!);
-                }
-                catch (Exception e)
-                {
-                    errors++;
-                    Log.Error($"Exception loading {typeof(Texture2D)} from file.\nabsFilePath: {file.FullPath}\nException: {e}");
-                    item = new LoadedContentItem<Texture2D>(file, BaseContent.BadTex);
-                }
-            }
-            else
-                item = ModContentLoader<Texture2D>.LoadItem(file);
-            if (item != null)
-                yield return new Pair<string, LoadedContentItem<Texture2D>>(key, item);
+            yield return pair;
         }
-        DeepProfiler.End();
     }
-    private static Texture2D LoadPng(VirtualFile file)
+    private static Texture2D LoadProcessedPsd(VirtualFile file, string logical, string selection)
+    {
+        try
+        {
+            byte[] source = FirstBuildSource ?? PreparedTextureRuntime.ReadSource(new FileInfo(file.FullPath));
+            string identity = PreparedTextureRuntime.Identity(selection, logical, file.FullPath, source, 0, PreparationPlatform(), "");
+            var entry = cache?.Read(identity);
+            if (entry != null)
+            {
+                try { var reused = Restore(entry); reused.name = Path.GetFileNameWithoutExtension(file.Name); return reused; }
+                catch { cache!.Hits--; cache.Misses++; cache.Errors++; cache.Invalidate(identity); }
+            }
+            Action<PngCache.Entry>? publish = cache == null ? null :
+                new Action<PngCache.Entry>(value => cache.Publish(identity, value));
+            Func<int, bool>? admit = cache == null ? null : new Func<int, bool>(bytes => cache.CanPublish(identity, bytes));
+            var decoded = firstBuildFlight?.Value?.Psd;
+            textureReadSession?.Suspend();
+            Texture2D result = decoded != null ? PsdTextureRuntime.CreateDecoded(decoded, publish, admit) : PsdTextureRuntime.Create(source, publish, admit);
+            if (decoded != null && firstBuildFlight?.Released == false) firstBuildFlight.MarkConsumed();
+            result.name = Path.GetFileNameWithoutExtension(file.Name); return result;
+        }
+        catch (Exception e) when (e is IOException || e is InvalidDataException || e is ArgumentException || e is OverflowException || e is NotSupportedException)
+        { nativeFallbacks++; return NativeImage(file); }
+    }
+    private static Texture2D LoadProcessedImage(VirtualFile file, string logicalPath, string selectionIdentity)
     {
         long start = Stopwatch.GetTimestamp();
         var previous = current;
-        current = new Context();
+        current = new Context { Source = FirstBuildSource,
+            Prepared = FirstBuildCompatible() ? firstBuildFlight?.Value : null };
         Texture2D? result = null;
         try
         {
             calls++;
+            if (cache == null && current.Source != null) sourceBytes += current.Source.Length;
+            if (!file.Name.EndsWith(".png", StringComparison.OrdinalIgnoreCase)) jpegCalls++;
             string? key = null;
             if (cache != null)
             {
@@ -279,10 +434,18 @@ internal static class PngRuntime
                     native.name = Path.GetFileNameWithoutExtension(file.Name);
                     return native;
                 }
-                current.Source = file.ReadAllBytes();
+                // An exact snapshot supplies both the content key and native decoder.
+                // Oversized sources keep the ordinary path without an extra copy.
+                var info = new FileInfo(file.FullPath);
+                if (info.Length > PreparedTextureRuntime.MaximumNativeSource)
+                { nativeFallbacks++; var native = NativeImage(file); native.name = Path.GetFileNameWithoutExtension(file.Name); return native; }
+                current.Source ??= PreparedTextureRuntime.ReadSource(info);
                 sourceBytes += current.Source.Length;
-                key = PngCache.Hex(PngCache.Hash(Encoding.UTF8.GetBytes(platform + "|" + current.CapturePath + "|" + Prefs.TextureCompression + "|" + UnityData.ComputeShadersSupported
-                    + "|" + file.FullPath + "|" + PngCache.Hex(PngCache.Hash(current.Source)))));
+                try { using var header = new MemoryStream(current.Source); _ = PreparationImageHeader.Read(header, true); }
+                catch (Exception e) when (e is IOException || e is InvalidDataException || e is UnauthorizedAccessException || e is ArgumentException || e is OverflowException)
+                { nativeFallbacks++; var native = ImageClone(file); native.name = Path.GetFileNameWithoutExtension(file.Name); return native; }
+                key = PreparedTextureRuntime.Identity(selectionIdentity, logicalPath, file.FullPath, current.Source, 0, PreparationPlatform(), "");
+                current.Key = key;
                 var entry = cache.Read(key);
                 if (entry != null)
                 {
@@ -304,15 +467,28 @@ internal static class PngRuntime
                 }
             }
             result.name = Path.GetFileNameWithoutExtension(file.Name);
+            VerifyImageResult(file, result);
+            return result;
+        }
+        finally
+        {
+            foreach (var owned in current.OwnedTextures)
+                if (owned != null && !ReferenceEquals(owned, result)) Object.DestroyImmediate(owned);
+            current = previous; pngTicks += Stopwatch.GetTimestamp() - start;
+        }
+    }
+    private static void VerifyImageResult(VirtualFile file, Texture2D result)
+    {
             string shape = result.width + "|" + result.height + "|" + result.graphicsFormat + "|" + result.mipmapCount;
             bool uncompressed = result.format != TextureFormat.DXT5;
-            if (mode == "verify-cache" && ((verified < 40 && (verified < 8 || VerifiedShapes.Add(shape))) || (uncompressed && verifiedUncompressed < 40)))
+            if ((mode == "verify-cache" || mode == "verify-first-build") && ((verified < 40 && (verified < 8 || VerifiedShapes.Add(shape))) || (uncompressed && verifiedUncompressed < 40)))
             {
                 long verifyStart = Stopwatch.GetTimestamp();
                 verifying = true;
                 Texture2D? original = null;
                 try
                 {
+                    textureReadSession?.Suspend();
                     original = NativeImage(file);
                     Compare(original, result);
                     verified++;
@@ -321,9 +497,50 @@ internal static class PngRuntime
                 }
                 finally { if (original != null) Object.DestroyImmediate(original); verifying = false; verifyTicks += Stopwatch.GetTimestamp() - verifyStart; }
             }
-            return result;
+    }
+    private static Texture2D LoadProcessedDds(VirtualFile file, string logical, string selection)
+    {
+        ddsNativePassThrough++;
+        return NativeTexture(file);
+    }
+
+    // Historical C05 implementation, deliberately disconnected from release loading.
+    private static Texture2D LoadProcessedDdsResearch(VirtualFile file, string logical, string selection)
+    {
+        textureReadSession?.Suspend();
+        // DDS already contains the game's GPU-ready representation. Ordinary
+        // automatic caching consumes it directly; explicit prepared output was
+        // tried by Enumerate, and optional disk compression retains grouped DDS.
+        if (!PreparedTextureRuntime.CompressStorage)
+        { ddsNativePassThrough++; return NativeTexture(file); }
+        if (cache == null || !NativeDdsCapture.Compatible) return NativeTexture(file);
+        // Native DDS does not need PNG's optional GPU readback. If the shared
+        // preparation contract is unavailable, retain the game's DDS producer
+        // before opening a second source read or hashing a cache identity.
+        long identityStarted = Stopwatch.GetTimestamp();
+        if (!TryPreparationPlatform(PreparationPlatform, out string capturePlatform))
+        { nativeFallbacks++; return NativeTexture(file); }
+        // Hold this lease until native mmap/capture completes. It excludes writes
+        // and replacement, so the native reader consumes exactly the keyed bytes.
+        using var lease = new FileStream(file.FullPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+        if (lease.Length > PreparedTextureRuntime.MaximumNativeSource) { lease.Dispose(); return NativeTexture(file); }
+        byte[] source = PreparedTextureRuntime.ReadSourceSnapshot(lease);
+        string identity = PreparedTextureRuntime.Identity(selection, logical, file.FullPath, source, 0, capturePlatform, "");
+        ddsIdentityTicks += Stopwatch.GetTimestamp() - identityStarted;
+        var entry = cache.Read(identity);
+        Texture2D? result = null;
+        if (entry != null)
+        {
+            try { result = Restore(entry); }
+            catch { cache.Errors++; cache.Invalidate(identity); }
         }
-        finally { current = previous; pngTicks += Stopwatch.GetTimestamp() - start; }
+        if (result == null)
+            result = NativeDdsCapture.Capture(file, (texture, pixels) => cache.Publish(identity, Describe(texture, pixels)),
+                bytes => cache.CanPublish(identity, bytes), lease);
+        // Native LoadTexture tries image conversion when DDS declines the file.
+        result ??= NativeImage(file);
+        result.name = Path.GetFileNameWithoutExtension(file.Name);
+        return result;
     }
     private static byte[] ReadSource(VirtualFile file)
     {
@@ -335,28 +552,147 @@ internal static class PngRuntime
     }
     private static void FinalizeTexture(Texture2D texture, bool updateMips, bool unreadable)
     {
+        textureReadSession?.Suspend();
         bool gpuCompression = Prefs.TextureCompression && UnityData.ComputeShadersSupported && texture.width % 4 == 0 && texture.height % 4 == 0
             && Math.Min(texture.width, texture.height) > 16;
-        if (cache == null || current == null || gpuCompression || !texture.isReadable
-            || !cache.CanCapture(PngCache.ExpectedBytes(texture.width, texture.height, (int)texture.format, texture.mipmapCount)))
+        if ((cache == null && preparationAdmission == null) || current == null || gpuCompression || !texture.isReadable)
         {
             texture.Apply(updateMips, unreadable);
             return;
         }
         // Capture the game's completed CPU compression and mipmaps, retaining
         // readability only until the copy is made. Never regenerate restored mips.
-        ApplyWithReadableCapture(texture.Apply, () =>
+        if (!TryCapture(NativeTextureData.ExpectedBytes(texture.width, texture.height, (int)texture.format, texture.mipmapCount),
+            () => ApplyWithReadableCapture(texture.Apply, () =>
         {
             long start = Stopwatch.GetTimestamp();
             try { current.Pixels = texture.GetRawTextureData(); }
             catch (Exception e)
             {
                 current.CaptureFailed = true;
-                if (cache.Errors == 0) Write("capture-error", "\"reason\":\"" + Escape(e.ToString()) + "\"");
-                cache.Errors++;
+                if ((cache?.Errors ?? 0) == 0) Write("capture-error", "\"reason\":\"" + Escape(e.ToString()) + "\"");
+                if (cache != null) cache.Errors++;
             }
             finally { captureTicks += Stopwatch.GetTimestamp() - start; }
-        }, updateMips, unreadable);
+        }, updateMips, unreadable)))
+            texture.Apply(updateMips, unreadable);
+    }
+    private static bool TryCapture(int bytes, Action capture)
+    {
+        if (preparationAdmission == null) return cache?.TryCapture(current?.Key, bytes, capture) ?? false;
+        if (bytes < 1 || !preparationAdmission(bytes)) return false;
+        capture();
+        return true;
+    }
+    internal static bool PreparationAvailable => installed && UnityData.IsInMainThread && PlayDataLoader.Loaded
+        && !LongEventHandler.AnyEventNowOrWaiting && current == null && Compatible();
+    internal static bool TryPreparationPlatform(Func<string> getPlatform, out string value)
+    {
+        try { value = getPlatform(); return true; }
+        catch (NotSupportedException) { value = ""; return false; }
+    }
+    internal static string PreparationPlatform()
+    {
+        long started = Stopwatch.GetTimestamp();
+        try { return PreparationPlatformCore(); }
+        finally { preparationPlatformTicks += Stopwatch.GetTimestamp() - started; }
+    }
+    private static string PreparationPlatformCore() => new NativePlatformState().Identity;
+
+    // Keep the complete engine contract, but do not rebuild/hash its cache key
+    // for every ordered warm result. Live comparison still checks every input.
+    private sealed class NativePlatformState
+    {
+        private readonly Guid game;
+        private readonly string unity, version;
+        private readonly GraphicsDeviceType device;
+        private readonly int vendor, deviceId;
+        private readonly ColorSpace color;
+        private readonly bool compression, compute, readback;
+        private readonly PngCapturePath path;
+        internal NativePlatformState()
+        {
+            if (!UnityData.IsInMainThread) throw new InvalidOperationException("preparation-main-thread");
+            game = typeof(ModContentPack).Module.ModuleVersionId;
+            unity = Application.unityVersion;
+            device = SystemInfo.graphicsDeviceType;
+            version = SystemInfo.graphicsDeviceVersion;
+            vendor = SystemInfo.graphicsDeviceVendorID; deviceId = SystemInfo.graphicsDeviceID;
+            color = QualitySettings.activeColorSpace;
+            compression = Prefs.TextureCompression; compute = UnityData.ComputeShadersSupported;
+            readback = device == GraphicsDeviceType.Direct3D11 && SystemInfo.IsFormatSupported(GraphicsFormat.R32G32B32A32_SFloat, FormatUsage.ReadPixels);
+            path = TexturePlatformSupport.SelectPngPath(GameBuildContract.Current, device, compression, compute, readback);
+            if (path == PngCapturePath.Unsupported) throw new NotSupportedException("preparation-platform");
+        }
+        internal string Identity => SourceKey(CacheGameIdentity(game) + "|" + unity + "|" + device + "|" + version
+            + "|" + vendor + "|" + deviceId + "|" + color, path, compression, compute, "preparation", Array.Empty<byte>());
+        internal bool MatchesLive()
+        {
+            var live = new NativePlatformState();
+            return game == live.game && unity == live.unity && device == live.device && version == live.version
+                && vendor == live.vendor && deviceId == live.deviceId && color == live.color
+                && compression == live.compression && compute == live.compute && readback == live.readback && path == live.path;
+        }
+    }
+    internal static string AutomaticPreparationKey(FileInfo file, byte[] source)
+    {
+        if (!UnityData.IsInMainThread) throw new InvalidOperationException("preparation-main-thread");
+        var device = SystemInfo.graphicsDeviceType;
+        var path = TexturePlatformSupport.SelectPngPath(GameBuildContract.Current, device, Prefs.TextureCompression,
+            UnityData.ComputeShadersSupported, device == GraphicsDeviceType.Direct3D11
+            && SystemInfo.IsFormatSupported(GraphicsFormat.R32G32B32A32_SFloat, FormatUsage.ReadPixels));
+        return SourceKey(CacheGameIdentity(typeof(ModContentPack).Module.ModuleVersionId) + "|" + Application.unityVersion
+            + "|" + device + "|" + SystemInfo.graphicsDeviceVersion + "|" + SystemInfo.graphicsDeviceVendorID + "|" + SystemInfo.graphicsDeviceID
+            + "|" + QualitySettings.activeColorSpace, path, Prefs.TextureCompression, UnityData.ComputeShadersSupported, file.FullName, source);
+    }
+    internal static void ReleaseAutomaticPrepared(FileInfo file, byte[] source)
+    {
+        // Shared native entries no longer require promotion or duplicate removal.
+    }
+    internal static PngCache.Entry? CapturePrepared(FileInfo file, byte[] source, Func<int, bool> admit)
+        => CapturePreparedCore(file, source, admit, null);
+    internal static PngCache.Entry? CaptureDecoded(FileInfo file, byte[] source, Func<int, bool> admit, FirstBuildImageData decoded)
+        => CapturePreparedCore(file, source, admit, decoded);
+    private static PngCache.Entry? CapturePreparedCore(FileInfo file, byte[] source, Func<int, bool> admit, FirstBuildImageData? decoded)
+    {
+        if (!PreparationAvailable) throw new InvalidOperationException("preparation-session-unavailable");
+        _ = PreparationPlatform();
+        Texture2D? texture = null;
+        var device = SystemInfo.graphicsDeviceType;
+        current = new Context { Source = source, Prepared = decoded, CapturePath = TexturePlatformSupport.SelectPngPath(GameBuildContract.Current, device,
+            Prefs.TextureCompression, UnityData.ComputeShadersSupported, device == GraphicsDeviceType.Direct3D11
+            && SystemInfo.IsFormatSupported(GraphicsFormat.R32G32B32A32_SFloat, FormatUsage.ReadPixels)) };
+        preparationAdmission = admit;
+        try
+        {
+            if (file.Extension.Equals(".psd", StringComparison.OrdinalIgnoreCase))
+            {
+                if (decoded?.Psd == null) return PreparedTextureRuntime.PsdSupport ? PsdTextureRuntime.Capture(source, admit) : null;
+                PngCache.Entry? psdEntry = null;
+                texture = PsdTextureRuntime.CreateDecoded(decoded.Psd, entry => psdEntry = entry, admit);
+                return psdEntry;
+            }
+            if (file.Extension.Equals(".dds", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!NativeDdsCapture.Compatible) return null;
+                using var lease = file.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
+                if (!PngCache.Hash(PreparedTextureRuntime.ReadSourceSnapshot(lease)).SequenceEqual(PngCache.Hash(source))) return null;
+                PngCache.Entry? captured = null;
+                texture = NativeDdsCapture.Capture(ToVirtualFile(file), (native, data) => captured = Describe(native, data), admit, lease);
+                return captured;
+            }
+            using (var header = new MemoryStream(source)) _ = PreparationImageHeader.Read(header, true);
+            texture = ImageClone(ToVirtualFile(file));
+            byte[]? pixels = current.CaptureFailed ? null : current.Blocks.Count > 0 ? current.Blocks.SelectMany(b => b).ToArray() : current.Pixels;
+            return pixels == null || texture.isReadable ? null : Describe(texture, pixels);
+        }
+        finally
+        {
+            foreach (var owned in current.OwnedTextures)
+                if (owned != null && !ReferenceEquals(owned, texture)) Object.DestroyImmediate(owned);
+            preparationAdmission = null; current = null;
+            if (texture != null) Object.DestroyImmediate(texture);
+        }
     }
     internal static void ApplyWithReadableCapture(Action<bool, bool> apply, Action capture, bool updateMips, bool unreadable)
     {
@@ -365,21 +701,30 @@ internal static class PngRuntime
         finally { if (unreadable) apply(false, true); }
     }
     private static Texture2D Compress(Texture2D texture, bool deleteOriginal)
-        => cache != null && current?.CapturePath == PngCapturePath.D3D11CompressionBlocks
+    {
+        // The whole native compression/copy path may dispatch callbacks, including
+        // GPU completion. No speculative source or grouped-reader handle survives.
+        textureReadSession?.Suspend();
+        return (cache != null || preparationAdmission != null) && current?.CapturePath == PngCapturePath.D3D11CompressionBlocks
             ? CompressClone(texture, deleteOriginal) : StaticTextureAtlas.FastCompressDXT(texture, deleteOriginal);
+    }
     private static void CopyCompressionBlocks(Texture source, int srcElement, int srcMip, int srcX, int srcY, int width, int height,
         Texture destination, int dstElement, int dstMip, int dstX, int dstY)
     {
         Graphics.CopyTexture(source, srcElement, srcMip, srcX, srcY, width, height, destination, dstElement, dstMip, dstX, dstY);
         if (current == null || current.CaptureFailed)
             return;
-        if (!(destination is Texture2D target) || cache == null
-            || !cache.CanCapture(PngCache.ExpectedBytes(target.width, target.height, (int)target.format, target.mipmapCount)))
+        if (!(destination is Texture2D target)
+            || !TryCapture( NativeTextureData.ExpectedBytes(target.width, target.height, (int)target.format, target.mipmapCount),
+                () => CaptureCompressionBlocks(source, srcElement, srcMip, width, height)))
         {
             current.CaptureFailed = true;
             current.Blocks.Clear();
             return;
         }
+    }
+    private static void CaptureCompressionBlocks(Texture source, int srcElement, int srcMip, int width, int height)
+    {
         long start = Stopwatch.GetTimestamp();
         RenderTexture? readable = null;
         try
@@ -395,11 +740,11 @@ internal static class PngRuntime
             request.WaitForCompletion();
             if (request.hasError)
                 throw new InvalidOperationException("compressed-block-readback");
-            current.Blocks.Add(request.GetData<byte>().ToArray());
+            current!.Blocks.Add(request.GetData<byte>().ToArray());
         }
         catch (Exception e)
         {
-            current.CaptureFailed = true;
+            current!.CaptureFailed = true;
             if (cache != null)
             {
                 if (cache.Errors == 0)
@@ -409,7 +754,7 @@ internal static class PngRuntime
         }
         finally { if (readable != null) RenderTexture.ReleaseTemporary(readable); captureTicks += Stopwatch.GetTimestamp() - start; }
     }
-    private static PngCache.Entry Describe(Texture2D t, byte[] data) => new()
+    internal static PngCache.Entry Describe(Texture2D t, byte[] data) => new()
     {
         Width = t.width,
         Height = t.height,
@@ -422,18 +767,40 @@ internal static class PngRuntime
         WrapW = (int)t.wrapModeW,
         Aniso = t.anisoLevel,
         Bias = t.mipMapBias,
-        Pixels = data
+        Pixels = data,
+        Readable = t.isReadable
     };
-    private static Texture2D Restore(PngCache.Entry entry)
+    internal static Texture2D Restore(PngCache.Entry entry)
     {
+        long started = Stopwatch.GetTimestamp();
+        try { return RestoreCore(entry, false); }
+        finally { restoreTicks += Stopwatch.GetTimestamp() - started; }
+    }
+    internal static Texture2D RestoreQuality(PngCache.Entry entry) => RestoreCore(entry, true);
+    private static Texture2D RestoreOwned(NativeTextureData.OwnedRecord record)
+    {
+        if (!WarmTextureUploadContract.Allowed) throw new InvalidOperationException("warm-upload-contract-changed");
+        long started = Stopwatch.GetTimestamp();
+        try { return RestoreCore(record.Descriptor.ToEntry(), false, record); }
+        finally { restoreTicks += Stopwatch.GetTimestamp() - started; }
+    }
+    private static Texture2D RestoreCore(PngCache.Entry entry, bool quality, NativeTextureData.OwnedRecord? record = null)
+    {
+        if (quality && !QualityUnityCallbacks.Check()) throw new InvalidOperationException("quality-private-ownership-unavailable");
         var texture = new Texture2D(entry.Width, entry.Height, (TextureFormat)entry.TextureFormat, entry.Mips,
             !GraphicsFormatUtility.IsSRGBFormat((GraphicsFormat)entry.GraphicsFormat), true);
         try
         {
             if ((int)texture.format != entry.TextureFormat || (int)texture.graphicsFormat != entry.GraphicsFormat || texture.mipmapCount != entry.Mips)
                 throw new InvalidDataException("cache-format expected=" + entry.TextureFormat + "/" + entry.GraphicsFormat + "/" + entry.Mips + " actual=" + texture.format + "/" + texture.graphicsFormat + "/" + texture.mipmapCount);
-            texture.LoadRawTextureData(entry.Pixels);
-            texture.Apply(false, true);
+            if (record == null) texture.LoadRawTextureData(entry.Pixels);
+            else
+            {
+                if (!WarmTextureUploadContract.Allowed || !QualityUnityCallbacks.WarmArrayAllowed)
+                    throw new InvalidOperationException("warm-upload-contract-changed");
+                record.WithPinnedPixels(texture.LoadRawTextureData);
+            }
+            texture.Apply(false, !entry.Readable);
             texture.filterMode = (FilterMode)entry.Filter;
             texture.wrapModeU = (TextureWrapMode)entry.WrapU;
             texture.wrapModeV = (TextureWrapMode)entry.WrapV;
@@ -442,7 +809,13 @@ internal static class PngRuntime
             texture.mipMapBias = entry.Bias;
             return texture;
         }
-        catch { Object.DestroyImmediate(texture); throw; }
+        catch
+        {
+            // A callback can retain the new object even when construction fails.
+            // Native/cache callers retain their established cleanup contract.
+            if (!(quality || PreparedTextureRuntime.UseAtStartup) || QualityUnityCallbacks.Check()) Object.DestroyImmediate(texture);
+            throw;
+        }
     }
     private static void Compare(Texture2D a, Texture2D b)
     {
@@ -483,12 +856,30 @@ internal static class PngRuntime
         if (!installed || finished || !PlayDataLoader.Loaded || LongEventHandler.AnyEventNowOrWaiting)
             return;
         finished = true;
-        Write("complete", "\"mode\":\"" + mode + "\",\"calls\":" + calls + ",\"nativeFallbacks\":" + nativeFallbacks
+        Write("raw-pixel-helper", RawPixelTrial.Finish());
+        try { cache?.Complete(); }
+        finally { PreparedTextureRuntime.FinishStartup(); }
+        Write("complete", "\"mode\":\"" + mode + "\",\"calls\":" + calls + ",\"jpegCalls\":" + jpegCalls + ",\"nativeFallbacks\":" + nativeFallbacks
+            + ",\"ddsNativePassThrough\":" + ddsNativePassThrough
             + ",\"nativeReloads\":" + nativeReloads + ",\"loadingProgressReloads\":" + loadingProgressReloads + ",\"reloadFallbacks\":" + reloadFallbacks
             + ",\"errors\":" + errors + ",\"verified\":" + verified + ",\"verifiedUncompressed\":" + verifiedUncompressed + ",\"mismatches\":" + mismatches + ",\"pngMs\":" + Ms(pngTicks)
             + ",\"reloadMs\":" + Ms(reloadTicks) + ",\"captureMs\":" + Ms(captureTicks) + ",\"verifyMs\":" + Ms(verifyTicks) + ",\"sourceBytes\":" + sourceBytes
             + ",\"hits\":" + (cache?.Hits ?? 0) + ",\"misses\":" + (cache?.Misses ?? 0) + ",\"writes\":" + (cache?.Writes ?? 0)
             + ",\"cacheErrors\":" + (cache?.Errors ?? 0) + ",\"cacheReadBytes\":" + (cache?.ReadBytes ?? 0) + ",\"cacheWrittenBytes\":" + (cache?.WrittenBytes ?? 0)
+            + ",\"cacheStoredBytes\":" + (cache?.StoredBytes ?? 0) + ",\"cachePruned\":" + (cache?.Pruned ?? 0)
+            + ",\"cachePendingRemoved\":" + (cache?.PendingRemoved ?? 0) + ",\"cacheReason\":\"" + Escape(cache?.LastReason ?? CacheLaunchPolicy.Current.Action.ToString()) + "\""
+            + ",\"cacheLegacyRemoved\":" + (cache?.LegacyRemoved ?? 0)
+            + ",\"cacheReasons\":{" + (cache == null ? "" : string.Join(",", cache.Reasons.Select(p => "\"" + Escape(p.Key) + "\":" + p.Value.ToString(CultureInfo.InvariantCulture)))) + "}"
+            + ",\"groupReadMs\":" + Ms(GroupedTextureBlocks.ReadTicks) + ",\"groupAcquireMs\":" + Ms(GroupedTextureBlocks.ReadAcquireTicks)
+            + ",\"groupDecodeMs\":" + Ms(GroupedTextureBlocks.ReadDecodeTicks) + ",\"groupHashMs\":" + Ms(GroupedTextureBlocks.ReadHashTicks)
+            + ",\"groupReadBlocks\":" + GroupedTextureBlocks.ReadBlockCount + ",\"nativeRecordDecodeMs\":" + Ms(PreparedTextureStore.DecodeTicks)
+            + ",\"textureRestoreMs\":" + Ms(restoreTicks) + ",\"ddsIdentityMs\":" + Ms(ddsIdentityTicks)
+            + ",\"preparationPlatformMs\":" + Ms(preparationPlatformTicks)
+            + ",\"sourceSnapshotMs\":" + Ms(PreparedTextureRuntime.SourceSnapshotTicks) + ",\"sourceIdentityMs\":" + Ms(PreparedTextureRuntime.IdentityTicks)
+            + ",\"preparedHits\":" + PreparedTextureRuntime.Hits + ",\"preparedMisses\":" + PreparedTextureRuntime.Misses + ",\"preparedRefused\":" + PreparedTextureRuntime.Refused
+            + ",\"groupPublishMs\":" + Ms(GroupedTextureBlocks.PublishTicks) + ",\"groupCompressionMs\":" + Ms(GroupedTextureBlocks.CompressionTicks)
+            + ",\"groupDataFlushMs\":" + Ms(GroupedTextureBlocks.DataFlushTicks) + ",\"groupDeltaMs\":" + Ms(GroupedTextureBlocks.DeltaTicks)
+            + ",\"groupCheckpointMs\":" + Ms(GroupedTextureBlocks.CheckpointTicks)
             + ",\"nativeHashCalls\":" + PngCache.NativeHashCalls + ",\"managedHashCalls\":" + PngCache.ManagedHashCalls + ",\"hashMs\":" + Ms(PngCache.HashTicks));
     }
     private static string Ms(long ticks) => (ticks * 1000d / Stopwatch.Frequency).ToString("F3", CultureInfo.InvariantCulture);

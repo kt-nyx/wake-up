@@ -1,0 +1,50 @@
+[
+  {
+    "name": "DirectXTex",
+    "repository": "microsoft/DirectXTex",
+    "ref": "4feb3e11a020f35b796fc769a74216a555d4f5ef",
+    "url": "https://codeload.github.com/microsoft/DirectXTex/zip/4feb3e11a020f35b796fc769a74216a555d4f5ef",
+    "sha256": "95f4c7dd949cfdc2d3228594254b9d2c2812847319d6c33e9844c07487dfdde1",
+    "folder": "DirectXTex-4feb3e11a020f35b796fc769a74216a555d4f5ef"
+  },
+  {
+    "name": "DirectXMath",
+    "repository": "microsoft/DirectXMath",
+    "ref": "jun2026",
+    "url": "https://codeload.github.com/microsoft/DirectXMath/zip/refs/tags/jun2026",
+    "sha256": "d1595ddbb53583485126968465a7a6a770c8280c4519ba5d7a69af34a9ab4fe6",
+    "folder": "DirectXMath-jun2026"
+  },
+  {
+    "name": "DirectX-Headers",
+    "repository": "microsoft/DirectX-Headers",
+    "ref": "v1.619.5",
+    "url": "https://codeload.github.com/microsoft/DirectX-Headers/zip/refs/tags/v1.619.5",
+    "sha256": "e839554c5c14e2fcce85ca99085ffa255626f054b44c2c10683f1062bc30401b",
+    "folder": "DirectX-Headers-1.619.5"
+  },
+  {
+    "name": "libpng",
+    "repository": "pnggroup/libpng",
+    "ref": "v1.6.58",
+    "url": "https://codeload.github.com/pnggroup/libpng/zip/refs/tags/v1.6.58",
+    "sha256": "ad8fc23d75a76f352989bbec9e905bdfe8f2d2e77b32e4f2070a4bb1849802ee",
+    "folder": "libpng-1.6.58"
+  },
+  {
+    "name": "zlib",
+    "repository": "madler/zlib",
+    "ref": "v1.3.2",
+    "url": "https://codeload.github.com/madler/zlib/zip/refs/tags/v1.3.2",
+    "sha256": "31fd9fee98812abcf147d0e103bc4d2f983c35a8d7a807a328a299f3a74e0050",
+    "folder": "zlib-1.3.2"
+  },
+  {
+    "name": "libjpeg-turbo",
+    "repository": "libjpeg-turbo/libjpeg-turbo",
+    "ref": "3.2.0",
+    "url": "https://codeload.github.com/libjpeg-turbo/libjpeg-turbo/zip/refs/tags/3.2.0",
+    "sha256": "1b4c2cb6cba1ca5e53b9e85eeeab02154cab4b70894c96e97a9c747a26d19d63",
+    "folder": "libjpeg-turbo-3.2.0"
+  }
+]

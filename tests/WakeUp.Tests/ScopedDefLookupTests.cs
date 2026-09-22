@@ -159,15 +159,78 @@ public sealed class ScopedDefLookupTests
     [TestCase("Defs/ThingDef[defName='Beer'] | Defs/ThingDef")]
     [TestCase("Defs/ThingDef[defName='Beer']/../ThingDef")]
     [TestCase("Defs/ThingDef[defName='Beer']/following-sibling::*")]
-    [TestCase("Defs/ThingDef[defName='Beer'][1]")]
     [TestCase("Defs/ThingDef[contains(defName,'Beer')]")]
     [TestCase("Defs/ThingDef[@Name='Drink']/../ThingDef")]
-    [TestCase("Defs/ThingDef[@Name='Drink'][1]")]
     public void UnrecognizedOrEscapingExpressionsUseOriginalXPath(string xpath)
     {
         XmlDocument document = Sample();
         using var lookup = new ScopedDefLookup(document);
         Assert.That(lookup.SelectNodes(document, xpath).Cast<XmlNode>(), Is.EqualTo(document.SelectNodes(xpath)!.Cast<XmlNode>()));
+        Assert.That(lookup.Hits, Is.Zero);
+    }
+
+    [TestCase("Defs/ThingDef[ defName = 'Beer' ]/statBases/MarketValue")]
+    [TestCase("Defs/ThingDef[\n defName='Beer'\n]/statBases/MarketValue")]
+    [TestCase("Defs/ThingDef[ @Name='Drink' ]/statBases/MarketValue")]
+    [TestCase("Defs/ThingDef[defName='Beer'][1]")]
+    [TestCase("Defs/ThingDef[@Name='Drink'][position()=last()]")]
+    [TestCase("Defs/ThingDef[defName='Beer'][2]")]
+    [TestCase("Defs/ThingDef[defName='Beer'][statBases/MarketValue=2]/statBases/MarketValue")]
+    public void ExpandedSyntaxPreservesOriginalNodesAndReturnsFreshLists(string xpath)
+    {
+        XmlDocument document = Sample();
+        using var lookup = new ScopedDefLookup(document);
+        Assert.That(lookup.TrySelectNodes(document, xpath, out XmlNodeList? first), Is.True);
+        Assert.That(lookup.TrySelectNodes(document, xpath, out XmlNodeList? second), Is.True);
+        Assert.That(first, Is.Not.SameAs(second));
+        Assert.That(first!.Cast<XmlNode>(), Is.EqualTo(document.SelectNodes(xpath)!.Cast<XmlNode>()));
+        Assert.That(second!.Cast<XmlNode>(), Is.EqualTo(first.Cast<XmlNode>()));
+        Assert.That(lookup.TrySelectSingleNode(document, xpath, out XmlNode? single), Is.True);
+        Assert.That(single, Is.SameAs(document.SelectSingleNode(xpath)));
+        Assert.That(lookup.ExpandedSyntaxHits, Is.EqualTo(3));
+        Assert.That(lookup.Rebuilds, Is.EqualTo(1));
+    }
+
+    [Test]
+    public void SubsequentPredicateIsReevaluatedAfterUnrelatedMutation()
+    {
+        XmlDocument document = Sample();
+        using var lookup = new ScopedDefLookup(document);
+        const string xpath = "Defs/ThingDef[defName='Beer'][statBases/MarketValue=2]";
+        XmlNode first = lookup.SelectSingleNode(document, xpath)!;
+        first["statBases"]!["MarketValue"]!.InnerText = "99";
+        Assert.That(lookup.SelectSingleNode(document, xpath), Is.Null);
+        first["statBases"]!["MarketValue"]!.InnerText = "2";
+        Assert.That(lookup.SelectSingleNode(document, xpath), Is.SameAs(first));
+        Assert.That(lookup.Rebuilds, Is.EqualTo(1));
+        Assert.That(lookup.ExpandedSyntaxHits, Is.EqualTo(3));
+    }
+
+    [Test]
+    public void DuplicateAnchorKeepsSubsequentPredicatePositionNative()
+    {
+        XmlDocument document = Sample();
+        XmlNode duplicate = document.DocumentElement!.AppendChild(document.DocumentElement.FirstChild!.CloneNode(true))!;
+        using var lookup = new ScopedDefLookup(document);
+        const string xpath = "Defs/ThingDef[ defName='Beer' ][2]";
+        Assert.That(lookup.TrySelectSingleNode(document, xpath, out _), Is.False);
+        Assert.That(lookup.SelectSingleNode(document, xpath), Is.SameAs(duplicate));
+        document.DocumentElement.RemoveChild(duplicate);
+        Assert.That(lookup.TrySelectSingleNode(document, xpath, out XmlNode? result), Is.True);
+        Assert.That(result, Is.Null);
+        Assert.That(lookup.ExpandedSyntaxHits, Is.EqualTo(1));
+    }
+
+    [Test]
+    public void TryAdaptersDeclineUnsupportedContextsAndErrorsWithoutInvokingNative()
+    {
+        XmlDocument document = Sample();
+        using var lookup = new ScopedDefLookup(document);
+        const string malformed = "Defs/ThingDef[defName='Beer'][";
+        Assert.That(lookup.TrySelectSingleNode(document, malformed, out _), Is.False);
+        Assert.That(lookup.TrySelectNodes(document, malformed, out _), Is.False);
+        Assert.That(lookup.TrySelectSingleNode(document.DocumentElement!, "Defs/ThingDef[defName='Beer']", out _), Is.False);
+        Assert.Throws<XPathException>((Action)(() => lookup.SelectSingleNode(document, malformed)));
         Assert.That(lookup.Hits, Is.Zero);
     }
 

@@ -23,6 +23,10 @@ internal sealed class GameBuildContract
     internal bool IsReviewedBuild => ReferenceEquals(this, GogRev573)
         || ReferenceEquals(this, SteamRev590) || ReferenceEquals(this, LinuxRev600);
     internal bool IsLinux => Target.StartsWith("linux-", StringComparison.Ordinal);
+    // These two Windows players have matching texture consumer method bodies,
+    // holder/trie behavior and Unity/Mono binaries. Per-feature guards still run.
+    internal bool HasReviewedTextureConsumers => ReferenceEquals(this, GogRev573)
+        || ReferenceEquals(this, SteamRev590);
     internal string DataDirectoryName => IsLinux ? "RimWorldLinux_Data" : "RimWorldWin64_Data";
 
     private GameBuildContract(string target, string version, string mvid, string sha256)

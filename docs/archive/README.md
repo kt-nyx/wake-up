@@ -2,13 +2,39 @@
 
 Start with the [consolidated investigation log](investigation-results.md) and [package checkpoints](development-checkpoints.md). Historical commit-recovery commands require the maintainer's local Git history; the public repository starts at a later source snapshot. Archived scope restrictions and future-work proposals are not current instructions.
 
-This archive keeps decisions and measurements that still explain the product. It is not the active development procedure. Start with [current state](../current-state.md), [development](../development.md) and [results](../results.md).
+This archive keeps decisions and measurements that still explain the product. It is not the active development procedure. Start with [current state](../current-state.md), [development](../development.md) and [results](results.md).
 
 The 2026-09-06 cleanup removed obsolete implementations and repetitive plans, task prompts, review dispositions, authority ledgers and work-item registries. Those documents described earlier development phases. Their exact contents remain recoverable through Git and the local bundle. The source cleanup checkpoint is `f886277ace5ed9b71fb044e69b57cb2cee5269f3`.
 
+## Pre-refactor records archived on 9 September 2026
+
+The R5 consolidation also preserves [the prior current-state checkpoints](current-state-pre-r5.md),
+[the original ecosystem plan and execution history](ecosystem-master-pre-r5.md),
+and [the pre-campaign retained-scope results](retained-features-pre-campaign.md).
+They retain original measurements and decisions. The subsequent S/R/F1 campaign is also preserved in the [dated campaign archive](ecosystem-replacement-20260910/README.md).
+
+The [proposed next campaign](../ecosystem-replacement/next-campaign-proposal.md) lives outside this archive and is not yet approved. The [S/R/F1 reports and former master plan](ecosystem-replacement-20260910/README.md) are historical evidence. Pending tasks, completion labels and scope restrictions inside archived reports describe their original assignment, not instructions to resume that work or acceptance of comprehensive replacement.
+
+- [Character editor reintegration](character-editor-reintegration.md)
+- [Feature benchmark campaign](feature-benchmark-campaign.md)
+- [Feature benchmark results](feature-benchmark-results.md)
+- [Five loading opportunities](five-loading-opportunities.md)
+- [Further loading improvements](further-loading-improvements.md)
+- [Product activation and final opportunities](product-activation-and-final-opportunities.md)
+- [Release preparation](release-preparation.md)
+- [Results](results.md)
+- [Whole loading assessment](whole-loading-assessment.md)
+- [Forward compatibility](forward-compatibility.md)
+- [Supplier forward compatibility](supplier-forward-compatibility.md)
+- [Linux support](linux-support.md)
+- [Windows steam support](windows-steam-support.md)
+- [Steam linux live validation](steam-linux-live-validation.md)
+- [Private-main state before the sweep](current-state-pre-refactor.md)
+- [Public 0.2.1 state chronology](current-state-0.2.1.md)
+
 ## Retained records
 
-These are dated snapshots. Reports now have descriptive filenames; original contents were preserved except for an archive notice and local-link repairs. The table retains original paths for recovery. Commands and absolute paths inside the reports are historical. Five records retrieved from `54bee10c3e806bed346a31a1fb4ac470f68ef5e0` existed only on research branches before cleanup. The later template and shared-loading investigations are consolidated in [results](../results.md), with experimental commits retained in main's merged history.
+These are dated snapshots. Reports now have descriptive filenames; original contents were preserved except for an archive notice and local-link repairs. The table retains original paths for recovery. Commands and absolute paths inside the reports are historical. Five records retrieved from `54bee10c3e806bed346a31a1fb4ac470f68ef5e0` existed only on research branches before cleanup. The later template and shared-loading investigations are consolidated in [results](results.md), with experimental commits retained in main's merged history.
 
 | Record | Retrieved from | Original path |
 |---|---|---|

@@ -79,7 +79,7 @@ internal static class GagarinCacheRuntime
             loadingPatches = (Func<bool>)Delegate.CreateDelegate(typeof(Func<bool>), guarded[5]);
             ConstructorInfo ctor = AssetConstructor;
             if (!SemanticMethodIdentity.TryHash(ctor, out string actual, out string reason)
-                || actual != SemanticMethodIdentity.ExpectedXmlAssetConstructor)
+                || !SupportedAssetConstructor(actual))
                 throw new InvalidOperationException("asset-constructor-" + reason);
             if (!SafeHooks() && mode != "timing")
                 throw new InvalidOperationException("unknown-interfering-hooks");
@@ -95,6 +95,12 @@ internal static class GagarinCacheRuntime
     }
 
     private static ConstructorInfo AssetConstructor => AccessTools.Constructor(typeof(LoadableXmlAsset), new[] { typeof(FileInfo), typeof(ModContentPack) });
+    // The optional streaming entry leaves the complete original constructor in
+    // place. Its bridge refuses whenever a supplier hooks this constructor, so
+    // Gagarin still observes the original StringReader and attribution path.
+    internal static bool SupportedAssetConstructor(string body)
+        => body == SemanticMethodIdentity.ExpectedXmlAssetConstructor
+            || body == StreamingXmlRuntime.EffectiveConstructorBody;
     private static bool SafeHooks()
     {
         foreach (MethodBase method in guarded.Cast<MethodBase>().Concat(new MethodBase[] { AssetConstructor, AccessTools.Method(typeof(LoadedModManager), "CombineIntoUnifiedXML"), AccessTools.Method(typeof(XmlDocument), "Load", new[] { typeof(XmlReader) }), AccessTools.PropertyGetter(typeof(XmlNode), "OuterXml"), AccessTools.PropertyGetter(typeof(XmlDocument), "OuterXml"), AccessTools.Constructor(typeof(XmlDocument), Type.EmptyTypes), AccessTools.Method(typeof(XmlNode), "RemoveAll"), AccessTools.Method(typeof(XmlDocument), "RemoveAll"), AccessTools.Constructor(typeof(StringReader), new[] { typeof(string) }) }))

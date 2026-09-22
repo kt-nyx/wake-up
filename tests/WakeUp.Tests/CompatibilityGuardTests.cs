@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using HarmonyLib;
 using NUnit.Framework;
 using WakeUp;
@@ -99,6 +100,105 @@ public sealed class CompatibilityGuardTests
 
     [MethodImpl(MethodImplOptions.NoInlining)]
     private static int PatchGuardTarget(int value) => value + 1;
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static int SecondPatchGuardTarget(int value) => value + 2;
+
+    private const string TransientOwner = "WakeUp.Guard.TransientPublication";
+    private static void RemoveTransientPrefix(MethodBase __originalMethod)
+        => new Harmony(TransientOwner).Unpatch(__originalMethod, HarmonyPatchType.All, TransientOwner);
+
+    [Test]
+    public void PublicationSetChecksEveryStampWithoutDeserializingAndDetectsSelfUnpatch()
+    {
+        var own = new Harmony("WakeUp.Guard.PublicationSet");
+        var transient = new Harmony(TransientOwner);
+        var targets = new[] { AccessTools.Method(typeof(CompatibilityGuardTests), nameof(PatchGuardTarget)),
+            AccessTools.Method(typeof(CompatibilityGuardTests), nameof(SecondPatchGuardTarget)) };
+        var guards = new List<PublishedPatchGuard>();
+        try
+        {
+            foreach (var target in targets)
+            {
+                own.Patch(target, transpiler: new HarmonyMethod(typeof(CompatibilityGuardTests), nameof(IdentityTranspiler)));
+                Assert.That(PublishedPatchGuard.TryCreate(target, own.Id, out var guard, allPatchKinds: true), Is.True);
+                guards.Add(guard!);
+            }
+            Assert.That(PublishedPatchGuard.TryCapturePublications(guards, out var publications), Is.True);
+            for (int i = 0; i < 200; i++) Assert.That(publications!.Unchanged, Is.True);
+            Assert.That(guards.Select(g => g.PatchInfoReads), Is.EqualTo(new[] { 1, 1 }));
+
+            // The later target gains a callback that removes itself. Its final
+            // patch list/count again matches capture, but its publication does
+            // not. Every target stamp must be compared, not just a count/first.
+            transient.Patch(targets[1], prefix: new HarmonyMethod(typeof(CompatibilityGuardTests), nameof(RemoveTransientPrefix)));
+            Assert.That(SecondPatchGuardTarget(1), Is.EqualTo(3));
+            Assert.That(publications!.Unchanged, Is.False);
+            Assert.That(guards.Select(g => g.PatchInfoReads), Is.EqualTo(new[] { 1, 1 }), "Checking stamps never calls GetPatchInfo.");
+            Assert.That(guards[1].AllowsOriginalContract(), Is.True, "The transient foreign patch really removed itself.");
+        }
+        finally
+        {
+            foreach (var target in targets)
+            {
+                transient.Unpatch(target, HarmonyPatchType.All, TransientOwner);
+                own.Unpatch(target, HarmonyPatchType.All, own.Id);
+            }
+        }
+    }
+
+    [Test]
+    public void PublicationSetRejectsAnInitiallyForeignContract()
+    {
+        var foreign = new Harmony("WakeUp.Guard.InitiallyForeign");
+        var target = AccessTools.Method(typeof(CompatibilityGuardTests), nameof(PatchGuardTarget));
+        try
+        {
+            foreign.Patch(target, transpiler: new HarmonyMethod(typeof(CompatibilityGuardTests), nameof(IdentityTranspiler)));
+            Assert.That(PublishedPatchGuard.TryCreate(target, "WakeUp.Guard.Owner", out var guard, allPatchKinds: true), Is.True);
+            Assert.That(PublishedPatchGuard.TryCapturePublications(new[] { guard! }, out var publications), Is.False);
+            Assert.That(publications, Is.Null);
+        }
+        finally { foreign.Unpatch(target, HarmonyPatchType.All, foreign.Id); }
+    }
+
+    [Test]
+    public void PublicationCaptureRunsPredicatesOutsideLockAndRechecksEarlierTargets()
+    {
+        var own = new Harmony("WakeUp.Guard.CaptureOwner");
+        var known = new Harmony("WakeUp.Guard.CaptureKnown");
+        var first = AccessTools.Method(typeof(CompatibilityGuardTests), nameof(PatchGuardTarget));
+        var second = AccessTools.Method(typeof(CompatibilityGuardTests), nameof(SecondPatchGuardTarget));
+        bool lockWasAvailable = false;
+        int predicateCalls = 0;
+        try
+        {
+            own.Patch(first, transpiler: new HarmonyMethod(typeof(CompatibilityGuardTests), nameof(IdentityTranspiler)));
+            known.Patch(second, transpiler: new HarmonyMethod(typeof(CompatibilityGuardTests), nameof(IdentityTranspiler)));
+            Assert.That(PublishedPatchGuard.TryCreate(first, own.Id, out var firstGuard, allPatchKinds: true), Is.True);
+            Assert.That(PublishedPatchGuard.TryCreate(second, own.Id, out var secondGuard, allPatchKinds: true,
+                allowedForeignPatch: patch =>
+                {
+                    predicateCalls++;
+                    var read = Task.Run(() => firstGuard!.Publication);
+                    lockWasAvailable = read.Wait(TimeSpan.FromSeconds(5));
+                    if (!lockWasAvailable) return false;
+                    // The first target was already validated; a later callback
+                    // changing it must refuse the complete captured set.
+                    own.Unpatch(first, HarmonyPatchType.All, own.Id);
+                    return patch.owner == known.Id;
+                }), Is.True);
+            Assert.That(PublishedPatchGuard.TryCapturePublications(new[] { firstGuard!, secondGuard! }, out var publications), Is.False);
+            Assert.That(lockWasAvailable, Is.True);
+            Assert.That(predicateCalls, Is.EqualTo(1));
+            Assert.That(publications, Is.Null);
+        }
+        finally
+        {
+            own.Unpatch(first, HarmonyPatchType.All, own.Id);
+            known.Unpatch(second, HarmonyPatchType.All, known.Id);
+        }
+    }
 
     [Test]
     public void NamedForeignContractAllowsOnlyTheKnownCallbackAndRechecksPublication()

@@ -30,6 +30,10 @@ internal static class TypeLookupRuntime
     private static int indexedTypes;
     [ThreadStatic] private static bool building;
 
+    internal static bool ActiveCandidate => installed && candidate && Volatile.Read(ref finished) == 0;
+    internal static bool CandidateSelected => installed && candidate;
+    internal static void LeafReceipt(string kind, string reason, string? fields = null) => Receipt(kind, reason, fields);
+
     internal static bool TryInitialize(IReadOnlyList<string> arguments)
     {
         if (!arguments.Any(a => a != null && a.StartsWith("--wake-up-strategy=type-lookup", StringComparison.Ordinal)))
@@ -82,6 +86,11 @@ internal static class TypeLookupRuntime
             installed = true;
             Receipt("installed", candidate ? "ordered-fallback-index" : "original-fallback-timing",
                 "\"optimizationEnabled\":" + (candidate ? "true" : "false"));
+            if (candidate)
+            {
+                LeafSubclassRuntime.Initialize();
+                LoadingReflectionRuntime.Initialize();
+            }
         }
         catch (Exception exception)
         {
@@ -264,9 +273,11 @@ internal static class TypeLookupRuntime
             return;
         if (Interlocked.Exchange(ref finished, 1) != 0)
             return;
+        LeafSubclassRuntime.CompleteStartup();
         AppDomain.CurrentDomain.AssemblyLoad -= AssemblyLoaded;
         lock (Gate)
             snapshot = null;
+        LoadingReflectionRuntime.Complete();
         Receipt("startup-complete", "constructor-to-menu-ready", "\"calls\":" + calls + ",\"misses\":" + misses + ",\"errors\":" + errors
             + ",\"milliseconds\":" + (ticks * 1000d / Stopwatch.Frequency).ToString("F3", System.Globalization.CultureInfo.InvariantCulture)
             + ",\"fallbackCalls\":" + fallbackCalls + ",\"indexLookups\":" + lookups + ",\"indexBuilds\":" + builds

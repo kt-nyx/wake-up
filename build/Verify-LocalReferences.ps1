@@ -128,10 +128,11 @@ elseif (-not [string]::IsNullOrWhiteSpace($referenceTarget) -and $referenceTarge
 }
 
 $verified = @(
+    Verify-Reference -Path (Join-Path $prepatcherDir '0PrepatcherAPI.dll') -ExpectedName '0PrepatcherAPI' -ExpectedVersion '1.2.0.0' -ExpectedSha256 '39A3841D1C61C41D173E5CFB81262FDE78DB655A0D604A2DD91A5697E9D57300' -ExpectedTargetFramework '.NETFramework,Version=v4.7.2'
     Verify-Reference -Path (Join-Path $managedDir 'Assembly-CSharp.dll') -ExpectedName 'Assembly-CSharp' -ExpectedVersion $gameVersion -ExpectedSha256 $gameSha -ExpectedTargetFramework '<absent>'
     Verify-Reference -Path (Join-Path $prepatcherDir '0Harmony.dll') -ExpectedName '0Harmony' -ExpectedVersion '2.4.2.0' -ExpectedSha256 '7B9E756306FA3D7620E02A857C8927A6AB04973F9BD8A77D3866700A6DEAC55C' -ExpectedTargetFramework '.NETFramework,Version=v4.7.2'
 )
 
 $verified | Format-Table -AutoSize | Out-Host
 Write-Output 'LocalReferenceVerification=True'
-Write-Output 'DirectReferenceCount=2'
+Write-Output 'DirectReferenceCount=3'

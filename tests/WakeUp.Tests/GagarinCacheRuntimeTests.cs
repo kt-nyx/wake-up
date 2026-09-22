@@ -18,6 +18,13 @@ namespace WakeUp.Tests;
 [TestFixture, NonParallelizable]
 public sealed class GagarinCacheRuntimeTests
 {
+    [Test]
+    public void StreamingEntryRetainsGagarinOriginalConstructorAdmission()
+    {
+        Assert.That(GagarinCacheRuntime.SupportedAssetConstructor(SemanticMethodIdentity.ExpectedXmlAssetConstructor), Is.True);
+        Assert.That(GagarinCacheRuntime.SupportedAssetConstructor(StreamingXmlRuntime.EffectiveConstructorBody), Is.True);
+        Assert.That(GagarinCacheRuntime.SupportedAssetConstructor("changed"), Is.False);
+    }
     private static readonly Type Runtime = typeof(GagarinCacheRuntime);
     private static object? Call(string name, params object[] args) => AccessTools.Method(Runtime, name).Invoke(null, args);
 

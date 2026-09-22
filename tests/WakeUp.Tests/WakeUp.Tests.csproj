@@ -2,8 +2,13 @@
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
     <IsTestProject>true</IsTestProject>
+    <!-- Publicizer emits the same access attribute in the product and tests. -->
+    <NoWarn>$(NoWarn);CS0436</NoWarn>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Krafs.Publicizer" PrivateAssets="all" />
+    <Publicize Include="0Harmony" MemberPattern="^Mono\.(Cecil|Collections)\." />
+    <Reference Include="0PrepatcherAPI"><HintPath>$(WAKE_UP_PREPATCHER_ASSEMBLIES_DIR)\0PrepatcherAPI.dll</HintPath><Private>true</Private></Reference>
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies.net472" PrivateAssets="all" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="NUnit" />
@@ -12,10 +17,17 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\WakeUp\WakeUp.csproj" />
+    <ProjectReference Include="..\..\validation\audio-bootstrap\AudioBootstrap.csproj" />
+    <!-- Historical XML experiment is test-only, outside the product sources. -->
+    <Compile Include="..\..\experiments\XmlPrefix\*.cs" Link="Experiments\XmlPrefix\%(Filename)%(Extension)" />
+    <Compile Include="..\..\experiments\XmlRegion\*.cs" Link="Experiments\XmlRegion\%(Filename)%(Extension)" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="UnityEngine.AssetBundleModule"><HintPath>$(WAKE_UP_RIMWORLD_MANAGED_DIR)\UnityEngine.AssetBundleModule.dll</HintPath><Private>true</Private></Reference>
     <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="NAudio"><HintPath>$(WAKE_UP_RIMWORLD_MANAGED_DIR)\NAudio.dll</HintPath><Private>true</Private></Reference>
     <Reference Include="UnityEngine.CoreModule"><HintPath>$(WAKE_UP_RIMWORLD_MANAGED_DIR)\UnityEngine.CoreModule.dll</HintPath><Private>true</Private></Reference>
+    <Reference Include="UnityEngine.AudioModule"><HintPath>$(WAKE_UP_RIMWORLD_MANAGED_DIR)\UnityEngine.AudioModule.dll</HintPath><Private>true</Private></Reference>
     <Reference Include="UnityEngine.ImageConversionModule"><HintPath>$(WAKE_UP_RIMWORLD_MANAGED_DIR)\UnityEngine.ImageConversionModule.dll</HintPath><Private>true</Private></Reference>
     <Reference Include="Assembly-CSharp">
       <HintPath>$(WAKE_UP_RIMWORLD_MANAGED_DIR)\Assembly-CSharp.dll</HintPath>

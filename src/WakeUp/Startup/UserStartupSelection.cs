@@ -17,6 +17,7 @@ internal static class UserStartupSelection
 
     internal static string[] Resolve(IReadOnlyList<string> arguments, WakeUpSettings settings, string saveDataRoot)
     {
+        settings.RetireReleaseSettings();
         if (HasExplicitSelection(arguments))
             return arguments.ToArray();
         if (!settings.Enabled)
@@ -29,16 +30,44 @@ internal static class UserStartupSelection
             selected.Add("--wake-up-user-def-search=off");
         if (!settings.TypeSearches)
             selected.Add("--wake-up-user-type-search=off");
+        if (settings.TranslationApplication)
+            selected.Add("--wake-up-translations=on");
+        if (settings.AssetRouting)
+            selected.Add("--wake-up-asset-routing=on");
+        if (settings.StreamingXml)
+            selected.Add("--wake-up-streaming-xml=on");
+        if (settings.ProcessedXml) selected.Add("--wake-up-processed-xml=on");
+        if (settings.XmlQueryExtensions) selected.Add("--wake-up-query-extensions=on");
+        if (settings.BackgroundLoading)
+            selected.Add("--wake-up-background-loading=on");
         if (settings.GagarinReuse)
             selected.Add("--wake-up-gagarin-cache=on");
         if (settings.CharacterPresets)
             selected.Add("--wake-up-character-presets=on");
         if (settings.LoadingProgress)
             selected.Add("--wake-up-loading-progress=coalesce");
+        if (settings.LoadingDisplay)
+        {
+            selected.Add("--wake-up-loading-display=on");
+            if (settings.LoadingDisplayDiagnostics)
+                selected.Add("--wake-up-loading-display-diagnostics=on");
+        }
         if (settings.GiddyTextures)
             selected.Add("--wake-up-giddy-textures=on");
+        if (settings.HideLoadingSummary)
+            selected.Add("--wake-up-hide-loading-summary=on");
+        if (settings.LoadingTimings)
+            selected.Add("--wake-up-loading-timings=on");
+        if (settings.CompressTextureStorage) selected.Add("--wake-up-texture-storage=deflate");
+        if (settings.PsdSupport) selected.Add("--wake-up-psd=merged");
+        if (settings.PsdSupport && !settings.PngCache && !settings.PreparedTextures) selected.Add("--wake-up-png=control");
         if (settings.PngCache)
             selected.Add("--wake-up-png=cache");
+        if (settings.PreparedTextures)
+        {
+            selected.Add("--wake-up-prepared=0");
+            if (!settings.PngCache) selected.Add("--wake-up-png=prepare");
+        }
         return selected.ToArray();
     }
 }

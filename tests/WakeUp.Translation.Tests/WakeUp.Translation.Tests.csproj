@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>WakeUp.Tests</AssemblyName>
+    <IsTestProject>true</IsTestProject>
+    <NoWarn>$(NoWarn);SYSLIB0050</NoWarn>
+    <!-- Pinned Harmony serializes its own patch metadata in the test process. -->
+    <EnableUnsafeBinaryFormatterSerialization>true</EnableUnsafeBinaryFormatterSerialization>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../validation/menu-observer/C12AttributeQualification.cs" Link="C12AttributeQualification.cs" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="NUnit" />
+    <PackageReference Include="NUnit3TestAdapter" />
+    <PackageReference Include="NUnit.Analyzers" />
+    <!-- Same Harmony version, its supported CoreCLR test-host build only.
+         The product continues to build against frozen Prepatcher Harmony. -->
+    <PackageReference Include="Lib.Harmony" VersionOverride="2.4.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Build the ordinary net472 product first, then exercise that exact DLL.
+         Native string.Contains(char) cannot execute on the older test host. -->
+    <Reference Include="WakeUp"><HintPath>../../artifacts/bin/WakeUp/Release/net472/WakeUp.dll</HintPath><Private>true</Private></Reference>
+    <Reference Include="Assembly-CSharp"><HintPath>$(WAKE_UP_RIMWORLD_MANAGED_DIR)/Assembly-CSharp.dll</HintPath><Private>true</Private></Reference>
+    <Reference Include="UnityEngine.CoreModule"><HintPath>$(WAKE_UP_RIMWORLD_MANAGED_DIR)/UnityEngine.CoreModule.dll</HintPath><Private>true</Private></Reference>
+  </ItemGroup>
+  <Target Name="VerifyLocalReferences" BeforeTargets="ResolveAssemblyReferences">
+    <Exec Command="pwsh -NoProfile -File &quot;$(MSBuildThisFileDirectory)..\..\build\Verify-LocalReferences.ps1&quot;" />
+  </Target>
+</Project>

@@ -4,10 +4,14 @@
     <AssemblyName>FixtureMenuObserver</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="UnityEngine.AssetBundleModule" HintPath="$(WAKE_UP_RIMWORLD_MANAGED_DIR)/UnityEngine.AssetBundleModule.dll" Private="false" />
+    <Reference Include="UnityEngine.ImageConversionModule"><HintPath>$(WAKE_UP_RIMWORLD_MANAGED_DIR)\UnityEngine.ImageConversionModule.dll</HintPath><Private>false</Private></Reference>
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies.net472" PrivateAssets="all" />
     <Reference Include="Assembly-CSharp" HintPath="$(WAKE_UP_RIMWORLD_MANAGED_DIR)/Assembly-CSharp.dll" Private="false" />
+    <Reference Include="NAudio" HintPath="$(WAKE_UP_RIMWORLD_MANAGED_DIR)/NAudio.dll" Private="false" />
     <Reference Include="0Harmony" HintPath="$(WAKE_UP_PREPATCHER_ASSEMBLIES_DIR)/0Harmony.dll" Private="false" />
     <Reference Include="UnityEngine.CoreModule" HintPath="$(WAKE_UP_RIMWORLD_MANAGED_DIR)/UnityEngine.CoreModule.dll" Private="false" />
+    <Reference Include="UnityEngine.AudioModule" HintPath="$(WAKE_UP_RIMWORLD_MANAGED_DIR)/UnityEngine.AudioModule.dll" Private="false" />
     <Reference Include="UnityEngine.IMGUIModule" HintPath="$(WAKE_UP_RIMWORLD_MANAGED_DIR)/UnityEngine.IMGUIModule.dll" Private="false" />
   </ItemGroup>
 </Project>

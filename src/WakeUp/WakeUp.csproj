@@ -9,12 +9,27 @@
     <FileVersion>1.0.0.0</FileVersion>
   </PropertyGroup>
   <ItemGroup>
+    <!-- The optional PSD reader is compiled into this DLL. Keep its attribution
+         with it even in the fixture's deliberately minimal package. -->
+    <EmbeddedResource Include="..\..\third-party\StbImageSharp-LICENSE.txt" LogicalName="WakeUp.ThirdParty.StbImageSharp.LICENSE" />
+    <EmbeddedResource Include="..\..\third-party\StbImageSharp-PSD.md" LogicalName="WakeUp.ThirdParty.StbImageSharp.Contract" />
+    <EmbeddedResource Include="..\..\third-party\StbImageSharp-JPEG.md" LogicalName="WakeUp.ThirdParty.StbImageSharp.JPEG.Contract" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="NAudio"><HintPath>$(WAKE_UP_RIMWORLD_MANAGED_DIR)\NAudio.dll</HintPath><Private>false</Private></Reference>
+    <PackageReference Include="Krafs.Publicizer" PrivateAssets="all" />
+    <Publicize Include="0Harmony" MemberPattern="^Mono\.(Cecil|Collections)\." />
+    <Reference Include="0PrepatcherAPI"><HintPath>$(WAKE_UP_PREPATCHER_ASSEMBLIES_DIR)\0PrepatcherAPI.dll</HintPath><Private>false</Private></Reference>
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies.net472" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="UnityEngine.AssetBundleModule"><HintPath>$(WAKE_UP_RIMWORLD_MANAGED_DIR)\UnityEngine.AssetBundleModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.AudioModule"><HintPath>$(WAKE_UP_RIMWORLD_MANAGED_DIR)\UnityEngine.AudioModule.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="UnityEngine.CoreModule"><HintPath>$(WAKE_UP_RIMWORLD_MANAGED_DIR)\UnityEngine.CoreModule.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="UnityEngine.ImageConversionModule"><HintPath>$(WAKE_UP_RIMWORLD_MANAGED_DIR)\UnityEngine.ImageConversionModule.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="UnityEngine.IMGUIModule"><HintPath>$(WAKE_UP_RIMWORLD_MANAGED_DIR)\UnityEngine.IMGUIModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.TextRenderingModule"><HintPath>$(WAKE_UP_RIMWORLD_MANAGED_DIR)\UnityEngine.TextRenderingModule.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="Assembly-CSharp">
       <HintPath>$(WAKE_UP_RIMWORLD_MANAGED_DIR)\Assembly-CSharp.dll</HintPath>
       <Private>false</Private>

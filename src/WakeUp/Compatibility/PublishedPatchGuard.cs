@@ -23,7 +23,69 @@ internal sealed class PublishedPatchGuard
     private readonly Func<Patch, bool>? allowedForeignPatch;
     private PublishedDecision? decision;
     private int patchInfoReads;
+    internal MethodBase Target => target;
     internal int PatchInfoReads => Volatile.Read(ref patchInfoReads);
+    // Pinned Harmony replaces this immutable publication on every patch/unpatch.
+    // Keeping its identity detects a callback that removes itself before return.
+    internal object? Publication => ReadStamp();
+    internal bool PublicationUnchanged(object? publication) => ReferenceEquals(publication, ReadStamp());
+
+    // An immutable group of already validated publications. Validation performs
+    // deserialization and optional contract callbacks only while capturing it.
+    // A repeated check compares every exact stamp under one Harmony state lock.
+    internal sealed class PublicationSet
+    {
+        private readonly Dictionary<MethodBase, byte[]> state;
+        private readonly MethodBase[] targets;
+        private readonly byte[]?[] stamps;
+
+        internal PublicationSet(Dictionary<MethodBase, byte[]> state, MethodBase[] targets, byte[]?[] stamps)
+        { this.state = state; this.targets = targets; this.stamps = stamps; }
+
+        internal bool Unchanged
+        {
+            get
+            {
+                lock (state)
+                {
+                    for (int i = 0; i < targets.Length; i++)
+                    {
+                        state.TryGetValue(targets[i], out byte[] current);
+                        if (!ReferenceEquals(stamps[i], current)) return false;
+                    }
+                    return true;
+                }
+            }
+        }
+    }
+
+    internal static bool TryCapturePublications(IReadOnlyList<PublishedPatchGuard> guards, out PublicationSet? publications)
+    {
+        publications = null;
+        try
+        {
+            if (guards == null || guards.Count == 0) return false;
+            var shared = guards[0].state;
+            var targets = new MethodBase[guards.Count];
+            var stamps = new byte[]?[guards.Count];
+            for (int i = 0; i < guards.Count; i++)
+            {
+                var guard = guards[i];
+                if (!ReferenceEquals(shared, guard.state)) return false;
+                targets[i] = guard.target;
+                stamps[i] = guard.ReadStamp();
+                // Never hold the shared state lock across GetPatchInfo or a
+                // supplied foreign-patch predicate. Recheck all stamps below,
+                // including earlier targets changed during later validation.
+                if (!guard.AllowsOriginalContract()) return false;
+            }
+            var captured = new PublicationSet(shared, targets, stamps);
+            if (!captured.Unchanged) return false;
+            publications = captured;
+            return true;
+        }
+        catch { return false; }
+    }
 
     private sealed class PublishedDecision
     {
@@ -76,6 +138,7 @@ internal sealed class PublishedPatchGuard
             // patch-processor lock, then state, and protects its deserializer.
             Patches? patches = Harmony.GetPatchInfo(target);
             bool compatible = allPatchKinds ? patches == null || !patches.Prefixes.Concat(patches.Postfixes).Concat(patches.Transpilers).Concat(patches.Finalizers)
+                    .Concat(patches.InnerPrefixes).Concat(patches.InnerPostfixes)
                     .Any(p => p.owner != owner && allowedForeignPatch?.Invoke(p) != true)
                 : patches?.Transpilers.Any(p => p.owner != owner) != true;
             if (!ReferenceEquals(stamp, ReadStamp()))

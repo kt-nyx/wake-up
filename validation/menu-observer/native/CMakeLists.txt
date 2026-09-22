@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 3.21)
+project(C10NativeProbe LANGUAGES CXX)
+add_library(C10NativeProbe SHARED C10NativeProbe.cpp)
+target_compile_features(C10NativeProbe PRIVATE cxx_std_17)
+set_property(TARGET C10NativeProbe PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded")
+target_compile_options(C10NativeProbe PRIVATE /W4 /WX)
+target_link_libraries(C10NativeProbe PRIVATE d3d11)

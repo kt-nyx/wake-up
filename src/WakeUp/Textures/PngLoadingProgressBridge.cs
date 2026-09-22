@@ -32,7 +32,8 @@ internal sealed class PngLoadingProgressBridge
         ReviewedMethods = new[] { factory, Iterator, tracker, progress, skipOriginal };
         foreach (MethodInfo method in ReviewedMethods)
         {
-            if (!PublishedPatchGuard.TryCreate(method, PngRuntime.Owner, out var guard, allPatchKinds: true)
+            if (!PublishedPatchGuard.TryCreate(method, PngRuntime.Owner, out var guard, allPatchKinds: true,
+                allowedForeignPatch: patch => LoadingInvocationObservation.AllowsHook(method, patch))
                 || !guard!.AllowsOriginalContract())
                 throw new InvalidOperationException("loading-progress-hook-" + method.Name);
             guards.Add(guard);

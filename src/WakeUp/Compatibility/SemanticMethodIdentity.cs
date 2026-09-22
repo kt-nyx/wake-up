@@ -137,7 +137,12 @@ internal static class SemanticMethodIdentity
                     case OperandType.InlineTok:
                         {
                             int token = ReadInt32(il, ref index);
-                            Type[]? typeArguments = method.DeclaringType?.GetGenericArguments();
+                            // Mono treats an empty instantiation array as an
+                            // actual generic context and cannot resolve an open
+                            // definition such as ldtoken DefDatabase<> in it.
+                            // Nongeneric owners have no context: pass null.
+                            Type[]? typeArguments = method.DeclaringType?.IsGenericType == true
+                                ? method.DeclaringType.GetGenericArguments() : null;
                             Type[]? methodArguments = method.IsGenericMethod ? method.GetGenericArguments() : null;
                             int table = (int)((uint)token >> 24);
                             // Mono's ResolveMember rejects some valid open generic
@@ -237,7 +242,16 @@ internal static class SemanticMethodIdentity
         return AssemblyName(type) + ":" + (type.FullName ?? type.Name);
     }
 
-    private static string AssemblyName(Type type) => type.Assembly.GetName().Name ?? string.Empty;
+    private static string AssemblyName(Type type)
+    {
+        string name = type.Assembly.GetName().Name ?? string.Empty;
+        // Framework Queue<> lives in System on the offline .NET Framework
+        // host and mscorlib on Unity Mono. The original loading-queue method
+        // and live capture differ only by this resolved framework location.
+        // Keep the established canonical owner for this exact runtime type;
+        // another type with the same name or any other assembly stays distinct.
+        return type == typeof(Queue<>) && (name == "System" || name == "mscorlib") ? "System" : name;
+    }
 
     private static int ReadInt32(byte[] source, ref int index)
     {

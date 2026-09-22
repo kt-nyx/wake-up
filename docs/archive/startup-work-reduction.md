@@ -1,4 +1,4 @@
-> Historical snapshot, preserved during the 2026-09-06 cleanup. This is evidence, not current operating instructions or a claim about the cleaned product. See [current state](../current-state.md) and [results](../results.md).
+> Historical snapshot, preserved during the 2026-09-06 cleanup. This is evidence, not current operating instructions or a claim about the cleaned product. See [current state](../current-state.md) and [results](results.md).
 
 > Recorded identifiers, commands and private artifact paths below retain their pre-Wake-Up spelling; they are historical evidence.
 > Original: `records/implementation/OP7_STARTUP_WORK_REDUCTION.md` at `54bee10c3e806bed346a31a1fb4ac470f68ef5e0`. Former branches, runtime files, commands and local paths below may no longer exist. Unretained local links are written as historical paths; recover their originals through the [history index](README.md).

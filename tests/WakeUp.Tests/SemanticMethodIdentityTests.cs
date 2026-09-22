@@ -2,6 +2,7 @@
 // Licensed under GPL-3.0-or-later with LICENSE-EXCEPTION.md.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -31,6 +32,42 @@ public sealed class SemanticMethodIdentityTests
     {
         Assert.That(Hash(CallsModifiedReturn(false)), Is.Not.EqualTo(Hash(CallsModifiedReturn(true))));
     }
+    [Test]
+    public void OpenGenericDefinitionHasNoCallerInstantiationButGenericTypeSpecsKeepTheirContext()
+    {
+        MethodInfo open = typeof(NonGenericOwner).GetMethod(nameof(NonGenericOwner.Open))!;
+        Assert.That(SemanticMethodIdentity.TryHash(open, out string hash, out string reason, out string canonical), Is.True, reason);
+        Assert.That(canonical, Does.Contain("T|mscorlib:System.Collections.Generic.Dictionary`2<!0,!1>"));
+        Assert.That(Hash(typeof(GenericOwner<int>).GetMethod(nameof(GenericOwner<int>.Open))!), Is.EqualTo(hash));
+        Assert.That(Hash(typeof(GenericOwner<int>).GetMethod(nameof(GenericOwner<int>.Context))!),
+            Is.Not.EqualTo(Hash(typeof(GenericOwner<string>).GetMethod(nameof(GenericOwner<string>.Context))!)));
+    }
+    private static class NonGenericOwner
+    {
+        public static Type Open() => typeof(Dictionary<,>);
+    }
+    private static class GenericOwner<T>
+    {
+        public static Type Open() => typeof(Dictionary<,>);
+        public static Type Context() => typeof(List<T>);
+    }
+    [Test]
+    public void FrameworkQueueIdentityPreservesOtherTypesAndSameNamedUserDefinitions()
+    {
+        var queue = typeof(SemanticMethodIdentityTests).GetMethod(nameof(QueueReturn), BindingFlags.Static | BindingFlags.NonPublic)!;
+        Assert.That(SemanticMethodIdentity.Signature(queue), Does.Contain("System:System.Collections.Generic.Queue`1<mscorlib:System.Int32>"));
+        var assembly = AppDomain.CurrentDomain.DefineDynamicAssembly(new AssemblyName("UserQueueAssembly"), AssemblyBuilderAccess.Run);
+        var builder = assembly.DefineDynamicModule("main").DefineType("System.Collections.Generic.Queue`1", TypeAttributes.Public);
+        builder.DefineGenericParameters("T");
+        Type userQueue = builder.CreateType()!.MakeGenericType(typeof(int));
+        var holder = assembly.GetDynamicModule("main")!.DefineType("Holder", TypeAttributes.Public);
+        var userMethod = holder.DefineMethod("QueueReturn", MethodAttributes.Private | MethodAttributes.Static, userQueue, Type.EmptyTypes);
+        userMethod.GetILGenerator().Emit(OpCodes.Ldnull);
+        userMethod.GetILGenerator().Emit(OpCodes.Ret);
+        string userSignature = SemanticMethodIdentity.Signature(holder.CreateType()!.GetMethod("QueueReturn", BindingFlags.Static | BindingFlags.NonPublic)!);
+        Assert.That(userSignature, Does.Contain("UserQueueAssembly:System.Collections.Generic.Queue`1<mscorlib:System.Int32>"));
+    }
+    private static Queue<int> QueueReturn() => new();
     private static MethodInfo CallsModifiedReturn(bool modified)
     {
         var assembly = AppDomain.CurrentDomain.DefineDynamicAssembly(new AssemblyName("RloModifierTest"), AssemblyBuilderAccess.Run);

@@ -1,0 +1,80 @@
+{
+  "project": "https://github.com/TsudaKageyu/minhook",
+  "tag": "v1.3.4",
+  "commit": "c3fcafdc10146beb5919319d0683e44e3c30d537",
+  "archiveUrl": "https://codeload.github.com/TsudaKageyu/minhook/zip/c3fcafdc10146beb5919319d0683e44e3c30d537",
+  "archiveSha256": "cdcb160f734d81bd4d235dfea79e3f5a661c8ef0ab74fa814272aa5449069034",
+  "normalization": "UTF-8 without BOM, LF only; no semantic edits",
+  "files": [
+    {
+      "path": "LICENSE.txt",
+      "upstreamSha256": "d5c2224982b0b95a16b098a561335fa93f3eaf4d0aa964b7843edb986df78dc8",
+      "utf8LfSha256": "2bfff5fa29fc5d1cb2745acfaad9d930e983f5c8dd97e0ec5735d9199cf8f416"
+    },
+    {
+      "path": "include/MinHook.h",
+      "upstreamSha256": "62dff05e63155c6bf8135c36a0d79dedbdcaaede9da26fe38daf0bea34323e38",
+      "utf8LfSha256": "62dff05e63155c6bf8135c36a0d79dedbdcaaede9da26fe38daf0bea34323e38"
+    },
+    {
+      "path": "src/buffer.c",
+      "upstreamSha256": "0ab484d7870c3a8e7a3a1ee61e2070072cf445ed85b619d4c4207fed34356d99",
+      "utf8LfSha256": "9cce251a840c50e9dbd4f7cdc153fd7bf29dcccf1143fdd92919e5c107d7880f"
+    },
+    {
+      "path": "src/buffer.h",
+      "upstreamSha256": "9769702bd625249e59a19ede05c84365fcc7707e1fa0e5df08df42227cee13e3",
+      "utf8LfSha256": "cfe5fa7bfc02961c8821f13d75e882e6fb9d92a82a5d79452e5b4f3e7d1b6a18"
+    },
+    {
+      "path": "src/hde/hde32.c",
+      "upstreamSha256": "5da4941e9044f7b325c7f952b5840089e365f374740b7fe7318805d08c0d6c32",
+      "utf8LfSha256": "b125d4d0db6cea7d0fe01d03a3dcad3d6336988bbeafa29e12ccd78abde88dae"
+    },
+    {
+      "path": "src/hde/hde32.h",
+      "upstreamSha256": "5132de5be8ac7a9d054420f5caef0fb01437faa892f03b3cdc77f795973bf15a",
+      "utf8LfSha256": "712f20f209fa379dc4c8e05bfb2c0669066506ac3ec4f7be87c315f1b84f646a"
+    },
+    {
+      "path": "src/hde/hde64.c",
+      "upstreamSha256": "824eafa315322e6da105a7ce4ec1fc0e0adeee0106d32152fbb0b59e709bd15c",
+      "utf8LfSha256": "2ded468236c5db540aac254e5233adea72e91739f0832efc6634b91161a4c9f0"
+    },
+    {
+      "path": "src/hde/hde64.h",
+      "upstreamSha256": "e99aa4997bda14b534c614c3d8cb78a72c4aca91a1212c8b03ec605d1d75e36e",
+      "utf8LfSha256": "5bf06ee9ea0aed54dcedceb251e1a739ab7bee70f04b66d9c5e4e75c13db4a19"
+    },
+    {
+      "path": "src/hde/pstdint.h",
+      "upstreamSha256": "604d1cdf45c5a95bc9cf1bbf39ca05ef83013541101d34971c5cd7577e3d5247",
+      "utf8LfSha256": "4bffb311ef87d0d86569240a10f56eca826ebfe46233710f9dde97d42b3cb474"
+    },
+    {
+      "path": "src/hde/table32.h",
+      "upstreamSha256": "43bf687a9fff071b5f46070db4d36c846f8e069cdc57485ee897c499aacdde23",
+      "utf8LfSha256": "285823a3c2c2f6d427db40525f8c47bf1d4acb83aeb3400ba650172fc84c3955"
+    },
+    {
+      "path": "src/hde/table64.h",
+      "upstreamSha256": "b774446d2f110ce954fb0a710f4693c5562ddbd8d56fe84106f2ee80db8b50a2",
+      "utf8LfSha256": "98b281719ce1f20ebb72d0b6a851fbf57d14c11e93b2d50477dd51d65da80678"
+    },
+    {
+      "path": "src/hook.c",
+      "upstreamSha256": "edcce4c81985d7dd5b73feae96d6498c8f749b1bca4c3d2d9926ea9a17a84755",
+      "utf8LfSha256": "8a67023b221165ff3598982b0925a14e03d0284bd9d4d8e4a294325a50d062b6"
+    },
+    {
+      "path": "src/trampoline.c",
+      "upstreamSha256": "f13a169f803ff5a8e45c58ce668b4377a9878c0fc4452369b8a1325065186b2b",
+      "utf8LfSha256": "77a4b9121bff76b5f6bf37d5acc5c51dc915e65fc39032f21539c9ae9278d5c8"
+    },
+    {
+      "path": "src/trampoline.h",
+      "upstreamSha256": "53ed9934492320617a27bfd952ffe7f5b7a4a1d09963d4512447082fe7b727b4",
+      "utf8LfSha256": "054afc0ddf6c60c0b0da221aa092218638d7ab37d8db5a173459cea24b24d64c"
+    }
+  ]
+}

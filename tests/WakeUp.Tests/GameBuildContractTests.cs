@@ -11,6 +11,19 @@ namespace WakeUp.Tests;
 public sealed class GameBuildContractTests
 {
     [Test]
+    public void TextureConsumerAdmissionIsLimitedToTheTwoReviewedWindowsPlayers()
+    {
+        Assert.That(GameBuildContract.GogRev573.HasReviewedTextureConsumers, Is.True);
+        Assert.That(GameBuildContract.SteamRev590.HasReviewedTextureConsumers, Is.True);
+        Assert.That(GameBuildContract.LinuxRev600.HasReviewedTextureConsumers, Is.False);
+        foreach (PlatformID platform in new[] { PlatformID.Win32NT, PlatformID.Unix })
+        {
+            var forward = GameBuildContract.SelectRuntime(new AssemblyName("Assembly-CSharp, Version=1.6.9999.1"), Guid.NewGuid(), platform)!;
+            Assert.That(forward.HasReviewedTextureConsumers, Is.False);
+        }
+    }
+
+    [Test]
     public void OnlyReviewedVersionAndModulePairsSelectAContract()
     {
         foreach (GameBuildContract build in new[] { GameBuildContract.GogRev573, GameBuildContract.SteamRev590, GameBuildContract.LinuxRev600 })
