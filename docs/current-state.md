@@ -3,8 +3,8 @@
 ## Owner-authorized 0.3.0 release
 
 On 22 September the owner authorized committing, merging and publishing the accepted
-Windows candidate as **0.3.0**. Release preparation is in progress; a publication
-receipt will record remote completion. The exact tested runtime remains unchanged.
+Windows candidate as **0.3.0**. Publication completed on GitHub and Steam Workshop; see the
+[release receipt](release-0.3.0-publication.md). The exact tested runtime remains unchanged.
 Windows Steam and GOG are qualified within documented workloads; Linux/Deck remains
 unqualified for this version. `releaseReady=true` is scoped to this explicitly
 authorized Windows release, not a cross-platform claim. The older private-candidate
@@ -68,7 +68,7 @@ recommended performance preset.
 ## Exact candidate and restored fixture
 
 - Sole checkout: `Z:\Development\Large Projects\RimWorld Loading Optimizer`, branch
-  `codex/ecosystem-next-plan-review`, being merged into private `main` for release. Public history stays separate.
+  `main` after the approved fast-forward merge. Public history stays separate.
 - Tested core source/build: `67265e5696c80c9a461423722870a742054dd43b`, built with Steam
   references and tested unchanged on Steam and GOG. DLL SHA-256:
   `a64f9a446aaf7743024e0246f5e795dee1986f9a5eb647bc12246955af2ddfda`.
@@ -86,7 +86,7 @@ recommended performance preset.
 ## Next campaign and remaining platform boundary
 
 Linux/Steam Deck remains unqualified; no Deck access or test is authorized by this
-release action. The current release may be published within its disclosed Windows
+release action. The release was published within its disclosed Windows
 scope. Preserve separate public/private source histories and the mod description.
 
 The owner requested a new steward for early whole-stage XML reuse, direct image

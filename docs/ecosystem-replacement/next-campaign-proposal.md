@@ -4,8 +4,9 @@
 
 Owner approved commit, merge and publication of the tested Windows candidate as
 0.3.0, with Linux/Deck still unqualified. The description must remain unchanged.
-Parent owns release operations; no other task is active. Use the existing tested
-core and qualified quality helper without rebuilding. Publication receipts follow.
+Parent completed release operations; no task owns edits. The existing tested
+core and qualified quality helper were published without rebuilding. See the
+[publication receipt](../release-0.3.0-publication.md).
 On-demand loading is now explicitly excluded. The next campaign is early whole-stage
 XML reuse, direct single-pass image decoding and overlap of independent loading
 work; see [the new steward prompt](aggressive-loading-steward-prompt.md). Historical
