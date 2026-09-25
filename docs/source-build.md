@@ -1,6 +1,6 @@
 # Building the public source
 
-These instructions apply to corrected 0.4.0. See [current state](current-state.md) for source, package and qualification identities. Use the SDK pinned in global.json.
+These instructions apply to 0.4.1. See [current state](current-state.md) for source, package and qualification identities. Use the SDK pinned in global.json.
 
 The source archive contains the corresponding implementation, tests and build
 scripts. It does not contain game files, third-party mod binaries or the
@@ -12,7 +12,7 @@ example below selects the exact reviewed Steam rev590 game and Harmony binaries;
 version labels alone are insufficient. Their hashes are in
 `build/Verify-LocalReferences.ps1`. The explicit `linux-rev600` target also permits
 the captured native Linux references for offline compilation. The
-`gog-rev573` target supplies the corrected 0.4.0 release build. Compilation targets
+`gog-rev573` target supplies the 0.4.1 release build. Compilation targets
 are not live platform qualifications; exact build references remain reproducibility details. Runtime platform support and the build
 host are separate: these instructions still use Windows and PowerShell 7.
 Do not weaken identity checks to make another build compile; see the

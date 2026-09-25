@@ -1,5 +1,14 @@
 # Current state — 25 September 2026
 
+**0.4.1 is ready for the authorized internal publication review.** It adds specific
+FGL Continued Preview + Image Opt + current ImageOptCompat support. The exact
+`82b8293e` runtime passed three normal-exit Windows runs: supplier-only, explicit
+Wake-Up verification and ordinary user activation. All 33 sampled image records
+matched, all 392 Giddy-Up reads succeeded, and acknowledged notices stayed closed.
+The fixture is restored and fully audited. Packaging reuses that DLL; no rebuild,
+new launch or performance test is assigned. See [0.4.1 notes](release-notes-0.4.1.md).
+Publication is pending; the latest published version remains 0.4.0 below.
+
 Corrected **0.4.0 is published on GitHub and Steam Workshop**. The exact reviewed
 package, matching source and public tag are available. Both uploads completed;
 the live Workshop description and unrelated listing fields are unchanged. See
@@ -80,7 +89,7 @@ and passed a full content audit. Its selected order is Prepatcher, Harmony and
 Core; the profile contains only generated `Config/ModsConfig.xml`. Product and
 observer deployment are absent, and no RimWorld process remains. The restored
 manifest SHA-256 is
-`590d387ebaf58100d555adfe5f04de65793e6330816f68a24159bfdcdce899e9`.
+`1eb1c70e2edca106a1f06706a73631dc170e3be1c96e6f75807ed821507b0fd1`.
 The generation metadata changed; package/game inventories, selected order and
 ModsConfig bytes match the prior baseline.
 The original game assembly remains

@@ -21,6 +21,13 @@ content and separate change notes are authorized. Historical 0.3.0 platform
 claims do not qualify this changed binary. Restore `codex/compatibility-phase-1`
 after public-source synchronization.
 
+The subsequent **0.4.1** assignment authorizes the specific FGL Continued Preview,
+Image Opt and current ImageOptCompat compatibility change and its publication.
+Functional checks are complete; reuse the exact tested `82b8293e` DLL and unchanged
+optional helper. Preserve the latest live description, which may differ from the
+tracked template. No more launches or performance checks are assigned. Internal
+review of the concrete package precedes the already authorized publication.
+
 ## Qualification and promotion
 
 Establish changed behavior on the authorized isolated Windows fixture. Keep exact runtime and package identities in the evidence. Linux/Steam Deck testing remains separately authorized and outside this release. Follow the [development rules](development.md) and obtain fresh performance authorization. Testing and publication are separate authorizations.
@@ -143,7 +150,7 @@ reconcile the intended local source and documentation changes with that public
 tree using the same checkout. Review the complete result so newer public work
 is not overwritten by an older local tree. Commit with
 `git -c core.hooksPath=.githooks commit -s`, then push only
-`codex/public-source:main`. Restore the task's original private checkout afterward (`codex/compatibility-phase-1` for 0.4.0). Do not force-push over
+`codex/public-source:main`. Restore the task's original private checkout afterward (`codex/compatibility-phase-1` for 0.4.1). Do not force-push over
 external contributions. Published source tags belong to the public history.
 
 The published v0.3.0 source tree equals private release 12e616dc. Keep those identities separate from their unrelated histories; do not replace private main or merge unrelated histories.

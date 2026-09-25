@@ -21,7 +21,7 @@
     <li>local.rimworldloadingoptimizer.op7validation</li>
     <li>kt.nyx.startupfixes</li>
   </incompatibleWith>
-  <description>Wake-Up reduces selected repeated loading work and keeps independent improvements available alongside other loaders. Prepatcher is required; companion mods are optional. This corrected 0.4.0 release has bounded Windows evidence, including startup with YaOpt, Image Opt and Adaptive Storage Framework. Linux/Steam Deck remains outside the tested scope.
+  <description>Wake-Up reduces selected repeated loading work and keeps independent improvements available alongside other loaders. Prepatcher is required; companion mods are optional. This 0.4.1 release adds bounded Windows support for FGL Continued Preview, Image Opt and the current ImageOptCompat repository distribution, while retaining the 0.4.0 YaOpt and Adaptive Storage Framework fixes. Linux/Steam Deck remains outside the tested scope.
 
 Settings show which requested operations are available, who supplies them and why an operation cannot run. A single compatibility window explains new conflicts. Acknowledgement preserves your choices; Wake-Up never changes another mod's settings or removes its patches. Unknown changed code falls back at the affected operation. Restart after settings changes.
 

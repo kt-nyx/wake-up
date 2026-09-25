@@ -143,6 +143,7 @@ public sealed class MenuObserverMod : Mod
             File.Move(path + ".tmp", path);
             Log.Message("[FixtureMenuObserver] menu-ready elapsedSeconds=" + elapsed.ToString("F6", Invariant));
             C01StageTimings.Menu();
+            PreviewTupleProbe.Run(directory);
             if (CompatibilityProbe.Selected) { CompatibilityProbe.Start(directory); return; }
             if (C10DemandTextureProbe.Required)
             {

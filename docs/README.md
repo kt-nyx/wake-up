@@ -6,6 +6,7 @@
 - [Architecture](architecture.md): released mechanisms and inactive research.
 - [Development](development.md): safe repository and fixture work.
 - [Release procedure](release.md): packaging and public history.
+- [0.4.1 release notes](release-notes-0.4.1.md): Preview/Image Opt compatibility and exact validation scope.
 - [0.4.0 release notes](release-notes-0.4.0.md): changes, measured costs and Windows evidence.
 - [Compatibility guide](compatibility.md): audited mods/tools, setting choices and evidence limits.
 - [0.4.0 publication receipt](release-0.4.0-publication.md): publication status and verified identities.

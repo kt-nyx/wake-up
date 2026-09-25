@@ -1,9 +1,11 @@
 # Using Wake-Up
 
-Wake-Up avoids selected repeated loading work. This guide describes corrected
-0.4.0, available on GitHub and Steam Workshop after a targeted Windows menu check with
-YaOpt, Image Opt and Adaptive Storage Framework. Linux/Deck remains outside the tested scope. See [current state](current-state.md) for
-publication status and [release notes](release-notes-0.4.0.md) for evidence limits.
+Wake-Up avoids selected repeated loading work. This guide describes 0.4.1, prepared
+for Windows publication with specific support for FGL Continued Preview, Image Opt
+and the current ImageOptCompat repository distribution. It retains the 0.4.0 YaOpt
+and Adaptive Storage Framework fixes. Linux/Deck remains outside the tested scope.
+See [current state](current-state.md) for publication status and
+[release notes](release-notes-0.4.1.md) for exact versions and evidence limits.
 
 Each feature checks the functions and cooperating mods it needs. Unsupported
 conditions normally retain ordinary loading. This is partial loading coverage:

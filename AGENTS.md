@@ -23,6 +23,12 @@ Restore this checkout after public-source synchronization. Linux/Deck and unrela
 projects remain outside scope. See docs/release.md and docs/current-state.md.
 Historical plans are not assignments.
 
+The subsequent 0.4.1 assignment authorizes specific compatibility work for FGL
+Continued Preview + Image Opt + the current DegradingAnt/ImageOptCompat repository
+distribution, functional fixture checks and content-only publication after internal
+review. Keep the accepted checkout and all 0.4.0 fixes. No performance tests or
+normal-game/profile/Deck changes. Preserve the latest live Workshop description.
+
 Use the existing checkout; do not create worktrees unless requested. Keep one
 editing/build/fixture owner at a time. Preserve unrelated user edits.
 Start newly assigned implementation on a codex/ branch from current main.
@@ -63,8 +69,9 @@ game instances must already be stopped; never close them to obtain idle conditio
 Functional checks use --purpose functional and the fixture-specific process guard.
 Use independent menu observation, normal exit/capture, actual exit status and
 automaticTestPassed. Forced closure is failure recovery, not a successful sample.
-Restore changed fixture state before handoff. GOG evidence does not qualify Steam
-or Linux/Deck, and testing does not authorize publication.
+Restore changed fixture state before handoff. The owner accepts the recorded
+Windows storefront scope for this release; Linux/Deck remains outside scope,
+and testing alone does not authorize publication.
 
 ## Product decisions and explanations
 

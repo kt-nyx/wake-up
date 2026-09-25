@@ -34,7 +34,7 @@ qualified merely because it appears here.
 |---|---|
 | Faster Game Loading, original 1.6 | Combine independent reflection, multi-result XML queries, translation and resource lookup with the supplier. Yield its type/leaf lookup and image production. Its persistent failed-query memory also requires narrower refusal of affected single-result XML rewrites. Preserve its real atlas, audio and constructor callbacks. It is a current acquired 1.6 target, not an assumed legacy-only package. |
 | FGL Continued stable | Same operation-level approach, qualified against its own DLL. Retain independent reflection and the XML workers that remain valid. Its patch-file query guard differs from Preview; a common package ID is not a common contract. |
-| FGL Preview | Admit its narrower safe XML scope where verified, retain unrelated work, and leave its image production intact. Do not advertise the acquired Preview/Image Opt/compatibility-patch tuple as repaired by Wake-up. |
+| FGL Preview 2026.09.07.1 | Retain its narrower admitted XML scope and leave image production intact. 0.4.1 supports completed-source Giddy-Up reads with Image Opt 0.1.13 and current ImageOptCompat 71fa60d at unchanged supplier defaults. Individual pending sources and changed contracts still fall back. See the exact limits below. |
 | YaOpt 1.1.4 | Yield its occupied type and XML operations and top-level lazy resource route. Retain independent reflection/query work and the native bundle lookup that YaOpt itself still calls. Do not create a competing lazy loader or infer completion from an empty supplier queue. |
 | Adaptive Storage Framework / PostInheritanceOperation | Preserve the native `XmlInheritance.Resolve` call and `ResolveXmlNodeFor` body so its post-inheritance hook can attach. Removed retired Wake-Up inheritance injections; full prepatch preservation is verified offline, and the targeted corrected-build Windows check above confirms its hook installs. No new speed claim. Its parse hook still makes Wake-Up's optional processed-XML cache yield through the existing guard; no supplier allowlist or cache bypass. |
 | WOWGAG | Select XML replay and content-preload ownership separately. Omit Wake-up's conflicting observers early enough that they do not make WOWGAG refuse its own feature. Preserve independently admitted searches, translation and resource work. An explicit Wake-up preference gives an actionable user choice; it does not change WOWGAG settings or unpatch it. |
@@ -45,7 +45,7 @@ qualified merely because it appears here.
 | FastLoader | Allow only the exact outer reload callbacks so Wake-up can handle native image misses/off paths. Supplier raw hits bypass the inner Wake-up path naturally. Do not share or recapture its raw cache. Refuse explicit prepared-quality replacement while its atlas output can be reused; keep exports and saved choices. Author-release and repository binaries are distinct from the inaccessible Workshop build. |
 | Image Opt | Let it produce textures. Keep ordinary resource routing, which re-reads the current holder entry. Allow Giddy-Up's optimized readback only for a ready source under the exact managed/native completion contract. Never join its workers, flush its queue or infer readiness from texture dimensions. |
 | Graphics Settings+ | Let its actual replacement loader own image choice and quality. Its DDS checkbox does not restore the native loader. Preserve independent routing, ready readback and unrelated code/XML work; explain what the user must change if they want a native image setup. |
-| Image Opt/FGL compatibility patch | Preserve its pixel-read, resource-path, audio, UI and copy-lifetime repairs. Do not borrow its CPU copies as Wake-up output or alter its settings. Its additional completion hook does not automatically qualify a whole supplier combination; unsupported completion remains guarded. The deeper review rejected an early-loading-off complete combination admission for this candidate because its resettable queue snapshot cannot establish prior loading history; this is a qualification limit, not proof that reading pixels from a completed texture itself is corrupting. |
+| ImageOptCompat repository distribution 71fa60d (About 0.3.0) | Preserve its pixel-read, resource-path, audio, menu-status and copy-lifetime repairs. The exact completion/readback helpers are admitted for ready sources; do not borrow its copies as Wake-Up output. Keep its default `destroyOriginalTexture=false`. Enabling original destruction refuses only the affected readback with an explanatory notice. Old or changed DLLs do not inherit this admission. |
 | Loading Progress | Preserve its screen and the complementary repaint/image integrations. Support the conditional background mode described below. Its default deferred in-game replacement is not admitted as a harmless observer. |
 | RimThemes | Yield Wake-up's drawing and native summary when its custom loader is active or cannot be safely ruled out. Retain separate timings/acceleration. Admit only the exact harmless queue/renderer observers for background work, with real lifecycle proof. Preserve its real theme-loading callbacks. With LP also present, ask the user to choose one external screen. |
 | No Modlist on Loading | Default to its DLC-panel-preserving appearance. Offer an explicit Wake-up choice to hide the whole summary. Preserve the requested setting and warn once if the automatic policy yields it. No foreign patch removal is needed. |
@@ -96,13 +96,24 @@ Native misses can use Wake-Up's optional image cache. Atlas ownership independen
 blocks competing prepared-quality replacement, not ordinary PNG reuse or exports.
 
 Image Opt + Graphics Settings+ + Giddy-Up has bounded ready-texture readback proof.
-The full acquired FGL Preview + Image Opt + compatibility-patch combination remains
-unqualified: its resettable early-load state cannot establish the required loading order. This is a qualification limit, not proof the whole combination corrupts
-textures. Removing a declared dependency is not a supported workaround.
+0.4.1 adds specific support for FGL Continued Preview 2026.09.07.1 + Image Opt 0.1.13
++ the actual current ImageOptCompat repository distribution at `71fa60d` (About 0.3.0).
+Keep supplier defaults, including early mod loading on and original-texture destruction
+off. Wake-Up reads only an individually completed source on the main thread, checks
+the actual code/hooks and live settings, and preserves all supplier production and
+copy ownership. It does not infer completion from the past state of a resettable queue.
+This reader-only design supersedes the rejected historical whole-loader admission.
+
+Three normal-exit runs checked 33 sampled PNG sources against decoded source artwork
+and compared identical pixel records with and without Wake-Up. All 392 Giddy-Up reads
+passed; ordinary user activation worked, and two acknowledged notices did not reappear.
+This is bounded startup, artwork and copy-helper evidence, not a universal black-texture
+fix, vehicle-gameplay, arbitrary content reload, warm texture-cache or performance claim.
+See [0.4.1 release notes](release-notes-0.4.1.md) for exact binaries and retained runs.
 
 ## Live evidence and its limits
 
-All new live tests used the isolated Windows GOG fixture. The installation labels
+The recorded live tests used the isolated Windows fixture sourced from GOG. The installation labels
 itself rev573, while the admitted assembly reports **1.6.4871 rev574**. Its SHA-256 is
 `4a170804fbfefabdb620d8914e584e58f822a58c6e304dcb76a67003588dab28`.
 Linux/Deck remains outside the tested scope. Functional tests verify behavior;

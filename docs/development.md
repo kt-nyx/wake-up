@@ -6,8 +6,8 @@ for their bounded GOG correctness scope. The owner authorized the 25 September
 [overnight continuation](overnight-integration-20260925.md), including representative
 GOG performance comparisons and bounded integration improvements. Retain the
 accepted `codex/compatibility-phase-1` checkout and preserve unrelated edits.
-The owner subsequently authorized corrected 0.4.0 publication after the targeted
-Windows check; follow the specific scope in [release procedure](release.md). No further
+The owner subsequently authorized 0.4.1 publication after the specific Preview/Image Opt
+Windows checks; follow the specific scope in [release procedure](release.md). No further
 game launches, rebuild or platform/performance checks are assigned for publication.
 
 ## Build and source checks

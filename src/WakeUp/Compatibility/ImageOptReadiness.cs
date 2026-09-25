@@ -26,6 +26,7 @@ internal static class ImageOptReadiness
     private static Func<Dictionary<int, VirtualFile>>? pending;
     private static Func<HashSet<int>>? external;
     private static PublishedPatchGuard[] guards = Array.Empty<PublishedPatchGuard>();
+    private static ImageOptReaderSuppliers? readerSuppliers;
     internal static long ReadyReads, ExternalReads, PendingRefusals, ContractRefusals;
 
     internal static bool CanRead(Texture2D source, out string reason, out string code)
@@ -41,6 +42,8 @@ internal static class ImageOptReadiness
         { ContractRefusals++; reason = refusal; return false; }
         try
         {
+            if (readerSuppliers != null && !readerSuppliers.AllowsCurrentState(out reason, out code))
+            { ContractRefusals++; return false; }
             int id = source.GetInstanceID();
             var tasks = pending!();
             if (tasks == null || tasks.ContainsKey(id))
@@ -67,12 +70,6 @@ internal static class ImageOptReadiness
                 || SystemInfo.graphicsDeviceType != GraphicsDeviceType.Direct3D11) return;
             var assembly = LoaderSupplierPolicy.Find(ImageSupplierPolicy.ImageOptPackage, "ImageOpt.ImageOpt");
             if (assembly == null || !LoaderSupplierPolicy.MatchesImage(assembly, ImageSupplierPolicy.ImageOptHash)) return;
-            // The acquired Preview changes completion state outside these methods.
-            // Its withdrawn Image Opt combination is not qualified by patch shape.
-            if (LoadedModManager.RunningModsListForReading.Where(m => m.PackageId.Equals("taranchuk.fastergameloading", StringComparison.OrdinalIgnoreCase))
-                .SelectMany(m => m.assemblies.loadedAssemblies).Any(a => a.GetType("FasterGameLoading.ImageOptEarlyLoadCoordinator", false) != null))
-            { refusal = "The Faster Game Loading/Image Opt completion combination is not qualified for Wake-Up's Giddy-Up readback.";
-                refusalCode = "image-producer-tuple"; return; }
             if (!NativeImageMatches()) return;
             Type load = assembly.GetType("ImageOpt.TextureLoadPatch", true), completion = assembly.GetType("ImageOpt.ParallelTextureLoadPatch", true);
             var methods = new[] { AccessTools.Method(load, "Prefix"), AccessTools.Method(load, "_LoadTextureAsyncV2"),
@@ -83,6 +80,12 @@ internal static class ImageOptReadiness
                 if (method == null || !SupplierBodyIdentity.Matches(method) || !AddGuard(method, checks)) return;
             MethodInfo nativeLoad = AccessTools.Method(typeof(ModContentLoader<Texture2D>), "LoadTexture");
             MethodInfo nativeComplete = AccessTools.Method(typeof(ModContentPack), "AnyContentLoaded");
+            if (!ImageOptReaderSuppliers.TryCreate(nativeLoad, nativeComplete, checks, out readerSuppliers))
+            {
+                refusal = "The installed image-provider callbacks are not supported by Wake-Up's smaller Giddy-Up readback. Giddy-Up keeps its original readback; other Wake-Up operations keep their own checks.";
+                refusalCode = "image-producer-tuple";
+                return;
+            }
             MethodInfo? graphicsPrefix = null;
             if (LoaderSupplierPolicy.Patches(nativeLoad).Any(p => p.owner == ImageSupplierPolicy.GraphicsOwner))
             {
@@ -95,9 +98,11 @@ internal static class ImageOptReadiness
                 && ImageSupplierPolicy.ExactPublication(nativeLoad, methods[0], ImageSupplierPolicy.ImageOptOwner, true, 1000,
                     new[] { ImageSupplierPolicy.GraphicsOwner })
                 || graphicsPrefix != null && p.PatchMethod == graphicsPrefix && p.owner == ImageSupplierPolicy.GraphicsOwner
-                && ImageSupplierPolicy.ExactPublication(nativeLoad, graphicsPrefix, ImageSupplierPolicy.GraphicsOwner, true);
+                && ImageSupplierPolicy.ExactPublication(nativeLoad, graphicsPrefix, ImageSupplierPolicy.GraphicsOwner, true)
+                || readerSuppliers!.AllowsLoad(p);
             bool AllowsCompletion(Patch p) => p.PatchMethod == methods[4] && p.owner == ImageSupplierPolicy.ImageOptOwner
-                && ImageSupplierPolicy.ExactPublication(nativeComplete, methods[4], ImageSupplierPolicy.ImageOptOwner, true);
+                && ImageSupplierPolicy.ExactPublication(nativeComplete, methods[4], ImageSupplierPolicy.ImageOptOwner, true)
+                || readerSuppliers!.AllowsCompletion(p);
             if (!ImageSupplierPolicy.ExactPublication(nativeLoad, methods[0], ImageSupplierPolicy.ImageOptOwner, true, 1000, new[] { ImageSupplierPolicy.GraphicsOwner })
                 || !ImageSupplierPolicy.ExactPublication(nativeComplete, methods[4], ImageSupplierPolicy.ImageOptOwner, true)
                 || !AddGuard(nativeLoad, checks, AllowsLoad) || !AddGuard(nativeComplete, checks, AllowsCompletion)) return;
@@ -108,7 +113,7 @@ internal static class ImageOptReadiness
         }
         catch { admitted = false; }
     }
-    private static bool AddGuard(MethodBase method, List<PublishedPatchGuard> checks, Func<Patch,bool>? allowed = null)
+    internal static bool AddGuard(MethodBase method, List<PublishedPatchGuard> checks, Func<Patch,bool>? allowed = null)
     {
         if (!PublishedPatchGuard.TryCreate(method, GiddyTextureRuntime.Owner, out var guard, true, allowed) || !guard!.AllowsOriginalContract()) return false;
         checks.Add(guard); return true;
