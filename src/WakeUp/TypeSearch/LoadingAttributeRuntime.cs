@@ -42,6 +42,8 @@ public static class LoadingAttributeRuntime
             Status = operation!.AllowsOriginalContract() ? "prepatched-bounded-boolean" : "native-foreign-operation-hook";
         }
         catch (Exception exception) { operation = null; Status = exception.Message; }
+        if (Status == "prepatched-bounded-boolean") CompatibilityStatus.Available("attributes");
+        else CompatibilityStatus.Refuse("attributes", Status);
         TypeLookupRuntime.LeafReceipt("reflection-attribute-contract", Status);
     }
 
@@ -59,7 +61,7 @@ public static class LoadingAttributeRuntime
     public static bool IsDefined(MemberInfo member, Type attributeType, bool inherit)
     {
         LoadingReflectionIndex? index = LoadingReflectionRuntime.AttributeIndex;
-        if (index == null || operation?.AllowsOriginalContract() != true)
+        if (index == null || !CompatibilityStatus.Guard("attributes", operation?.AllowsOriginalContract() == true))
             return Attribute.IsDefined(member, attributeType, inherit);
         return index.IsDefined(member, attributeType, inherit, LoadingReflectionRuntime.Generation);
     }

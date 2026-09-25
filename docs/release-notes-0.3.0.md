@@ -38,7 +38,7 @@ PNG-selected reuse. These are not additive or incremental gains over 0.2.1.
 First cache construction added 12.05 seconds and 333.5 MB, repaid after about four
 later matching launches. Enabling every option is not a recommended speed preset.
 
-See [the qualification report](ecosystem-replacement/windows-steam-qualification-20260922.md)
+See [the qualification report](https://github.com/kt-nyx/wake-up/blob/v0.3.0/docs/ecosystem-replacement/windows-steam-qualification-20260922.md)
 for workload, controls and limitations. The release reuses tested core
 `67265e5696c80c9a461423722870a742054dd43b` unchanged, SHA-256
 `a64f9a446aaf7743024e0246f5e795dee1986f9a5eb647bc12246955af2ddfda`, and

@@ -1,100 +1,117 @@
-# Current state — 22 September 2026
+# Current state — 25 September 2026
 
-## Owner-authorized 0.3.0 release
+The owner has authorized publication of corrected **0.4.0** to Workshop and
+GitHub, with matching source and updated developer documentation. Publication is
+being prepared; the latest confirmed published release remains **0.3.0** until
+the publication receipt records completion. The live Workshop description and
+unrelated listing fields must remain unchanged; change notes are separate.
 
-On 22 September the owner authorized committing, merging and publishing the accepted
-Windows candidate as **0.3.0**. Publication completed on GitHub and Steam Workshop; see the
-[release receipt](release-0.3.0-publication.md). The exact tested runtime remains unchanged.
-Windows Steam and GOG are qualified within documented workloads; Linux/Deck remains
-unqualified for this version. `releaseReady=true` is scoped to this explicitly
-authorized Windows release, not a cross-platform claim. The older private-candidate
-wording in the mod description is preserved at the owner's explicit request.
-Release notes separately explain current scope and changes.
+Two compatibility defects also present in 0.3.0 are corrected: a late supplier
+rewrite could make Wake-Up throw while Harmony rebuilt an XML worker, and retired
+inheritance hooks removed the native call needed by Adaptive Storage Framework.
+Changed workers now pass through unchanged with a persistent notice, and native
+inheritance code remains intact. Offline tests reproduce the Harmony rebuild
+interval; the targeted Windows menu check below verifies the corrected build with
+YaOpt, Image Opt and ASF together. This does not establish a black-texture fix,
+universal gameplay compatibility, measured speed, or Linux/Deck qualification.
 
-Parent acceptance of Windows handoff `c185db68` was recorded at `66b23eb2`, and final
-package handoff `ffab8639` was accepted at `b9371c34`. No new live testing or runtime
-change is needed to publish those binaries. The old steward timer remains paused.
+Packaging reuses the exact tested `3ac8973a` DLL without rebuilding. Its later
+documentation/source archive revision is recorded separately. The older
+`c36e9a7dfa702d50d47f21f4fe426c60e0338b67` archive contains the confirmed
+defects and must not be published as the corrected build. Earlier performance
+and combined-gameplay evidence below remains tied to its original binaries.
 
-The corrected core passed native XML/language output comparisons, texture checks,
-ordinary copied-colony loading, the actual native → prepared → reset quality cycle,
-and background loading with an unchanged colony tick during a 45-second unfocused
-hold. The same binary passed a focused GOG regression. These are bounded automated
-checks and agent UI observations, not universal gameplay compatibility or the
-owner's preference for reduced texture quality. Known InputLegacyModule log messages
-remain. No more Windows qualification runs or optimization experiments are assigned.
+The Release build and 47 focused compatibility/identity checks passed. All nine
+new bug regressions pass. The wider regression suite recorded 50 passes and one
+intermittent notice-acknowledgement persistence failure on each full run;
+isolated reruns passed, but the storage issue is not claimed fixed. All ten real
+notices were displayed and acknowledged in the targeted live run.
 
-## What changes from the last release
+## Targeted Windows menu check
 
-The previous released version used for comparison is **v0.2.1**. Compared with it, this
-candidate adds more ways to reuse loading work: processed game definitions and
-translations, additional code-type/member searches, JPEG alongside PNG reuse, and
-optional PSD image support. It also adds explicit texture preparation and quality
-controls, a loading display/reports, and loading that can finish while the game is
-in the background before returning to the player's normal background preference.
-Original mod files stay intact.
+`bugfix-yaopt-imageopt-asf-01` tested source
+`3ac8973a2aee7879c0e184bd124d911198018875`, DLL SHA-256
+`ccfa3f0a6777856120a26181ada1ba642bbe2925fcee5d03702f45e0f67614c6`,
+with Wake-Up before YaOpt 1.1.4, Image Opt 0.1.13 and the full ASF package at
+`31ee88b46651cfbe37da3f89620bc0b907165cc0`. It reached the independently
+observed menu and exited normally, with automatic and compatibility checks passed.
+The expected XML output, all eight YaOpt XML-worker hooks and ASF's inheritance
+hook were present. The complete log contains neither reported patching error nor
+an exception/XML-loading error. Nonfatal fixture dependency-link warnings and Mono
+fallback diagnostics remain, along with Unity shutdown allocation statistics.
+This is not a warning-free log or visual texture/colony/performance qualification.
+The actual in-progress Harmony rebuild interval remains covered by offline tests;
+the live worker-admission log already sees YaOpt's installed hooks. Compact
+evidence is retained privately under `artifacts/report-bugfix/live/receipt.json`.
+The fixture was restored and fully audited; no further launch is assigned.
 
-Optional new controls default off. Additional code-search reuse follows the existing
-default-on type-search setting. The shared cache budget defaults to **1 GiB** and is
-adjustable; v0.2.1's PNG cache default was **512 MiB**. Prepatcher was already required,
-supplier mods remain optional, and the Windows quality-conversion helper is optional.
-Retired experimental paths were never public v0.2.1 features. The
-[detailed release comparison](ecosystem-replacement/windows-steam-qualification-20260922.md#what-changes-from-the-last-actual-release)
-explains the individual additions and limits.
+## Earlier candidate identity and result
 
-This adds useful optional capabilities; the small English ordinary-default test
-shows **no large general speedup** over native loading or v0.2.1.
+- Tested core: `fe01a28669a99713b1764a6947d1522516bdee54`.
+- Core DLL SHA-256:
+  `e5b0e1b30e68c882187078a3aecad0f3d289f15c37fb1d345edc07cdbf8611f2`.
+- Private observer: `4f49c2ae1fffe296697d67a80b9213742621ffdf`; it is not a shipped runtime component.
+- Final combined runs: `ov-fixed-combined-ack` and `ov-fixed-combined-game`.
+  Loading Progress, PurePatcher, Kingfisher, Image Opt, Giddy-Up and real VEF content
+  passed startup/XML/ready-texture checks and actual colony/save/reload, with normal
+  exit and automatic acceptance. Affected VEF background-map work remains refused;
+  ordinary map loading is preserved.
+- Final worker/XML checks: 82 passed. Package boundary checks: 10 passed.
+- 40 measured launches on `4f49c2ae`, followed by 12 affected-supplier repeats on
+  `fe01a286`, retain all negative and mixed results. Loading Progress benefits in
+  the recorded workload; stacking other loaders does not imply a net speed gain.
+- That superseded candidate's metadata withheld publication authorization and
+  additional platform qualification. Its source-inclusive package reused that DLL, recording the later
+  source/archive revision separately. See its manifest for the archive identity.
 
-## What the measurements support
+Read the [0.4.0 release notes](release-notes-0.4.0.md) for measurements, changes and
+build boundaries, and the [compatibility guide](compatibility.md) for the complete
+mod/tool decisions, setting choices and live evidence limits. Phases
+[1](compatibility-phase-1.md) and [2](compatibility-phase-2.md) remain accepted
+bounded correctness evidence. The [overnight continuation](overnight-integration-20260925.md)
+added exact integrations, gameplay/lifecycle checks and authorized GOG comparisons;
+its implementation and measurement work is complete. Historical plans are not new
+execution authorization.
 
-Twenty counted Steam runs and four warmups finished at 07:43:55 UTC. Each compared
-matched settings/content in forward and reverse order using the exact tested binary.
+## Fixture handoff
 
-| Workload | Bounded whole-startup result |
-| --- | --- |
-| Small English ordinary defaults | Effectively tied: native 12.29 s, public v0.2.1 12.54 s, current 12.36 s |
-| Complete type/member-search group | 0.654 s / 2.65% shorter |
-| French translation application | 1.392 s / 10.89% shorter |
-| PNG-selected warm reuse | 3.235 s / 15.78% shorter |
-| First PNG cache construction | Adds 12.050 s and 333.5 MB; about four later matching warm launches repay it |
+The permanent `.rlo-test-instance/` has been restored through its supported tool
+and passed a full content audit. Its selected order is Prepatcher, Harmony and
+Core; the profile contains only generated `Config/ModsConfig.xml`. Product and
+observer deployment are absent, and no RimWorld process remains. The restored
+manifest SHA-256 is
+`590d387ebaf58100d555adfe5f04de65793e6330816f68a24159bfdcdce899e9`.
+The generation metadata changed; package/game inventories, selected order and
+ModsConfig bytes match the prior baseline.
+The original game assembly remains
+`4a170804fbfefabdb620d8914e584e58f822a58c6e304dcb76a67003588dab28`.
+The GOG installation's Version.txt says rev573, while that admitted runtime reports
+1.6.4871 rev574; binary identity defines the actual test target.
 
-Only the ordinary-default comparison directly benchmarks v0.2.1. The other results
-compare whole feature groups with disabled/native behavior; their percentages cannot
-be added or treated as incremental release gains. Filesystem caches were warmed.
-No new Steam speed claim is made for processed XML, routing, XML-query extensions,
-display or all-options loading. Earlier [GOG measurements](ecosystem-replacement/retained-performance-20260921.md)
-found a display cost and slower all-options loading; enabling everything is not a
-recommended performance preset.
+Private build packages, captured runs, source lists and unsuccessful attempts are
+retained under ignored artifacts and fixture results. General cleanup never
+permits deleting the permanent fixture. Normal installations, saves, profiles,
+Workshop subscriptions and the Deck were outside this work.
 
-## Exact candidate and restored fixture
+## Published release and source history
 
-- Sole checkout: `Z:\Development\Large Projects\RimWorld Loading Optimizer`, branch
-  `main` after the approved fast-forward merge. Public history stays separate.
-- Tested core source/build: `67265e5696c80c9a461423722870a742054dd43b`, built with Steam
-  references and tested unchanged on Steam and GOG. DLL SHA-256:
-  `a64f9a446aaf7743024e0246f5e795dee1986f9a5eb647bc12246955af2ddfda`.
-- Qualified optional Windows helper SHA-256:
-  `ca12d392e0a173b1dd7b87d85b95621166f4aca53860550808319b4b0c285c36`;
-  matching source `83a2930f60967eba4fcfb8e6acef10f35a415c62`.
-- Release version is `0.3.0`; the accepted private predecessor was `0.3.0-rc.2`. The [qualification report](ecosystem-replacement/windows-steam-qualification-20260922.md)
-  records the final archive, archived-source identity and distinct core build identity.
-  Only the core and optional quality helper are runtime binaries in the package.
-- The single fixture is restored to GOG generation
-  `gog-rev573-20260910-194017-cf1a1eb0`. All 50 qualification transactions were rolled
-  back; seven baseline hashes, eleven absences, supplier repair and metadata audit
-  passed. Final metadata packaging performs no fixture operation or new test.
+Published 0.3.0 retains its own qualification and identities:
 
-## Next campaign and remaining platform boundary
+- Private release source: `12e616dcb2ec7ff3c94de63ea6a97da7d9612262`.
+- Public `v0.3.0`: `d5fc9646d74a47a6f30fe0556be02f44cd1a67dc`.
+  Their source trees match; their histories remain separate.
+- Tested core: `67265e5696c80c9a461423722870a742054dd43b`.
+- Published DLL: `a64f9a446aaf7743024e0246f5e795dee1986f9a5eb647bc12246955af2ddfda`.
+- Optional unchanged Windows helper:
+  `ca12d392e0a173b1dd7b87d85b95621166f4aca53860550808319b4b0c285c36`.
 
-Linux/Steam Deck remains unqualified; no Deck access or test is authorized by this
-release action. The release was published within its disclosed Windows
-scope. Preserve separate public/private source histories and the mod description.
+See its [publication receipt](release-0.3.0-publication.md) and
+[release notes](release-notes-0.3.0.md). Those Windows Steam/GOG claims belong to
+that binary, not automatically to 0.4.0. The live Workshop description is unchanged.
 
-The owner requested a new steward for early whole-stage XML reuse, direct image
-decoding and overlapping independent loading work. **On-demand loading is excluded**,
-not merely awaiting implementation. Progressive detail and the companion app remain
-out of scope. See the [fresh steward prompt](ecosystem-replacement/aggressive-loading-steward-prompt.md).
-No new implementation or performance run is started by this release preparation.
-Old overnight measurement and desktop-control grants have ended.
-
-Historical permissions and exact evidence remain in AGENTS.md, the execution ledger,
-campaign plan and qualification reports. Later owner decisions supersede dated notices.
+Keep the accepted `codex/compatibility-phase-1` checkout. Local main retains private
+history; origin/main and published tags retain separate public history. Never
+push private main, merge unrelated histories as cleanup, or infer publication
+permission from a prepared package. Follow the [release procedure](release.md).
+Earlier cleanup and stopped performance experiments remain documented in
+[history](history.md); they are failure context, not assignments.

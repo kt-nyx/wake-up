@@ -120,7 +120,7 @@ public sealed class AssetRouteCacheTests
         Assert.That(ReferenceEquals(mods[0].GetContentHolder<Texture2D>().Get(Path), source), Is.True);
         Content(mods[1]).Clear(); Content(mods[1])[Path] = source;
         Assert.That(ReferenceEquals(Routed(), source), Is.True);
-        var enumerate = AccessTools.Method(typeof(PngRuntime), "Enumerate");
+        var enumerate = AccessTools.Method(typeof(PngRuntime), "EnumerateCore");
         var iterator = enumerate.GetCustomAttribute<System.Runtime.CompilerServices.IteratorStateMachineAttribute>()!.StateMachineType;
         Assert.That(PatchProcessor.GetOriginalInstructions(AccessTools.Method(iterator, "MoveNext")).Any(i =>
             i.operand is MethodInfo m && m.DeclaringType == typeof(PreparedTextureRuntime) && m.Name == "TryResolve"), Is.True);
@@ -135,6 +135,17 @@ public sealed class AssetRouteCacheTests
         mods[2].GetContentHolder<Texture2D>().contentList = new Dictionary<string, Texture2D>();
         Routed();
         Assert.That(AssetRoutingRuntime.MutationStampsWork(), Is.True);
+    }
+    [Test]
+    public void ProviderReadinessAndUnsupportedComparisonRemainDistinct()
+    {
+        var holder = mods[0].GetContentHolder<Texture2D>();
+        holder.contentList = null!;
+        Assert.That(AssetRouteCache<Texture2D>.CanRoute(mods, out bool incompatible), Is.False);
+        Assert.That(incompatible, Is.False, "Not-yet-ready providers use ordinary fallback without a compatibility warning.");
+        holder.contentList = new Dictionary<string, Texture2D>(new CustomComparer());
+        Assert.That(AssetRouteCache<Texture2D>.CanRoute(mods, out incompatible), Is.False);
+        Assert.That(incompatible, Is.True, "Unsupported comparison is a real route-contract refusal.");
     }
     private sealed class CustomComparer : IEqualityComparer<string>
     { public bool Equals(string? x, string? y) => x == y; public int GetHashCode(string value) => value.GetHashCode(); }

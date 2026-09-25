@@ -18,6 +18,13 @@ internal static class RepaintCoalescer
     internal const string Owner = "wakeup.repaint-coalescing";
     private static string path = "";
     private static bool active;
+    internal static bool AllowsBackgroundCooperation(MethodBase target, Patch patch)
+        => target.DeclaringType?.Assembly == LoadingProgressCompatibility.FrameworkAssembly
+            && target.DeclaringType?.FullName == "ilyvion.LoadingProgress.LongEventHandler_UpdateCurrentEnumeratorEvent_Patches"
+            && target.Name == "ShouldStopEarly" && patch.owner == Owner
+            && patch.PatchMethod == AccessTools.Method(typeof(RepaintCoalescer), nameof(Coalesce))
+            && ImageSupplierPolicy.ExactPublication(target, patch.PatchMethod, Owner, false)
+            && LoaderSupplierPolicy.Patches(target).Count(p => p.owner == Owner) == 1;
     private static long suppressed, refused;
     private static PublishedPatchGuard? stopGuard, loopGuard, transpilerGuard;
     internal static void TryInitialize(string[] args)
@@ -29,12 +36,13 @@ internal static class RepaintCoalescer
             return;
         var choice = StartupLaunchSelector.Parse(args);
         if (!LoadedModManager.RunningModsListForReading.Any(m => m.PackageId == LoadingProgressCompatibility.PackageId))
-            return;
+        { CompatibilityStatus.Absent("repaint"); return; }
         if (choice.Selection != StartupSelection.Candidate)
             return;
         path = Path.Combine(choice.SaveDataRoot!, "WakeUp", "repaint-coalescing.jsonl");
         if (!RuntimeIdentity.ValidateBinaryIdentity(out string reason))
         {
+            CompatibilityStatus.Refuse("repaint", reason);
             JsonLineLog.WriteReceipt(path, "refused", reason);
             return;
         }
@@ -54,9 +62,10 @@ internal static class RepaintCoalescer
             harmony.Patch(stop, postfix: new HarmonyMethod(typeof(RepaintCoalescer), nameof(Coalesce)));
             harmony.Patch(AccessTools.Method(typeof(global::RimWorld.MainMenuDrawer), "MainMenuOnGUI"), postfix: new HarmonyMethod(typeof(RepaintCoalescer), nameof(Menu)));
             active = true;
+            CompatibilityStatus.Available("repaint");
             Write("{\"event\":\"installed\",\"nativeTimeBudgetUnchanged\":true}");
         }
-        catch (Exception e) { harmony.UnpatchAll(Owner); JsonLineLog.WriteReceipt(path, "refused", e.Message); }
+        catch (Exception e) { CompatibilityStatus.Refuse("repaint", e.Message); harmony.UnpatchAll(Owner); JsonLineLog.WriteReceipt(path, "refused", e.Message); }
     }
     private static void Coalesce(ref bool __result)
     {
@@ -64,6 +73,7 @@ internal static class RepaintCoalescer
             return;
         if (!stopGuard!.AllowsOriginalContract() || !loopGuard!.AllowsOriginalContract() || !transpilerGuard!.AllowsOriginalContract())
         {
+            CompatibilityStatus.Guard("repaint", false);
             refused++;
             return;
         }

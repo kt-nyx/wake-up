@@ -22,6 +22,7 @@ internal static class LoadingObservationRuntime
     private static readonly Dictionary<Assembly, string> packages = new();
     private static readonly Dictionary<string, string> modLabels = new(StringComparer.Ordinal);
     private static bool installed, selected, timings;
+    private static bool contentInstalled;
     private static string root = "";
     private static LoadingSession? current;
     [ThreadStatic] private static Stack<LoadingSession.Token?>? markers;
@@ -29,6 +30,7 @@ internal static class LoadingObservationRuntime
     [ThreadStatic] private static int markerOverflow;
     [ThreadStatic] private static string? package;
     [ThreadStatic] private static bool observing;
+    internal static bool IsRecording => selected && installed;
     internal static bool DisplaySelected { get; private set; }
     internal static string Status { get; private set; } = "Loading observation is off.";
     private static string invocationFailure = "";
@@ -40,9 +42,18 @@ internal static class LoadingObservationRuntime
 
     internal static void Configure(bool display, bool record, string saveRoot)
     {
-        if (display && LoadedModManager.RunningModsListForReading.Any(m => m.PackageId == LoadingProgressCompatibility.PackageId)) display = false;
-        root = saveRoot; selected = display || record; timings = record;
+        // This entry can precede WakeUpMod construction. Future supplier policy
+        // must also be resolved here before content observation is attached.
+        CompatibilityStatus.EnsureInitialized(saveRoot);
+        CompatibilityStatus.Declare("observation", "Native loading observation", display || record);
+        CompatibilityStatus.Declare("invocations", "Individual loading invocation observation", display || record);
+        CompatibilityStatus.Declare("report-storage", "Loading report storage", record);
+        LoaderSupplierPolicy.EnsureEarly();
+        bool progress = LoadedModManager.RunningModsListForReading.Any(m => m.PackageId == LoadingProgressCompatibility.PackageId);
+        root = saveRoot; selected = SelectObservation(display, record, progress); timings = record;
         if (!selected || installed) return;
+        CompatibilityStatus.Declare("observation/native", "Native execution markers and errors");
+        CompatibilityStatus.Declare("observation/content", "Content reload call observation");
         var harmony = new Harmony(Owner);
         try
         {
@@ -59,31 +70,75 @@ internal static class LoadingObservationRuntime
             harmony.Patch(AccessTools.Method(typeof(Log), "Error", new[] { typeof(string) }), prefix: Hook(nameof(ObserveError)));
             // This call may be suppressed by a supplier after it reloads content.
             // Its boundary includes hooks; nested execution markers carry costs.
-            harmony.Patch(AccessTools.Method(typeof(ModContentPack), "ReloadContentInt"),
-                prefix: Hook(nameof(BeforeContent)), finalizer: Hook(nameof(AfterNativeContent)));
+            if (!LoaderSupplierPolicy.ReserveContent) InstallContentObservation(harmony);
             foreach (Type factory in new[] { typeof(DirectXmlToObjectNew), typeof(DirectXmlLoader) })
                 harmony.Patch(AccessTools.Method(factory, factory == typeof(DirectXmlLoader) ? "DefFromNode" : "DefFromNodeNew"),
                     prefix: Hook(nameof(BeforeDef)), finalizer: Hook(nameof(AfterContent)));
             harmony.Patch(AccessTools.Method(typeof(LongEventHandler), "LongEventsUpdate"),
                 prefix: Hook(nameof(BeforeUpdate)), finalizer: Hook(nameof(AfterUpdate)));
             installed = true;
+            CompatibilityStatus.Available("observation");
+            CompatibilityStatus.Available("observation/native");
             RefreshPackages();
             StartSession("Startup");
+            if (LoaderSupplierPolicy.Frozen) ReconcileContentObservation();
             try { LoadingInvocationObservation.Install(); }
             catch (Exception error)
             {
+                CompatibilityStatus.Refuse("invocations", error.Message);
                 invocationFailure = "Individual invocation observation unavailable: " + error.GetBaseException().Message;
                 Current?.NoteUnobserved(invocationFailure);
             }
-            Current?.NoteUnobserved("Bootstrap, assembly discovery and core static constructors before the first Mod constructor are not observed. Every Mod constructor from the early boundary is included.");
-            Status = "Recording native loading execution. Work before the first mod constructor is unobserved.";
+            Current?.NoteUnobserved("Bootstrap, assembly discovery and core static constructors before the first Mod constructor are not observed. Early constructor coverage is reported separately in compatibility status.");
+            Status = "Recording native loading execution. Early constructor coverage is reported separately in compatibility status.";
         }
         catch (Exception error)
         {
             selected = false;
             try { harmony.UnpatchAll(Owner); } catch { }
+            CompatibilityStatus.Refuse("observation", error.Message);
+            CompatibilityStatus.Refuse("invocations", "Shared loading observation is unavailable.");
+            CompatibilityStatus.Refuse("report-storage", "Shared loading observation is unavailable.");
             Status = "Loading observation unavailable: " + error.Message + ". Ordinary loading continues.";
         }
+    }
+
+    internal static bool SelectObservation(bool display, bool record, bool loadingProgress)
+    {
+        if (!loadingProgress || record || !display) return display || record;
+        CompatibilityStatus.Refuse("observation", "Loading Progress owns the display and loading reports are not selected.", "display-dependency", "Loading Progress");
+        CompatibilityStatus.Refuse("invocations", "No active display or report requires invocation observation.", "display-dependency", "Loading Progress");
+        return false;
+    }
+
+    private static void InstallContentObservation(Harmony harmony)
+    {
+        harmony.Patch(AccessTools.Method(typeof(ModContentPack), "ReloadContentInt"),
+            prefix: Hook(nameof(BeforeContent)), finalizer: Hook(nameof(AfterNativeContent)));
+        contentInstalled = true;
+        CompatibilityStatus.Available("observation/content");
+    }
+    internal static void ReconcileContentObservation()
+    {
+        if (!installed) return;
+        try
+        {
+            var harmony = new Harmony(Owner);
+            if (LoaderSupplierPolicy.YieldContent)
+            {
+                if (contentInstalled)
+                {
+                    var target = AccessTools.Method(typeof(ModContentPack), "ReloadContentInt");
+                    harmony.Unpatch(target, AccessTools.Method(typeof(LoadingObservationRuntime), nameof(BeforeContent)));
+                    harmony.Unpatch(target, AccessTools.Method(typeof(LoadingObservationRuntime), nameof(AfterNativeContent)));
+                    contentInstalled = false;
+                }
+                LoaderSupplierPolicy.RefuseContent("observation/content");
+                Current?.NoteUnobserved("Content reload call boundaries are omitted for WOWGAG; execution markers elsewhere remain recorded.");
+            }
+            else if (!contentInstalled) InstallContentObservation(harmony);
+        }
+        catch (Exception error) { CompatibilityStatus.Refuse("observation/content", error.Message, "observation-setup"); }
     }
 
     internal static void Attach(string[] args)
@@ -163,7 +218,7 @@ internal static class LoadingObservationRuntime
         if (timings)
         {
             try { SaveReport(ended); }
-            catch (Exception error) { Status += " Report remains in memory; save failed: " + error.GetType().Name; }
+            catch (Exception error) { CompatibilityStatus.Refuse("report-storage", "Report save failed: " + error.GetType().Name, "storage-unavailable"); Status += " Report remains in memory; save failed: " + error.GetType().Name; }
         }
     }
     internal static string SaveReport(LoadingSession session)
@@ -184,6 +239,7 @@ internal static class LoadingObservationRuntime
             if (size <= 128L * 1024 * 1024 || old.FullName == path) break;
             size -= old.Length; old.Delete();
         }
+        CompatibilityStatus.Available("report-storage", "The loading report was saved.");
         return path;
     }
 

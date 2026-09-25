@@ -178,7 +178,7 @@ def verify_reused_build(build_revision, revision):
     require(bool(re.fullmatch(r"[0-9a-f]{40}", build_revision or "")), "Invalid build source revision")
     git("merge-base", "--is-ancestor", build_revision, revision)
     changed = git("diff", "--name-only", "--no-renames", "-z", build_revision, revision).decode().split("\0")
-    packaging = {"AGENTS.md", "release/product.json", "scripts/package_release.py", "tests/test_package_release.py", "tests/test_fixture.py"}
+    packaging = {"README.md", "AGENTS.md", "release/product.json", "scripts/package_release.py", "tests/test_package_release.py", "tests/test_fixture.py"}
     for name in filter(None, changed):
         if name == "release/About.xml":
             # Qualification prose does not alter the tested runtime. Keep the

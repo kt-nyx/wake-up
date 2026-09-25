@@ -175,6 +175,7 @@ internal static class CharacterPresetRuntime
             }
             if (!CharacterPresetPatchSnapshot.TryCapture(guardedMethods, Owner, out CharacterPresetPatchSnapshot? patches))
             {
+                CompatibilityStatus.Guard("character", false);
                 __state.Reason = "foreign-preset-chain-patch";
                 return;
             }
@@ -189,7 +190,7 @@ internal static class CharacterPresetRuntime
                 return;
             }
             __state.Scope = new CharacterPresetLookupScope(originalDictionary!, () =>
-                patches!.Unchanged() && ReferenceEquals(definitions, DefDatabase<ThingDef>.AllDefsListForReading)
+                CompatibilityStatus.Guard("character", patches!.Unchanged()) && ReferenceEquals(definitions, DefDatabase<ThingDef>.AllDefsListForReading)
                 && Equals(version.GetValue(definitions), initialVersion));
             currentScope = __state.Scope;
             __state.Reason = "scoped-original-turret-dictionary";
@@ -257,5 +258,8 @@ internal static class CharacterPresetRuntime
     }
 
     private static void Receipt(string kind, string reason, string? fields = null)
-        => JsonLineLog.WriteReceipt(evidencePath, kind, reason, fields);
+    {
+        CompatibilityStatus.Receipt("character", kind, reason);
+        JsonLineLog.WriteReceipt(evidencePath, kind, reason, fields);
+    }
 }

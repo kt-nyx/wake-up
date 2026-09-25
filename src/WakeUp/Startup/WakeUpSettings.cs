@@ -13,6 +13,8 @@ public sealed class WakeUpSettings : ModSettings
     public bool TranslationApplication;
     public bool ParsedLanguage;
     public bool AssetRouting;
+    public string XmlProvider = "Automatic";
+    public string ContentProvider = "Automatic";
     public bool DeferredAudio;
     public bool StreamingXml;
     public bool ParsedXml;
@@ -28,6 +30,7 @@ public sealed class WakeUpSettings : ModSettings
     public bool LoadingDisplay;
     public bool LoadingDisplayDiagnostics;
     public bool HideLoadingSummary;
+    public bool HideSummaryWithNoModlist;
     public bool LoadingTimings;
     public bool GiddyTextures = true;
     public bool PngCache;
@@ -49,6 +52,8 @@ public sealed class WakeUpSettings : ModSettings
         Scribe_Values.Look(ref TranslationApplication, "translationApplication", false);
         Scribe_Values.Look(ref ParsedLanguage, "parsedLanguage", false);
         Scribe_Values.Look(ref AssetRouting, "assetRouting", false);
+        Scribe_Values.Look(ref XmlProvider, "xmlProvider", "Automatic");
+        Scribe_Values.Look(ref ContentProvider, "contentProvider", "Automatic");
         Scribe_Values.Look(ref DeferredAudio, "deferredAudio", false);
         Scribe_Values.Look(ref StreamingXml, "streamingXml", false);
         Scribe_Values.Look(ref ParsedXml, "parsedXml", false);
@@ -65,6 +70,7 @@ public sealed class WakeUpSettings : ModSettings
         Scribe_Values.Look(ref LoadingDisplay, "loadingDisplay", false);
         Scribe_Values.Look(ref LoadingDisplayDiagnostics, "loadingDisplayDiagnostics", false);
         Scribe_Values.Look(ref HideLoadingSummary, "hideLoadingSummary", false);
+        Scribe_Values.Look(ref HideSummaryWithNoModlist, "hideSummaryWithNoModlist", false);
         Scribe_Values.Look(ref LoadingTimings, "loadingTimings", false);
         Scribe_Values.Look(ref GiddyTextures, "giddyTextures", true);
         Scribe_Values.Look(ref PngCache, "pngCache", false);

@@ -58,6 +58,7 @@ public sealed class C14BackgroundProbe : MonoBehaviour
     private MapParent? destination;
     private Pawn? traveller;
     private bool cancelledRenderer;
+    private bool deferredFaultRan, deferredTailRan, deferredRetryQueued;
     private bool nativeSynchronous;
     private AncientHatch? nativePortal;
     private bool portalErrorObserved;
@@ -192,7 +193,7 @@ public sealed class C14BackgroundProbe : MonoBehaviour
 
     private void Configure()
     {
-        operation = new[] { "world-render-cancel", "world-render", "refused-save", "save-hold", "portal-error", "portal-job", "standalone", "encounter", "autostart", "portal", "settle", "pocket", "colony", "world", "camp", "save" }
+        operation = new[] { "world-render-cancel", "world-render", "refused-save", "save-recovery", "save-hold", "portal-error", "portal-job", "standalone", "encounter", "autostart", "portal", "settle", "pocket", "colony", "world", "camp", "save" }
             .FirstOrDefault(name => requestedPhase.StartsWith(name + "-", StringComparison.Ordinal)) ?? "";
         if (operation.Length == 0) throw new ArgumentException("Unknown C14 operation.");
         string[] pieces = requestedPhase.Substring(operation.Length + 1).Split('-');
@@ -254,7 +255,7 @@ public sealed class C14BackgroundProbe : MonoBehaviour
             return;
         }
         Prefs.PauseOnLoad = pauseOnLoad;
-        if (operation != "save" && operation != "save-hold" && operation != "refused-save" && operation != "world" && operation != "colony")
+        if (operation != "save" && operation != "save-recovery" && operation != "save-hold" && operation != "refused-save" && operation != "world" && operation != "colony")
         {
             // This load only supplies a real native colony/world. Endpoint
             // observations begin after it has completed and setup is paused.
@@ -266,7 +267,7 @@ public sealed class C14BackgroundProbe : MonoBehaviour
             GameDataSaveLoader.LoadGame(SaveName);
             return;
         }
-        if (operation == "save" || operation == "save-hold" || operation == "refused-save")
+        if (operation == "save" || operation == "save-recovery" || operation == "save-hold" || operation == "refused-save")
         {
             var xml = new XmlDocument();
             xml.Load(GenFilePaths.FilePathForSavedGame(SaveName));
@@ -275,6 +276,12 @@ public sealed class C14BackgroundProbe : MonoBehaviour
             savedTick = int.Parse(ticks.InnerText, CultureInfo.InvariantCulture);
             if (operation == "refused-save") InstallForeignSaveControl();
             BeginOperation(() => GameDataSaveLoader.LoadGame(SaveName));
+            if (operation == "save-recovery")
+            {
+                LongEventHandler.ExecuteWhenFinished(() => { deferredFaultRan = true; throw new InvalidOperationException("Expected private fixture deferred callback failure"); });
+                LongEventHandler.ExecuteWhenFinished(() => deferredTailRan = true);
+                Receipt("native-deferred-error-and-following-action-queued");
+            }
             if (operation == "refused-save") VerifyForeignSaveRefusal();
             return;
         }
@@ -380,6 +387,21 @@ public sealed class C14BackgroundProbe : MonoBehaviour
                 throw new InvalidOperationException("Completion did not restore the current actual preference.");
             if (Prefs.PauseOnLoad != pauseOnLoad)
                 throw new InvalidOperationException("Loading changed native PauseOnLoad preference.");
+            if (operation == "save-recovery")
+            {
+                bool executing = (bool)AccessTools.Field(typeof(LongEventHandler), "executingToExecuteWhenFinished").GetValue(null);
+                var pending = (System.Collections.ICollection)AccessTools.Field(typeof(LongEventHandler), "toExecuteWhenFinished").GetValue(null);
+                if (!deferredFaultRan || !deferredTailRan || executing || pending.Count != 0)
+                    throw new InvalidOperationException("Native deferred callback error did not drain and clear its execution state.");
+                if (!deferredRetryQueued)
+                {
+                    deferredRetryQueued = true;
+                    Receipt("native-deferred-error-cleaned-before-real-save-retry");
+                    BeginOperation(() => GameDataSaveLoader.LoadGame(SaveName));
+                    return;
+                }
+                Receipt("real-save-retry-completed-after-native-deferred-error");
+            }
             if (operation == "world") RequireWorldCompletion();
             else if (sourceMap != null) RequireMapOperationCompletion();
             else
@@ -403,6 +425,7 @@ public sealed class C14BackgroundProbe : MonoBehaviour
                 + ",\"completionTick\":" + Tick + ",\"earlyUpdateTick\":" + earlyTick + ",\"earlyUpdateFrame\":" + earlyFrame
                 + ",\"startFrame\":" + startFrame + ",\"completionFrame\":" + Time.frameCount + ",\"loadingFrames\":" + runningFrames
                 + ",\"nativeSynchronousCall\":" + Bool(nativeSynchronous) + ",\"nativeWorldCancelledAndRepeated\":" + Bool(cancelledRenderer)
+                + ",\"nativeDeferredErrorCleanupAndRetry\":" + Bool(operation == "save-recovery" && deferredFaultRan && deferredTailRan && deferredRetryQueued)
                 + ",\"nativeInitialAutostartObserved\":" + Bool(operation == "autostart")
                 + ",\"nativePortalObserved\":" + Bool(nativePortal != null) + ",\"malformedPortalDefinitionFaultInjected\":" + Bool(portalErrorObserved)
                 + ",\"portalErrorOwnerCleared\":" + Bool(portalErrorOwnerCleared) + ",\"portalRepeatReturnedSameMap\":" + Bool(portalRepeatMatched)

@@ -47,7 +47,7 @@ class ReleaseTests(unittest.TestCase):
 
     def test_reused_build_requires_ancestry_and_rejects_changed_build_inputs(self):
         revision = "a" * 40
-        with mock.patch.object(p, "git", side_effect=[b"", b"docs/current-state.md\0release/product.json\0scripts/package_release.py\0"]):
+        with mock.patch.object(p, "git", side_effect=[b"", b"README.md\0docs/current-state.md\0release/product.json\0scripts/package_release.py\0"]):
             p.verify_reused_build(revision, "b" * 40)
         for name in ["src/WakeUp/Runtime.cs", "Directory.Build.props", "build/Verify-LocalReferences.ps1",
                      "third-party/StbImageSharp-PSD.md", "validation/menu-observer/MenuObserver.csproj"]:

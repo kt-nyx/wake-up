@@ -41,6 +41,9 @@ internal static class GagarinCacheRuntime
         if (!new[] { "timing", "on", "verify" }.Contains(mode)
             || selection.Selection != StartupSelection.Candidate || !arguments.Contains("--wake-up-strategy=startup-searches"))
             return;
+        if (!LoadedModManager.RunningModsListForReading.Any(m => m.PackageId == "vr.missilegirl"))
+        { CompatibilityStatus.Absent("gagarin"); return; }
+        if (LoaderSupplierPolicy.YieldXml) { LoaderSupplierPolicy.RefuseXml("gagarin"); return; }
         path = Path.Combine(selection.SaveDataRoot!, "WakeUp", "gagarin-cache.jsonl");
         try
         {
@@ -53,8 +56,11 @@ internal static class GagarinCacheRuntime
             harmony.Patch(AccessTools.Method(typeof(LoadedModManager), "CombineIntoUnifiedXML"),
                 prefix: new HarmonyMethod(typeof(GagarinCacheRuntime), nameof(StageBegin)) { priority = Priority.First },
                 finalizer: new HarmonyMethod(typeof(GagarinCacheRuntime), nameof(StageEnd)) { priority = Priority.Last });
+            // A newly added prefix cannot join the currently executing wrapper.
+            // At this fallback boundary every Mod constructor has completed.
+            if (LoaderSupplierPolicy.InsideXmlFallback) InstallLate();
         }
-        catch (Exception e) { new Harmony(Owner).UnpatchAll(Owner); Write("refused", "\"reason\":" + Quote(e.Message)); }
+        catch (Exception e) { CompatibilityStatus.Receipt("gagarin", "refused", e.Message); new Harmony(Owner).UnpatchAll(Owner); Write("refused", "\"reason\":" + Quote(e.Message)); }
     }
 
     private static void InstallLate()
@@ -89,9 +95,10 @@ internal static class GagarinCacheRuntime
                 finalizer: new HarmonyMethod(typeof(GagarinCacheRuntime), nameof(LoadEnd)) { priority = Priority.Last });
             harmony.Patch(AssetConstructor, transpiler: new HarmonyMethod(typeof(GagarinCacheRuntime), nameof(RewriteConstructor)));
             harmony.Patch(assetPostfix, transpiler: new HarmonyMethod(typeof(GagarinCacheRuntime), nameof(RewriteOuterXml)));
+            CompatibilityStatus.Available("gagarin");
             Write("installed", "\"mode\":" + Quote(mode) + ",\"installationMs\":" + Ms(start));
         }
-        catch (Exception e) { new Harmony(Owner).UnpatchAll(Owner); Write("refused", "\"reason\":" + Quote(e.ToString()) + ",\"installationMs\":" + Ms(start)); }
+        catch (Exception e) { CompatibilityStatus.Receipt("gagarin", "refused", e.Message); new Harmony(Owner).UnpatchAll(Owner); Write("refused", "\"reason\":" + Quote(e.ToString()) + ",\"installationMs\":" + Ms(start)); }
     }
 
     private static ConstructorInfo AssetConstructor => AccessTools.Constructor(typeof(LoadableXmlAsset), new[] { typeof(FileInfo), typeof(ModContentPack) });
@@ -134,7 +141,7 @@ internal static class GagarinCacheRuntime
         try
         {
             __state.Admitted = (mode == "on" || mode == "verify") && __state.Parent == null && !PlayDataLoader.Loaded
-                && SafeHooks() && usingCache() && !loadingMods() && !loadingPatches();
+                && CompatibilityStatus.Guard("gagarin", SafeHooks()) && usingCache() && !loadingMods() && !loadingPatches();
         }
         catch { __state.Admitted = false; }
         __state.AdmissionTicks = Stopwatch.GetTimestamp() - __state.Start;

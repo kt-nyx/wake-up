@@ -35,9 +35,10 @@ internal static partial class BackgroundLoadingRuntime
             var checks = new List<PublishedPatchGuard>();
             foreach (var target in BackgroundLoadingMapContract.Targets)
             {
-                if (!PublishedPatchGuard.TryCreate(target, MapOwner, out var guard, allPatchKinds: true)
+                if (!PublishedPatchGuard.TryCreate(target, MapOwner, out var guard, allPatchKinds: true,
+                    allowedForeignPatch: patch => LifecycleSupplierPolicy.AllowsThemeObserver(target, patch) || LoadingProgressBackgroundPolicy.Allows(target, patch, map: true))
                     || !guard!.AllowsOriginalContract())
-                    throw new InvalidOperationException("Another mod changes a required native map-loading operation.");
+                    throw LifecycleSupplierPolicy.BackgroundConflict(target);
                 checks.Add(guard);
             }
             mapGuards = checks.ToArray();
@@ -47,27 +48,32 @@ internal static partial class BackgroundLoadingRuntime
             harmony.Patch(BackgroundLoadingMapContract.Portal, prefix: Hook(nameof(BeforePortal)), finalizer: Hook(nameof(AfterPortal)));
             mapInstalled = true;
             MapStatus = "Native settlement, camp and encounter map queues and world-map rendering can finish while unfocused. "
-                + "Direct synchronous map/pocket generation remains native. Unknown mod-created queues are not covered.";
+                + "Direct synchronous map/pocket generation remains native. Unknown mod-created queues are not covered."; CompatibilityStatus.Available("background-map");
         }
         catch (Exception error)
         {
             mapInstalled = false;
             try { harmony.UnpatchAll(MapOwner); } catch { }
-            MapStatus = "Background map loading is unavailable; native loading remains: " + error.Message;
+            MapStatus = "Background map loading is unavailable; native loading remains: " + error.Message; LifecycleSupplierPolicy.Refuse("background-map", MapStatus, error);
         }
     }
     internal static bool CheckMapOwnership()
     {
         if (!mapInstalled) return false;
-        if (mapGuards.All(guard => guard.AllowsOriginalContract())) return true;
+        bool loadingProgress = LoadingProgressBackgroundPolicy.Unchanged(Session.Active, map: true);
+        var changed = mapGuards.FirstOrDefault(guard => !guard.AllowsOriginalContract());
+        if (changed == null && LifecycleSupplierPolicy.ThemeCallbacksUnchanged(map: true) && loadingProgress) return true;
         mapInstalled = false;
-        MapStatus = "Background map loading stopped because another mod changed its native loading operations.";
+        Exception conflict = !loadingProgress ? LoadingProgressBackgroundPolicy.Conflict()
+            : changed != null ? LifecycleSupplierPolicy.BackgroundConflict(changed.Target)
+            : LifecycleSupplierPolicy.ThemeBackgroundConflict();
+        MapStatus = "Background map loading stopped: " + conflict.Message; LifecycleSupplierPolicy.Refuse("background-map", MapStatus, conflict);
         if (MainThread()) Session.ReleaseOwner(MapOwner);
         return false;
     }
     private static BackgroundLoadingSession.Lease? BeginMap()
     {
-        if (!MainThread() || !Loaded() || !CheckOwnership() || !CheckMapOwnership()) return null;
+        if (!MainThread() || !Loaded() || !CheckOwnership() || !CheckMapOwnership() || !LoadingProgressBackgroundPolicy.CanAcquire()) return null;
         if (!Session.Active && LongEventHandler.AnyEventNowOrWaiting) return null;
         return Session.Begin(waitForPlay: false, owner: MapOwner);
     }

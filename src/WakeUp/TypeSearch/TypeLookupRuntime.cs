@@ -86,11 +86,6 @@ internal static class TypeLookupRuntime
             installed = true;
             Receipt("installed", candidate ? "ordered-fallback-index" : "original-fallback-timing",
                 "\"optimizationEnabled\":" + (candidate ? "true" : "false"));
-            if (candidate)
-            {
-                LeafSubclassRuntime.Initialize();
-                LoadingReflectionRuntime.Initialize();
-            }
         }
         catch (Exception exception)
         {
@@ -125,7 +120,7 @@ internal static class TypeLookupRuntime
         List<CodeInstruction> code = instructions.Select(i => new CodeInstruction(i)).ToList();
         if (Harmony.GetPatchInfo(Target)?.Transpilers.Any(p => p.owner != Owner) == true
             || !InstructionComparison.SameInstructions(code, PatchProcessor.GetOriginalInstructions(Target)))
-            return code;
+        { CompatibilityStatus.Guard("type-name", false); return code; }
         int[] matches = Enumerable.Range(0, Math.Max(0, code.Count - 1)).Where(i =>
             code[i].opcode == OpCodes.Call && Equals(code[i].operand, AccessTools.Method(typeof(AccessTools), nameof(AccessTools.AllTypes)))
             && code[i + 1].opcode == OpCodes.Call && code[i + 1].operand is MethodInfo method
@@ -151,6 +146,7 @@ internal static class TypeLookupRuntime
         // Never inspect patch records while holding our snapshot Gate.
         if (!CompatiblePatches())
         {
+            CompatibilityStatus.Guard("type-name", false);
             ForgetSnapshot();
             return OriginalTypes();
         }
@@ -189,8 +185,7 @@ internal static class TypeLookupRuntime
         }
         catch { Interlocked.Increment(ref refusals); }
         bool stillCompatible = CompatiblePatches();
-        if (!stillCompatible)
-            ForgetSnapshot();
+        if (!stillCompatible) { CompatibilityStatus.Guard("type-name", false); ForgetSnapshot(); }
         if (answer != null && stillCompatible)
         {
             Interlocked.Increment(ref lookups);
@@ -273,11 +268,9 @@ internal static class TypeLookupRuntime
             return;
         if (Interlocked.Exchange(ref finished, 1) != 0)
             return;
-        LeafSubclassRuntime.CompleteStartup();
         AppDomain.CurrentDomain.AssemblyLoad -= AssemblyLoaded;
         lock (Gate)
             snapshot = null;
-        LoadingReflectionRuntime.Complete();
         Receipt("startup-complete", "constructor-to-menu-ready", "\"calls\":" + calls + ",\"misses\":" + misses + ",\"errors\":" + errors
             + ",\"milliseconds\":" + (ticks * 1000d / Stopwatch.Frequency).ToString("F3", System.Globalization.CultureInfo.InvariantCulture)
             + ",\"fallbackCalls\":" + fallbackCalls + ",\"indexLookups\":" + lookups + ",\"indexBuilds\":" + builds
@@ -288,7 +281,12 @@ internal static class TypeLookupRuntime
     }
 
     private static void Receipt(string kind, string reason, string? fields = null)
-        => JsonLineLog.WriteReceipt(evidencePath, kind, reason, fields);
+    {
+        if (kind == "refused") CompatibilityStatus.Refuse("type-name", reason, "required-contract",
+            LoaderSupplierPolicy.ProviderFor(Target, AccessTools.Method(typeof(AccessTools), nameof(AccessTools.AllTypes))));
+        else CompatibilityStatus.Receipt("type-name", kind, reason);
+        JsonLineLog.WriteReceipt(evidencePath, kind, reason, fields);
+    }
 
     private sealed class LookupSegment
     {

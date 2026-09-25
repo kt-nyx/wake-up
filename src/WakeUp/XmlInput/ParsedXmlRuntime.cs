@@ -133,6 +133,7 @@ public static class ParsedXmlRuntime
 
     public static List<LoadableXmlAsset> LoadSources(bool hotReload)
     {
+        LoaderSupplierPolicy.BeforeXml();
         EarlyLoadingObservation.Finish();
         prepared.Clear(); restoredAssets.Clear(); destination = null; fusionValid = false;
         // Optional supplier discovery runs in native LoadModXML prefixes. Its

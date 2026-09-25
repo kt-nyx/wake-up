@@ -44,7 +44,8 @@ public sealed class DefLookupQueryExtensionTests
             Assert.That(guards, Is.Empty);
             Assert.That(activeField.GetValue(null), Is.Null);
             if (hookTiming == 0) Hook();
-            bool memoInstalled = (bool)AccessTools.Method(typeof(DefLookupRuntime), "InstallSingleMemo").Invoke(null, new object[] { harmony })!;
+            bool memoInstalled = (bool)AccessTools.Method(typeof(DefLookupRuntime), "PrepareQueryGuards").Invoke(null, null)!
+                && (bool)AccessTools.Method(typeof(DefLookupRuntime), "InstallSingleMemo").Invoke(null, new object[] { harmony })!;
             if (hookTiming == 3) Hook();
             bool planInstalled = XPathPlanRuntime.Install(harmony);
             Assert.That(memoInstalled, Is.EqualTo(hookTiming != 0));
@@ -104,7 +105,8 @@ public sealed class DefLookupQueryExtensionTests
         FieldInfo lookupField = AccessTools.Field(typeof(DefLookupRuntime), "active");
         try
         {
-            bool installed = (bool)AccessTools.Method(typeof(DefLookupRuntime), "InstallSingleMemo").Invoke(null, new object[] { harmony })!;
+            bool installed = (bool)AccessTools.Method(typeof(DefLookupRuntime), "PrepareQueryGuards").Invoke(null, null)!
+                && (bool)AccessTools.Method(typeof(DefLookupRuntime), "InstallSingleMemo").Invoke(null, new object[] { harmony })!;
             Assert.That(installed, Is.True);
             activeField.SetValue(null, memo);
             if (indexed) lookupField.SetValue(null, lookup);

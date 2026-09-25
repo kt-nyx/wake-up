@@ -13,6 +13,8 @@ namespace WakeUp;
 public static class EarlyLoadingObservation
 {
     private static bool initialized;
+    internal static bool BoundaryReached { get; private set; }
+    internal static bool CoverageStarted { get; private set; }
     internal static string Report { get; private set; } = "Early loading observation was not selected.";
 
     public static void ExecuteDeferredAction(Action action)
@@ -23,7 +25,10 @@ public static class EarlyLoadingObservation
 
     public static object CreateMod(Type type, object[] arguments)
     {
+        bool first = !BoundaryReached;
+        BoundaryReached = true;
         Initialize();
+        if (first) CoverageStarted = LoadingObservationRuntime.IsRecording;
         LoadingSession.Token? token = null;
         try { token = LoadingObservationRuntime.Begin("Mod constructors", type.FullName ?? type.Name,
             (arguments.FirstOrDefault() as ModContentPack)?.PackageId ?? "shared/unknown"); } catch { }
@@ -37,6 +42,7 @@ public static class EarlyLoadingObservation
     {
         if (initialized) return;
         initialized = true;
+        LoaderSupplierPolicy.EnsureEarly();
         try
         {
             string[] args = Environment.GetCommandLineArgs();

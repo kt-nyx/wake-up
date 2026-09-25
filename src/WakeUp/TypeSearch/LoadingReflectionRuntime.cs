@@ -68,6 +68,8 @@ internal static class LoadingReflectionRuntime
         AccessTools.Method(typeof(LoadedLanguage), "InjectIntoData_BeforeImpliedDefs"),
         AccessTools.Method(typeof(LoadedLanguage), "InjectIntoData_AfterImpliedDefs") }).ToArray();
 
+    internal static string OperationId(MethodBase method) => "reflection/" + method.DeclaringType!.FullName + "." + method.Name
+        + "(" + string.Join(",", method.GetParameters().Select(p => p.ParameterType.FullName ?? p.ParameterType.Name)) + ")";
     internal static void Initialize()
     {
         if (installed) return;
@@ -79,8 +81,11 @@ internal static class LoadingReflectionRuntime
             guards.Clear();
             for (int i = 0; i < methods.Length; i++)
             {
+                string operation = OperationId(methods[i]);
+                CompatibilityStatus.Declare(operation, "Member lookup: " + methods[i].DeclaringType!.Name + "." + methods[i].Name);
                 if (!SemanticMethodIdentity.TryHash(methods[i], out string body, out _) || body != ExpectedBodies[i])
                 {
+                    CompatibilityStatus.Refuse(operation, "The required member-lookup consumer changed or has another patch owner.");
                     TypeLookupRuntime.LeafReceipt("reflection-consumer-refused", "changed-native-" + methods[i].DeclaringType!.Name + "." + methods[i].Name);
                     continue;
                 }
@@ -88,10 +93,12 @@ internal static class LoadingReflectionRuntime
                         allowedForeignPatch: IsKnownTranslationPatch)
                     || !check!.AllowsOriginalContract())
                 {
+                    CompatibilityStatus.Refuse(operation, "The required member-lookup consumer changed or has another patch owner.");
                     TypeLookupRuntime.LeafReceipt("reflection-consumer-refused", "foreign-contract-" + methods[i].DeclaringType!.Name + "." + methods[i].Name);
                     continue;
                 }
                 guards.Add(methods[i], check);
+                CompatibilityStatus.Available(operation);
             }
             int patched = 0;
             foreach (MethodBase method in ConsumerMethods())
@@ -114,16 +121,22 @@ internal static class LoadingReflectionRuntime
                 harmony.Patch(method, prefix: new HarmonyMethod(typeof(LoadingReflectionRuntime), nameof(BeginLanguage)),
                     finalizer: new HarmonyMethod(typeof(LoadingReflectionRuntime), nameof(EndLanguage)));
             }
-            if (patched == 0) throw new InvalidOperationException("no-supported-reflection-consumers");
+            if (patched == 0 && !guards.ContainsKey(attributeScope)) throw new InvalidOperationException("no-supported-reflection-consumers");
             AppDomain.CurrentDomain.AssemblyLoad += AssemblyLoaded;
             startup = new LoadingReflectionIndex();
             installed = true;
+            if (patched > 0) CompatibilityStatus.Available("reflection");
+            else CompatibilityStatus.Refuse("reflection", "No supported member lookup consumers; attribute-only scope remains available.");
+            CompatibilityStatus.Registry?.SummarizeChildren("reflection");
             LoadingAttributeRuntime.Initialize();
             TypeLookupRuntime.LeafReceipt("reflection-installed", "loading-consumer-metadata-only", "\"supportedConsumers\":" + patched);
         }
         catch (Exception exception)
         {
             installed = false;
+            CompatibilityStatus.Registry?.RefuseChildren("reflection", "Shared reflection setup failed: " + exception.Message);
+            CompatibilityStatus.Refuse("reflection", exception.Message);
+            CompatibilityStatus.Refuse("attributes", "The shared reflection scope is unavailable.");
             try { harmony.UnpatchAll(Owner); } catch { }
             AppDomain.CurrentDomain.AssemblyLoad -= AssemblyLoaded;
             TypeLookupRuntime.LeafReceipt("reflection-refused", exception.Message);
@@ -131,9 +144,14 @@ internal static class LoadingReflectionRuntime
     }
 
     private static void AssemblyLoaded(object sender, AssemblyLoadEventArgs args) => Interlocked.Increment(ref generation);
-    private static bool Selected => installed && TypeLookupRuntime.CandidateSelected;
-    private static LoadingReflectionIndex? Current => Selected && consumer?.AllowsOriginalContract() == true
-        ? (TypeLookupRuntime.ActiveCandidate ? startup : language) : null;
+    private static bool Selected => installed && TypeSearchLifetime.Selected;
+    private static LoadingReflectionIndex? Current => Selected && consumer != null && ConsumerAllowed(consumer)
+        ? (TypeSearchLifetime.Active ? startup : language) : null;
+    private static bool ConsumerAllowed(PublishedPatchGuard guard)
+    {
+        if (guard.AllowsOriginalContract()) return true;
+        return CompatibilityStatus.Guard(OperationId(guard.Target), false);
+    }
     internal static LoadingReflectionIndex? AttributeIndex => Current;
     internal static int Generation => Volatile.Read(ref generation);
 
@@ -141,15 +159,16 @@ internal static class LoadingReflectionRuntime
     {
         __state = consumer;
         guards.TryGetValue(__originalMethod, out consumer);
+        if (consumer != null) ConsumerAllowed(consumer);
     }
 
     internal static void EndConsumer(PublishedPatchGuard? __state) => consumer = __state;
 
     internal static void BeginLanguage(MethodBase __originalMethod, out bool __state)
     {
-        __state = Selected && guards.TryGetValue(__originalMethod, out PublishedPatchGuard? guard) && guard.AllowsOriginalContract();
+        __state = Selected && guards.TryGetValue(__originalMethod, out PublishedPatchGuard? guard) && ConsumerAllowed(guard);
         if (!__state) return;
-        if (languageDepth++ == 0 && !TypeLookupRuntime.ActiveCandidate) language = new LoadingReflectionIndex();
+        if (languageDepth++ == 0 && !TypeSearchLifetime.Active) language = new LoadingReflectionIndex();
     }
 
     internal static void EndLanguage(bool __state)
@@ -183,12 +202,12 @@ internal static class LoadingReflectionRuntime
     {
         List<CodeInstruction> code = instructions.Select(i => new CodeInstruction(i)).ToList();
         if (Harmony.GetPatchInfo(__originalMethod)?.Transpilers.Any(p => p.owner != Owner && !IsKnownTranslationPatch(p)) == true)
-            return code;
+        { CompatibilityStatus.Guard(OperationId(__originalMethod), false); return code; }
         List<CodeInstruction> native = PatchProcessor.GetOriginalInstructions(__originalMethod).ToList();
         bool unchanged = InstructionComparison.SameInstructions(code, native);
         if (!unchanged && __originalMethod.DeclaringType == typeof(DefInjectionPackage) && __originalMethod.Name == "SetDefFieldAtPath")
             unchanged = InstructionComparison.SameInstructions(code, TranslationRuntime.DuplicateTranspiler(native).ToList());
-        if (!unchanged) return code;
+        if (!unchanged) { CompatibilityStatus.Guard(OperationId(__originalMethod), false); return code; }
         int changed = 0;
         foreach (CodeInstruction instruction in code)
         {

@@ -26,12 +26,36 @@ public static class AssetRoutingPrepatch
         {
             MethodDefinition? method = FindGet(module);
             var bundle = module.GetType("Verse.ContentFinder`1")?.Methods.SingleOrDefault(m => m.Name == "TryFindAssetInModBundles");
-            if (method == null || bundle == null || Fingerprint(method) != NativeBody || Fingerprint(bundle) != NativeBundleBody) return false;
-            Inject(module, method);
-            InjectBundle(module, bundle);
-            return true;
+            // Each bridge has its own native contract. A supplier may have
+            // already wrapped Get while still calling the native bundle path.
+            bool changed = TryInject(module, method, NativeBody, Inject);
+            return TryInject(module, bundle, NativeBundleBody, InjectBundle) || changed;
         }
         catch (Exception) { return false; }
+    }
+
+    internal static bool TryInject(ModuleDefinition module, MethodDefinition? method, string expected,
+        Action<ModuleDefinition, MethodDefinition> inject)
+    {
+        if (method?.HasBody != true || Fingerprint(method) != expected) return false;
+        var body = method.Body;
+        var instructions = body.Instructions.ToArray();
+        var variables = body.Variables.ToArray();
+        var references = module.AssemblyReferences.ToArray();
+        bool locals = body.InitLocals;
+        int stack = body.MaxStackSize;
+        try { inject(module, method); return true; }
+        catch
+        {
+            // These injectors only prepend instructions/add a local/reference.
+            // Restore this attempt, including metadata, before reporting false.
+            body.Instructions.Clear(); foreach (var item in instructions) body.Instructions.Add(item);
+            body.Variables.Clear(); foreach (var item in variables) body.Variables.Add(item);
+            body.InitLocals = locals; body.MaxStackSize = stack;
+            foreach (var item in module.AssemblyReferences.Where(r => !references.Contains(r)).ToArray())
+                module.AssemblyReferences.Remove(item);
+            return false;
+        }
     }
 
     internal static MethodDefinition? FindGet(ModuleDefinition module)
@@ -90,7 +114,9 @@ public static class AssetRoutingPrepatch
 
     internal static void InjectBundle(ModuleDefinition module, MethodDefinition method)
     {
-        var scope = module.AssemblyReferences.Single(a => a.Name == typeof(AssetRoutingPrepatch).Assembly.GetName().Name);
+        var scope = AssemblyNameReference.Parse(typeof(AssetRoutingPrepatch).Assembly.FullName);
+        var existing = module.AssemblyReferences.FirstOrDefault(a => a.FullName == scope.FullName);
+        if (existing != null) scope = existing; else module.AssemblyReferences.Add(scope);
         var runtime = new TypeReference("WakeUp", "AssetRoutingRuntime", module, scope);
         var bridge = new MethodReference("TryBundles", module.TypeSystem.Boolean, runtime) { HasThis = false };
         bridge.Parameters.Add(new ParameterDefinition(module.ImportReference(typeof(Type))));

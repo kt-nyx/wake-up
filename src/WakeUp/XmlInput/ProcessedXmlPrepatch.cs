@@ -24,35 +24,10 @@ internal static class ProcessedXmlPrepatch
         all.Body.GetILProcessor().InsertBefore(patch, Instruction.Create(OpCodes.Ldarg_0));
         patch.Operand = ParsedXmlPrepatch.Bridge(module, nameof(ProcessedXmlRuntime), "Apply", module.TypeSystem.Void,
             new ByReferenceType(nativePatch.Parameters[0].ParameterType), new ByReferenceType(nativePatch.Parameters[1].ParameterType), module.TypeSystem.Boolean);
-        var methods = Targets(module); var parse = methods[0]; var resolve = methods[1];
-        var call = parse.Body.Instructions.Single(i => i.Operand is MethodReference m && m.DeclaringType.FullName == "Verse.XmlInheritance" && m.Name == "Resolve");
-        var il = parse.Body.GetILProcessor();
-        il.InsertBefore(call, Instruction.Create(OpCodes.Ldarg_0)); il.InsertBefore(call, Instruction.Create(OpCodes.Ldarg_1)); il.InsertBefore(call, Instruction.Create(OpCodes.Ldarg_2));
-        call.Operand = ParsedXmlPrepatch.Bridge(module, nameof(ResolvedInheritanceRuntime), "Resolve", module.TypeSystem.Void,
-            parse.Parameters[0].ParameterType, parse.Parameters[1].ParameterType, module.TypeSystem.Boolean);
-        var clone = resolve.Body.Instructions.Single(i => i.Operand is MethodReference m && m.Name == "CloneNode");
-        var merge = resolve.Body.Instructions.Single(i => i.Operand is MethodReference m && m.Name == "RecursiveNodeCopyOverwriteElements");
-        var xml = module.GetType("Verse.XmlInheritance").NestedTypes.Single(t => t.Name == "XmlInheritanceNode");
-        var source = xml.Fields.Single(f => f.Name == "xmlNode"); var parent = xml.Fields.Single(f => f.Name == "parent");
-        var resolved = xml.Fields.Single(f => f.Name == "resolvedXmlNode");
-        var result = Local(resolve, clone.Next);
-        // The duplicate diagnostic call is the final native call before clone.
-        var duplicate = resolve.Body.Instructions.Last(i => i.Offset < clone.Offset && i.Operand is MethodReference m && m.Name == "CheckForDuplicateNodes");
-        var start = duplicate.Next; var commit = merge.Next;
-        var restore = ParsedXmlPrepatch.Bridge(module, nameof(ResolvedInheritanceRuntime), "TryRestore", module.TypeSystem.Boolean,
-            source.FieldType, source.FieldType, new ByReferenceType(source.FieldType));
-        var inserted = new[] { Instruction.Create(OpCodes.Ldarg_0), Instruction.Create(OpCodes.Ldfld, source),
-            Instruction.Create(OpCodes.Ldarg_0), Instruction.Create(OpCodes.Ldfld, parent), Instruction.Create(OpCodes.Ldfld, resolved),
-            Instruction.Create(OpCodes.Ldloca, result), Instruction.Create(OpCodes.Call, restore), Instruction.Create(OpCodes.Brtrue, commit) };
-        foreach (var instruction in inserted) resolve.Body.GetILProcessor().InsertBefore(start, instruction);
-        var capture = ParsedXmlPrepatch.Bridge(module, nameof(ResolvedInheritanceRuntime), "Capture", module.TypeSystem.Void,
-            source.FieldType, source.FieldType, source.FieldType);
-        var captures = new[] { Instruction.Create(OpCodes.Ldarg_0), Instruction.Create(OpCodes.Ldfld, source),
-            Instruction.Create(OpCodes.Ldarg_0), Instruction.Create(OpCodes.Ldfld, parent), Instruction.Create(OpCodes.Ldfld, resolved),
-            Instruction.Create(OpCodes.Ldloc, result), Instruction.Create(OpCodes.Call, capture) };
-        foreach (var instruction in captures) resolve.Body.GetILProcessor().InsertBefore(commit, instruction);
+        // Resolved-inheritance reuse is retired. Preserve the native Resolve call
+        // and ResolveXmlNodeFor body for suppliers that install post-inheritance
+        // work. A disabled runtime bridge still hides those callsites from them.
         all.Body.MaxStackSize = Math.Max(4, all.Body.MaxStackSize);
-        parse.Body.MaxStackSize = Math.Max(4, parse.Body.MaxStackSize); resolve.Body.MaxStackSize = Math.Max(4, resolve.Body.MaxStackSize);
     }
     private static VariableDefinition Local(MethodDefinition method, Instruction instruction)
         => instruction.OpCode == OpCodes.Ldloc_0 || instruction.OpCode == OpCodes.Stloc_0 ? method.Body.Variables[0]

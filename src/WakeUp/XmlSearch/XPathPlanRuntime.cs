@@ -21,12 +21,13 @@ internal static class XPathPlanRuntime
     private static readonly List<PublishedPatchGuard> Guards = new();
     [ThreadStatic] private static ScopedXPathPlans? active;
     internal static bool Installed { get; private set; }
+    internal static void Reset() { Installed = false; Guards.Clear(); }
 
     internal static bool Install(Harmony harmony)
     {
         try
         {
-            if (!NativeStringWrapper()) return false;
+            if (!NativeStringWrapper() || Harmony.GetPatchInfo(Nodes)?.Transpilers.Any(p => p.owner != Owner) == true) return false;
             foreach (MethodInfo method in XPathQueryContract.Methods)
             {
                 if (!PublishedPatchGuard.TryCreate(method, Owner, out var guard, allPatchKinds: true) || !guard!.AllowsOriginalContract())
@@ -58,7 +59,8 @@ internal static class XPathPlanRuntime
     internal static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         List<CodeInstruction> code = instructions.Select(i => new CodeInstruction(i)).ToList();
-        if (Harmony.GetPatchInfo(Nodes)?.Transpilers.Any(p => p.owner != Owner) == true) return code;
+        if (Harmony.GetPatchInfo(Nodes)?.Transpilers.Any(p => p.owner != Owner) == true)
+        { CompatibilityStatus.Guard("query-plans", false); return code; }
         var selected = code.Where(i => i.opcode == OpCodes.Callvirt && Equals(i.operand, SelectString)).ToArray();
         if (selected.Length != 1) throw new InvalidOperationException("Unique native XPath string selection unavailable.");
         selected[0].opcode = OpCodes.Call;
@@ -67,7 +69,7 @@ internal static class XPathPlanRuntime
     }
 
     private static XPathNodeIterator Select(XPathNavigator navigator, string xpath)
-        => active != null && Guards.All(g => g.AllowsOriginalContract()) ? active.Select(navigator, xpath) : navigator.Select(xpath);
+        => active != null && CompatibilityStatus.Guard("query-plans", Guards.All(g => g.AllowsOriginalContract())) ? active.Select(navigator, xpath) : navigator.Select(xpath);
 
     internal static ScopedXPathPlans? Begin(XmlDocument document)
         => Installed ? active = new ScopedXPathPlans(document) : null;

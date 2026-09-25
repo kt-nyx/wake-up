@@ -13,6 +13,20 @@ namespace WakeUp.Tests;
 [TestFixture, NonParallelizable]
 public sealed class UserStartupSelectionTests
 {
+    [Test]
+    public void DlcPanelOverrideRequiresExplicitSummaryHidingAndNeverChangesSavedIntent()
+    {
+        var settings = new WakeUpSettings { HideLoadingSummary = true };
+        var automatic = UserStartupSelection.Resolve(Array.Empty<string>(), settings, Profile);
+        Assert.That(automatic, Does.Contain("--wake-up-hide-loading-summary=on"));
+        Assert.That(automatic, Does.Not.Contain("--wake-up-summary-provider=wakeup"));
+        settings.HideSummaryWithNoModlist = true;
+        Assert.That(UserStartupSelection.Resolve(Array.Empty<string>(), settings, Profile), Does.Contain("--wake-up-summary-provider=wakeup"));
+        settings.HideLoadingSummary = false;
+        var disabled = UserStartupSelection.Resolve(Array.Empty<string>(), settings, Profile);
+        Assert.That(disabled, Does.Not.Contain("--wake-up-summary-provider=wakeup"));
+        Assert.That(settings.HideSummaryWithNoModlist, Is.True);
+    }
     private static string Profile => Path.GetFullPath(Path.Combine(Path.GetTempPath(), "wake-up-user-profile"));
 
     [Test]

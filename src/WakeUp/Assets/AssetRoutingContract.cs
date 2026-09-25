@@ -58,11 +58,13 @@ internal static class AssetRoutingContract
         new[] { "538DA3128278A59D68B5E055340401FAFF2B6799BCCB55A03D15D042483947BC" },
         new[] { "CC3E511F90FF0FD8C7A9FA775DF6B40383A339B9B607CFC828B4CE6A8C01BF5D" },
     };
-    internal static void Validate()
+    internal static bool BundleDependency(int index) => index == 0 || index >= 5 && index <= 8 || index == 11 || index >= 13;
+    internal static void Validate(bool bundlesOnly = false)
     {
         var methods = Methods(typeof(ContentFinder<>).Assembly);
         if (Bodies.Length != methods.Length) throw new InvalidOperationException("incomplete-broad-routing-contract");
         for (int i = 0; i < methods.Length; i++)
+            if (!bundlesOnly || BundleDependency(i))
             if (!SemanticMethodIdentity.TryHash(methods[i], out string hash, out _) || !Bodies[i].Contains(hash))
                 throw new InvalidOperationException("changed-broad-routing-body-" + methods[i].Name);
         var native = AccessTools.Method(typeof(AssetBundle), "LoadAsset_Internal");

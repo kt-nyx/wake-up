@@ -43,7 +43,7 @@ public sealed class LoadingReflectionRuntimeTests
         const string owner = "c12.test.attribute-operation";
         var previous = new Dictionary<FieldInfo, object?>();
         foreach (var entry in new[] {
-            (typeof(TypeLookupRuntime), "installed"), (typeof(TypeLookupRuntime), "candidate"), (typeof(TypeLookupRuntime), "finished"),
+            (typeof(TypeSearchLifetime), "selected"), (typeof(TypeSearchLifetime), "finished"),
             (typeof(LoadingReflectionRuntime), "installed"), (typeof(LoadingReflectionRuntime), "startup"), (typeof(LoadingReflectionRuntime), "consumer"),
             (typeof(LoadingAttributeRuntime), "operation") })
         {
@@ -61,9 +61,8 @@ public sealed class LoadingReflectionRuntimeTests
             Assert.That(PublishedPatchGuard.TryCreate(target, "wakeup.loading-attribute-operation", out var operation, allPatchKinds: true), Is.True);
             Assert.That(PublishedPatchGuard.TryCreate(AccessTools.Method(typeof(LoadingReflectionRuntimeTests), nameof(ForeignCall)),
                 "wakeup.loading-reflection", out var consumer, allPatchKinds: true), Is.True);
-            AccessTools.Field(typeof(TypeLookupRuntime), "installed").SetValue(null, true);
-            AccessTools.Field(typeof(TypeLookupRuntime), "candidate").SetValue(null, true);
-            AccessTools.Field(typeof(TypeLookupRuntime), "finished").SetValue(null, 0);
+            AccessTools.Field(typeof(TypeSearchLifetime), "selected").SetValue(null, true);
+            AccessTools.Field(typeof(TypeSearchLifetime), "finished").SetValue(null, 0);
             AccessTools.Field(typeof(LoadingReflectionRuntime), "installed").SetValue(null, true);
             AccessTools.Field(typeof(LoadingReflectionRuntime), "startup").SetValue(null, index);
             AccessTools.Field(typeof(LoadingReflectionRuntime), "consumer").SetValue(null, consumer);
@@ -90,7 +89,7 @@ public sealed class LoadingReflectionRuntimeTests
             Assert.That(LoadingAttributeRuntime.IsDefined(member, typeof(NoTranslateAttribute), true), Is.True);
             Assert.That(index.AttributeHits, Is.EqualTo(hits), "Outside a loading consumer the native operation runs.");
             AccessTools.Field(typeof(LoadingReflectionRuntime), "consumer").SetValue(null, consumer);
-            AccessTools.Field(typeof(TypeLookupRuntime), "candidate").SetValue(null, false);
+            AccessTools.Field(typeof(TypeSearchLifetime), "selected").SetValue(null, false);
             Assert.That(LoadingAttributeRuntime.IsDefined(member, typeof(NoTranslateAttribute), true), Is.True);
             Assert.That(index.AttributeHits, Is.EqualTo(hits), "Option-off preserves the native operation.");
         }
@@ -164,16 +163,16 @@ public sealed class LoadingReflectionRuntimeTests
         var previous = new Dictionary<string, object?>();
         string[] reflectionHashes = LoadingReflectionRuntime.ExpectedBodies.ToArray();
         string[] translationHashes = TranslationRuntime.ExpectedBodies.ToArray();
-        foreach (string name in new[] { "installed", "candidate", "finished" })
-            previous[name] = AccessTools.Field(typeof(TypeLookupRuntime), name).GetValue(null);
+        foreach (string name in new[] { "selected", "finished" })
+            previous[name] = AccessTools.Field(typeof(TypeSearchLifetime), name).GetValue(null);
         object? oldKeys = AccessTools.Field(typeof(TKeySystem), "tKeyToNormalizedTranslationKey").GetValue(null);
         object? oldSuggestions = AccessTools.Field(typeof(TKeySystem), "translationKeyToTKey").GetValue(null);
         var refs = (IList)AccessTools.Field(typeof(DirectXmlCrossRefLoader), "wantedRefs").GetValue(null)!;
         int priorRefs = refs.Count;
         try
         {
-            foreach (string name in new[] { "installed", "candidate" }) AccessTools.Field(typeof(TypeLookupRuntime), name).SetValue(null, true);
-            AccessTools.Field(typeof(TypeLookupRuntime), "finished").SetValue(null, 0);
+            foreach (string name in new[] { "selected" }) AccessTools.Field(typeof(TypeSearchLifetime), name).SetValue(null, true);
+            AccessTools.Field(typeof(TypeSearchLifetime), "finished").SetValue(null, 0);
             SetHostHashes(LoadingReflectionRuntime.ContractMethods(), LoadingReflectionRuntime.ExpectedBodies);
             SetHostHashes(TranslationRuntime.ContractMethods(), TranslationRuntime.ExpectedBodies);
             if (translationFirst) Assert.That(TranslationRuntime.Install(), Is.True);
@@ -261,7 +260,7 @@ public sealed class LoadingReflectionRuntimeTests
             AppDomain.CurrentDomain.AssemblyLoad -= handler;
             Array.Copy(reflectionHashes, LoadingReflectionRuntime.ExpectedBodies, reflectionHashes.Length);
             Array.Copy(translationHashes, TranslationRuntime.ExpectedBodies, translationHashes.Length);
-            foreach (var pair in previous) AccessTools.Field(typeof(TypeLookupRuntime), pair.Key).SetValue(null, pair.Value);
+            foreach (var pair in previous) AccessTools.Field(typeof(TypeSearchLifetime), pair.Key).SetValue(null, pair.Value);
         }
     }
 
@@ -295,14 +294,13 @@ public sealed class LoadingReflectionRuntimeTests
     {
         var previous = new Dictionary<string, object?>();
         string[] hashes = LoadingReflectionRuntime.ExpectedBodies.ToArray();
-        foreach (string name in new[] { "installed", "candidate", "finished" })
-            previous[name] = AccessTools.Field(typeof(TypeLookupRuntime), name).GetValue(null);
+        foreach (string name in new[] { "selected", "finished" })
+            previous[name] = AccessTools.Field(typeof(TypeSearchLifetime), name).GetValue(null);
         try
         {
             if (preexisting) C12AttributeQualification.Install(attribute, field, throws);
-            AccessTools.Field(typeof(TypeLookupRuntime), "installed").SetValue(null, true);
-            AccessTools.Field(typeof(TypeLookupRuntime), "candidate").SetValue(null, true);
-            AccessTools.Field(typeof(TypeLookupRuntime), "finished").SetValue(null, 0);
+            AccessTools.Field(typeof(TypeSearchLifetime), "selected").SetValue(null, true);
+            AccessTools.Field(typeof(TypeSearchLifetime), "finished").SetValue(null, 0);
             SetHostHashes(LoadingReflectionRuntime.ContractMethods(), LoadingReflectionRuntime.ExpectedBodies);
             LoadingReflectionRuntime.Initialize();
             Assert.That(AccessTools.Field(typeof(LoadingReflectionRuntime), "installed").GetValue(null), Is.True);
@@ -343,7 +341,7 @@ public sealed class LoadingReflectionRuntimeTests
             AppDomain.CurrentDomain.AssemblyLoad -= (AssemblyLoadEventHandler)Delegate.CreateDelegate(typeof(AssemblyLoadEventHandler),
                 AccessTools.Method(typeof(LoadingReflectionRuntime), "AssemblyLoaded"));
             Array.Copy(hashes, LoadingReflectionRuntime.ExpectedBodies, hashes.Length);
-            foreach (var pair in previous) AccessTools.Field(typeof(TypeLookupRuntime), pair.Key).SetValue(null, pair.Value);
+            foreach (var pair in previous) AccessTools.Field(typeof(TypeSearchLifetime), pair.Key).SetValue(null, pair.Value);
         }
     }
 

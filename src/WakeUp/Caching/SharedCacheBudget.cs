@@ -8,8 +8,8 @@ using System.Linq;
 
 namespace WakeUp;
 
-// The production stores share one disk ceiling. Inventory runs at launch
-// and category opening, never per entry. Existing category file locks protect
+// The production stores share one disk ceiling. Inventory runs at the first
+// real cache use and category opening, never per entry. Existing locks protect
 // unopened data too; attached stores borrow those locks for the whole launch.
 internal sealed class SharedCacheBudget : IDisposable
 {
@@ -17,6 +17,10 @@ internal sealed class SharedCacheBudget : IDisposable
     private const int InventoryLimit = 100000;
     private static SharedCacheBudget? current;
     private static string? failedRoot;
+    private static string? configuredRoot;
+    private static int configuredMiB;
+    private static CacheLaunchPolicy? configuredPolicy;
+    private static readonly object activationGate = new();
     private readonly Dictionary<string, Category> categories = new(StringComparer.OrdinalIgnoreCase);
     private readonly List<FileStream> owners = new();
     private bool disposed;
@@ -34,21 +38,43 @@ internal sealed class SharedCacheBudget : IDisposable
 
     internal static void Initialize(string saveDataRoot, int totalMiB, CacheLaunchPolicy policy)
     {
+        lock (activationGate)
+        {
         if (current != null || policy.Action == CacheAction.Bypass) return;
         if (totalMiB < 1 || totalMiB > 65536) throw new ArgumentOutOfRangeException(nameof(totalMiB));
         failedRoot = Path.GetFullPath(Path.Combine(saveDataRoot, "WakeUp")) + Path.DirectorySeparatorChar;
         current = new SharedCacheBudget(saveDataRoot, totalMiB * 1024L * 1024);
         failedRoot = null;
+        }
     }
 
-    internal static SharedCacheBudget? ForRoot(string root)
+    // Selecting a disk limit must not scan old caches on a search-only launch.
+    // Store constructors acquire this same limit later, including menu preparation.
+    internal static void Configure(string saveDataRoot, int totalMiB, CacheLaunchPolicy policy)
     {
+        if (totalMiB < 1 || totalMiB > 65536) throw new ArgumentOutOfRangeException(nameof(totalMiB));
+        lock (activationGate)
+        {
+            configuredRoot = Path.GetFullPath(saveDataRoot);
+            configuredMiB = totalMiB;
+            configuredPolicy = policy;
+        }
+    }
+
+    internal static SharedCacheBudget? ForRoot(string root, bool acquire = true)
+    {
+        lock (activationGate)
+        {
         string full = Path.GetFullPath(root);
         // A failed ownership/inventory attempt must never silently restore the
         // old independent per-category write allowances for this launch.
         if (failedRoot != null && full.StartsWith(failedRoot, StringComparison.OrdinalIgnoreCase))
             throw new IOException("shared-cache-unavailable");
+        if (acquire && current == null && configuredRoot != null && configuredPolicy != null
+            && full.StartsWith(Path.Combine(configuredRoot, "WakeUp") + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+            Initialize(configuredRoot, configuredMiB, configuredPolicy);
         return current != null && current.categories.ContainsKey(full) ? current : null;
+        }
     }
 
     internal SharedCacheBudget(string saveDataRoot, long maximumBytes)

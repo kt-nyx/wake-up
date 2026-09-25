@@ -1,6 +1,10 @@
 # Architecture
 
-## Retained release boundary — 19 September 2026
+The 0.4.0 candidate retains the retirement boundaries below and adds operation-level
+compatibility decisions described in the [compatibility guide](compatibility.md).
+See [candidate notes](release-notes-0.4.0.md) for its actual qualification and measurements.
+
+## Released 0.3.0 boundary
 
 The release no longer selects parsed XML, inheritance caching, ordered read-ahead,
 parsed-language persistence, faithful authored-DDS recaching or managed first-build
@@ -17,7 +21,7 @@ The quality helper is separate from the disconnected raw-pixel trial.
 
 Sections below preserve mechanism/history detail; descriptions of the retired or
 deferred paths are research reference, not release activation or acceptance claims.
-See [C15A](ecosystem-replacement/c15a-retained-candidate.md) for current boundaries.
+See [C15A](https://github.com/kt-nyx/wake-up/blob/v0.3.0/docs/ecosystem-replacement/c15a-retained-candidate.md) for current boundaries.
 
 Wake-Up avoids repeated loading work while keeping the game's normal order and
 objects. Each selected feature checks the methods and cooperating hooks it uses;
@@ -25,13 +29,10 @@ unsupported conditions normally retain the native route. A hook intercepts or
 rewrites a method, so coexistence depends on exact behavior, not merely a matching
 mod name. Experimental audio has additional explicit consumer limits below.
 
-This reference describes combined R1-R4c with the F1 closed texture-holder
-identity correction. [F1](archive/ecosystem-replacement-20260910/rc2-functional-qualification.md)
-records bounded live execution; broad platform/gameplay qualification remains open.
-Public 0.2.1, the original rc.2 ZIP and corrected fixture candidate are separate
-builds; see [current state](current-state.md) for exact identities and the
-[proposed next plan](ecosystem-replacement/next-campaign-proposal.md) for status.
-Historical slice reports preserve measured results for their original source.
+This reference describes the released source, including inactive research retained
+in that source tree. Historical reports apply only to their recorded binaries.
+See [current state](current-state.md) for release identities and
+[history](history.md) for stopped approaches. There is no active replacement plan.
 
 ## Background loading, native summary and XML timings
 
@@ -69,7 +70,7 @@ statuses on their 250 ms budget, with attribution only when timings are selected
 
 The changed parsed-language cost premise remained non-repeatable; no parsed
 cache/input consumer, storage category or broader texture format/atlas route was
-added. See [R4c source/evidence and capability table](archive/ecosystem-replacement-20260910/r4c-remaining-coverage.md).
+added. See [R4c source/evidence and capability table](https://github.com/kt-nyx/wake-up/blob/v0.3.0/docs/archive/ecosystem-replacement-20260910/r4c-remaining-coverage.md).
 F1 exercised normal report completion and layout code; actual summary hiding
 and new-colony lifecycle remain untested. Prior live reports qualify their recorded
 older core and narrower behavior.
@@ -78,7 +79,7 @@ The R4b native XML mutation candidate is a rejected, test-only experiment under
 `experiments/XmlRegion`. It preserved original node references and source records,
 but complete reuse cost exceeded ordinary processing. No region prepatch,
 runtime registration, setting or storage category ships. See the
-[R4b mechanism and disposition](archive/ecosystem-replacement-20260910/r4b-retained-xml.md).
+[R4b mechanism and disposition](https://github.com/kt-nyx/wake-up/blob/v0.3.0/docs/archive/ecosystem-replacement-20260910/r4b-retained-xml.md).
 
 ## Ordered concurrent XML input
 
@@ -94,7 +95,7 @@ Held read leases keep queued bytes immutable until consumption. Cancellation
 joins workers and releases leases before native fallback; C01 private batch
 failures cannot replay constructors. Unknown interval hooks stay native, with
 exact small contracts for the relevant Prepatcher and settings-framework
-callbacks. The [C03 record](ecosystem-replacement/c03-ordered-input.md) describes
+callbacks. The [C03 record](https://github.com/kt-nyx/wake-up/blob/v0.3.0/docs/ecosystem-replacement/c03-ordered-input.md) describes
 bounds and actual consumed overlaps. The 11 September qualification retains this
 read/hash design after worker-parsing and caller-help experiments failed to
 establish useful benefit. Native XML factory guards also cover CDATA, processing
@@ -112,7 +113,7 @@ reads and a 16 MiB source limit. Native enumeration, workers, joins and indexed
 publication remain unchanged. The complete original constructor handles disabled,
 unsupported, hooked or failed cases. Native type-name/delegate caches already
 cover the separate proposed memo; Harmony/leaf searches are unchanged.
-See the [R4a report](archive/ecosystem-replacement-20260910/r4a-ordered-reads-types.md) for lifetime,
+See the [R4a report](https://github.com/kt-nyx/wake-up/blob/v0.3.0/docs/archive/ecosystem-replacement-20260910/r4a-ordered-reads-types.md) for lifetime,
 Gagarin compatibility, focused evidence, costs and live qualification gaps.
 
 ## Experimental deferred audio
@@ -129,12 +130,12 @@ cancels stale completions. Native holders own published clip/stream lifetimes.
 First use returns native ready content on the main thread. Unsupported detected
 consumers refuse; arbitrary dynamic/reflected access and worker-thread access
 remain the explicit experimental boundary described in the
-[R3 report](archive/ecosystem-replacement-20260910/r3-deferred-assets.md). No new persistent store,
+[R3 report](https://github.com/kt-nyx/wake-up/blob/v0.3.0/docs/archive/ecosystem-replacement-20260910/r3-deferred-assets.md). No new persistent store,
 audio codec, general asset placeholders or progressive DDS mode is added.
 
 ## Native texture preparation and optional Windows DDS exports
 
-Wake-Up supports [broad texture batches and Windows DDS exports](archive/ecosystem-replacement-20260910/r2-texture-preparation.md).
+Wake-Up supports [broad texture batches and Windows DDS exports](https://github.com/kt-nyx/wake-up/blob/v0.3.0/docs/archive/ecosystem-replacement-20260910/r2-texture-preparation.md).
 `TexturePreparationBatch` shares testable admission, provider selection and final
 publication decisions with the incremental menu workflow. Native capture admits
 bounded compressed possibilities and checks actual output. C05 automatic caching
@@ -168,7 +169,7 @@ holder misses. No other prefix or patch position gains that allowance.
 Direct holders already use dictionaries; folder queries already use native
 prefix tries. These stay native, preserving their distinct ordering, duplicate
 and public-mutation behavior. Legacy experimental deferred audio retains its
-native audio lookup when coenabled. See the [C09 record](ecosystem-replacement/c09-broad-routes.md)
+native audio lookup when coenabled. See the [C09 record](https://github.com/kt-nyx/wake-up/blob/v0.3.0/docs/ecosystem-replacement/c09-broad-routes.md)
 for current qualification and pending performance, and the archived S11/R1
 reports for historical texture-only evidence.
 
@@ -178,7 +179,7 @@ C01 now provides default-off independent parsed XML generations selected from th
 game's actual ordered source files. Warm decoding constructs separate source and
 combined documents together, avoiding text parsing and native `ImportNode` copies.
 Unknown source observers retain native behavior. See the [C01 implementation and
-evidence](ecosystem-replacement/c01-independent-parsed-xml.md) for bounds, identity
+evidence](https://github.com/kt-nyx/wake-up/blob/v0.3.0/docs/ecosystem-replacement/c01-independent-parsed-xml.md) for bounds, identity
 checks and functional coverage; no performance gain has been established.
 
 C02 separately reuses completed patch output and resolved inherited children.
@@ -191,7 +192,7 @@ Inheritance keeps native registration, parent selection and diagnostics, replaci
 only the original clone/merge instructions with fresh detached cached results.
 The additional live-query path reuses private XPath syntax plans while retaining
 native lazy lists and evaluation; single-node result/miss entries are discarded
-on XML mutation. All three options default off. See the [C02 record](ecosystem-replacement/c02-processed-xml.md)
+on XML mutation. All three options default off. See the [C02 record](https://github.com/kt-nyx/wake-up/blob/v0.3.0/docs/ecosystem-replacement/c02-processed-xml.md)
 for exact coverage and pending measurements.
 
 C04 adds default-off parsed language reuse at the actual native `LoadData`
@@ -207,7 +208,7 @@ bind entries. Unknown shared callbacks or unsupported/diagnostic groups remain n
 name-conversion callbacks keep injection parsing native without suppressing
 independently guarded keyed and Strings reuse.
 The owned store participates in the common budget, bypass, rebuild and clear;
-load completion releases its language owner. See the [C04 record](ecosystem-replacement/c04-language-reuse.md)
+load completion releases its language owner. See the [C04 record](https://github.com/kt-nyx/wake-up/blob/v0.3.0/docs/ecosystem-replacement/c04-language-reuse.md)
 for exact boundaries and functional evidence. Performance remains pending.
 
 R1's
@@ -221,7 +222,7 @@ negative results, not proof that every possible alternative must fail.
 General deferred/progressive textures, complete-atlas reuse,
 broad format conversion, a full profiler, and standalone map/background paths
 remain absent. Native type-name and XML-construction delegate caches already
-exist; no redundant cache was added. The [capability table](archive/ecosystem-replacement-20260910/retained-features.md)
+exist; no redundant cache was added. The [capability table](https://github.com/kt-nyx/wake-up/blob/v0.3.0/docs/archive/ecosystem-replacement-20260910/retained-features.md)
 separates delivered coverage, experimental limits and omissions.
 
 ## Entry and package
@@ -230,7 +231,7 @@ RimWorld constructs [WakeUpMod](../src/WakeUp/Startup/WakeUpMod.cs) before loadi
 
 `--wake-up-mode=candidate` selects optimization and requires an absolute local save-data path. `--wake-up-mode=baseline` selects measurement of the original path. Within explicit development mode, missing, unknown or conflicting selectors refuse activation, and reference/bypass arguments take precedence. Any explicit `--wake-up-` argument prevents fallback to normal settings. Ordinary launches resolve the saved settings into the same guarded feature selections using RimWorld's actual save-data directory; they need no launch arguments. Definition/template and Harmony type searches plus supported optional supplier integrations default on. Image caching/preparation, translations, routing, background loading, display/diagnostics, summary hiding, XML timings and both experimental options default off. Settings changes apply only on restart, with independent search opt-outs leaving optional features available. The fixture can exercise this ordinary path through `--activation user`. `startup-searches` enables the two search components together; `def-lookup` and `type-lookup` support focused comparisons. See [development](development.md).
 
-The current isolated fixture uses reviewed Windows Steam rev590 references. Older GOG, Steam and Linux startup checks remain evidence for their recorded packages; the corrected F1 core has only the bounded fixture evidence described above. The 0.2.1 [forward compatibility change](archive/forward-compatibility.md) removes whole-game version, MVID and file-hash admission restrictions: [GameBuildContract](../src/WakeUp/Compatibility/GameBuildContract.cs) selects a platform path for future builds. Expected method behavior and relevant Harmony patch state still constrain individual features; Harmony remains exact and optional suppliers use required-function checks. A Harmony patch is another component's interception or rewriting of a method. These checks do not establish universal future compatibility.
+Release 0.3.0 has bounded Windows Steam and GOG qualification; Linux/Deck is not qualified for this release. The private fixture must be recreated before future operations. The 0.2.1 [forward compatibility change](https://github.com/kt-nyx/wake-up/blob/v0.3.0/docs/archive/forward-compatibility.md) removes whole-game version, MVID and file-hash admission restrictions: [GameBuildContract](../src/WakeUp/Compatibility/GameBuildContract.cs) selects a platform path for future builds. Expected method behavior and relevant Harmony patch state still constrain individual features; Harmony remains exact and optional suppliers use required-function checks. A Harmony patch is another component's interception or rewriting of a method. These checks do not establish universal future compatibility.
 
 ## XML definition and named-template searches
 
@@ -256,7 +257,7 @@ The component does not globally batch patches, reorder mod constructors or cache
 
 A leaf subclass has no further descendants. [LeafSubclassRuntime](../src/WakeUp/TypeSearch/LeafSubclassRuntime.cs) preserves the game's eager capture of its subclass list and the iterator that filters it as callers enumerate. [LeafSubclassIndex](../src/WakeUp/TypeSearch/LeafSubclassIndex.cs) walks the native type list's inheritance chains once per observed list version. For a proven leaf with no existing child-cache entry, the adapter publishes the same empty mutable list native code would have produced, then runs the original predicate. This skips terminal-child full-list scans; nonleaf misses retain native parallel-query population and ordering. Existing child lists remain authoritative, including caller edits and native stale-cache behavior.
 
-Native type-list identity and its standard enumerator's modification check invalidate the proof. S02 reads published caches without initiating assembly enumeration; native partial-load and exception behavior remain. Dynamic/custom metadata, bounds, changed method bodies or foreign patches retain native searches. Six method-body contracts and published patch guards constrain the adapter, including the `AlertsReadout` constructor. It shares code-search selection but opens a bounded scope only during that constructor, which the play UI reaches on ordinary colony entry after the menu. The constructor acquires exclusive thread ownership independently of Wake-Up's installation thread. Return or exception clears the proof and releases ownership; nested constructors suspend reuse and other searches/threads remain native. Harmony name lookup keeps its existing menu cutoff. The [S02 evidence and limits](archive/ecosystem-replacement-20260910/s02-code-searches.md) distinguish offline native-constructor checks from unmeasured loading benefit.
+Native type-list identity and its standard enumerator's modification check invalidate the proof. S02 reads published caches without initiating assembly enumeration; native partial-load and exception behavior remain. Dynamic/custom metadata, bounds, changed method bodies or foreign patches retain native searches. Six method-body contracts and published patch guards constrain the adapter, including the `AlertsReadout` constructor. It shares code-search selection but opens a bounded scope only during that constructor, which the play UI reaches on ordinary colony entry after the menu. The constructor acquires exclusive thread ownership independently of Wake-Up's installation thread. Return or exception clears the proof and releases ownership; nested constructors suspend reuse and other searches/threads remain native. Harmony name lookup keeps its existing menu cutoff. The [S02 evidence and limits](https://github.com/kt-nyx/wake-up/blob/v0.3.0/docs/archive/ecosystem-replacement-20260910/s02-code-searches.md) distinguish offline native-constructor checks from unmeasured loading benefit.
 
 ## Translation application
 
@@ -264,7 +265,7 @@ Translations assign text to definition fields. [TranslationRuntime](../src/WakeU
 
 Both before/after implied-definition language passes call the guarded package method, including the late deferred callback. Method fingerprints, published patch checks, bounds, dictionary changes and nested/concurrent-call fallback constrain reuse; finalizers release state after return or exceptions. Native case/alias handling, list assignment, restrictions, replacement capture, value-type writeback and definition-cache clearing remain intact.
 
-The independent feature entry consumes `--wake-up-translations=on` in candidate mode and the existing binary admission. The persisted, default-off **Faster translation application** setting now emits that selection on the next ordinary launch. Master-disable and explicit development-control precedence remain unchanged; older settings files and unchanged fixture presets leave it off. The [S03 handoff](archive/ecosystem-replacement-20260910/s03-translations.md) records actual native-method offline comparisons, the user-control correction, modern-host limitations and the limits of its original evidence. Additional lookup caching was not justified; parsed-language persistence remains absent.
+The independent feature entry consumes `--wake-up-translations=on` in candidate mode and the existing binary admission. The persisted, default-off **Faster translation application** setting now emits that selection on the next ordinary launch. Master-disable and explicit development-control precedence remain unchanged; older settings files and unchanged fixture presets leave it off. The [S03 handoff](https://github.com/kt-nyx/wake-up/blob/v0.3.0/docs/archive/ecosystem-replacement-20260910/s03-translations.md) records actual native-method offline comparisons, the user-control correction, modern-host limitations and the limits of its original evidence. Additional lookup caching was not justified; parsed-language persistence remains absent.
 
 ## Optional Gagarin reuse
 
@@ -272,7 +273,7 @@ Gagarin caches processed XML, but creating definition objects still happens afte
 
 Admission checks the active supplier, required function signatures and loaded method behavior, constructor identity and relevant hooks. It does not assume any mod named Gagarin has the supported implementation. Absence or unsupported conditions leave ordinary loading available; Gagarin and Missile Girl are not mandatory dependencies of the product.
 
-The implementation keeps the supplier's load body, asset constructor and callbacks, exact supplied input, ordered import, source-asset mapping and document ownership. It does not hand a document to a different owner or skip definition conversion. The fixture selector is `--gagarin-cache off|timing|on|verify`, default `off`. Timing is an original-path measurement; verification adds comparison checks and should not be silently mixed into a performance arm. [The qualified historical record](archive/gagarin-cache-loading.md) explains the behavior and evidence.
+The implementation keeps the supplier's load body, asset constructor and callbacks, exact supplied input, ordered import, source-asset mapping and document ownership. It does not hand a document to a different owner or skip definition conversion. The fixture selector is `--gagarin-cache off|timing|on|verify`, default `off`. Timing is an original-path measurement; verification adds comparison checks and should not be silently mixed into a performance arm. [The qualified historical record](https://github.com/kt-nyx/wake-up/blob/v0.3.0/docs/archive/gagarin-cache-loading.md) explains the behavior and evidence.
 
 ## Optional processed textures and shared grouped storage
 
@@ -359,7 +360,7 @@ unreadable. Its distinct identity cannot be mistaken for preserved native PSD
 output. There is no separate library/framework installation, runtime download or
 automatic helper. Unsupported PSD sources retain the ordinary loader.
 
-The [C05 handoff](ecosystem-replacement/c05-texture-storage.md) separates source,
+The [C05 handoff](https://github.com/kt-nyx/wake-up/blob/v0.3.0/docs/ecosystem-replacement/c05-texture-storage.md) separates source,
 package, functional output and measured performance. `--png-source original`
 remains qualification-only selection of existing PNG siblings; results from it
 cannot describe normal DDS selection. Existing DDS exports are a separate,
@@ -371,13 +372,13 @@ Character Editor prepares its item/turret editor presets during startup. Its ins
 
 The feature is an optional soft dependency. Normal settings enable it by default; fixture comparisons use candidate `startup-searches` plus `--character-presets on`. The game argument is `--wake-up-character-presets=on`. Supplier types are resolved after confirming the active package and uniquely matching required function signatures; loaded bodies must match the reviewed method fingerprints. Loaded method bodies and relevant generic instances are checked separately, and existing or newly published foreign Harmony patches disable reuse. Supplier absence or an unsupported update affects only this feature. There is no linked or bundled Character Editor DLL and no automatic Workshop version pin.
 
-Reuse is limited to the first object/turret construction calls before the loaded menu is drawn. It retains at most 4,096 mapping entries, checks definition-list identity and modification count, and excludes nested/cross-thread sharing. Later calls use the original lookup. Canonical preset-value digests compare complete stored UI preset values in the original and optimized comparison arms. See the [reintegration report](archive/character-editor-reintegration.md) for identities and live qualification.
+Reuse is limited to the first object/turret construction calls before the loaded menu is drawn. It retains at most 4,096 mapping entries, checks definition-list identity and modification count, and excludes nested/cross-thread sharing. Later calls use the original lookup. Canonical preset-value digests compare complete stored UI preset values in the original and optimized comparison arms. See the [reintegration report](https://github.com/kt-nyx/wake-up/blob/v0.3.0/docs/archive/character-editor-reintegration.md) for identities and live qualification.
 
 ## Independent loading display
 
 Wake-Up can add a compact panel to the game's own loading screen. [LoadingDisplayRuntime](../src/WakeUp/Startup/LoadingDisplayRuntime.cs) observes stage text and queue transitions while preserving native drawing, callbacks and static constructors. [LoadingDisplayState](../src/WakeUp/Startup/LoadingDisplayState.cs) formats stage, elapsed-since-observation and existing PNG/JPEG cache counters on a 250 ms budget. Native repaints draw cached content; no item adds a wait or repaint request. Display diagnostics can show existing feature status; per-mod attribution requires the separate timing setting.
 
-Both persisted settings default off and take effect next launch. Optional diagnostics retain at most 64 stage transitions; they are not a performance profile. Required native method fingerprints and early/late foreign drawing guards constrain activation. Loading Progress owns the screen when present; only the independent display declines, preserving supplier texture/repaint paths. Queue end or an observed escaping exception releases display state without altering native error handling. Internally swallowed errors are not individually observed, and synchronous loading can hold the last visible frame. Current previews already load on first use, so no preview or global cleanup patch was added. The [S08 report](archive/ecosystem-replacement-20260910/s08-loading-display.md) records the original implementation. F1 executed combined layout code and bounded supplier refusal. Visual layout, broad compatibility and overhead remain unqualified.
+Both persisted settings default off and take effect next launch. Optional diagnostics retain at most 64 stage transitions; they are not a performance profile. Required native method fingerprints and early/late foreign drawing guards constrain activation. Loading Progress owns the screen when present; only the independent display declines, preserving supplier texture/repaint paths. Queue end or an observed escaping exception releases display state without altering native error handling. Internally swallowed errors are not individually observed, and synchronous loading can hold the last visible frame. Current previews already load on first use, so no preview or global cleanup patch was added. The [S08 report](https://github.com/kt-nyx/wake-up/blob/v0.3.0/docs/archive/ecosystem-replacement-20260910/s08-loading-display.md) records the original implementation. F1 executed combined layout code and bounded supplier refusal. Visual layout, broad compatibility and overhead remain unqualified.
 
 ## Loading Progress repaint coalescing
 
@@ -385,13 +386,13 @@ Loading Progress can stop loading early to repaint the screen after a stage chan
 
 Ordinary settings enable this optional integration when supported; explicit development mode selects it with candidate mode and `--wake-up-loading-progress=coalesce`. [LoadingProgressCompatibility](../src/WakeUp/Compatibility/LoadingProgressCompatibility.cs) discovers the active optional assembly by package and assembly name. The coalescer checks the inspected `ShouldStopEarly` and `Transpiler` method bodies. Published Harmony guards allow only our own hooks and the exact known framework transpiler on the loading loop; newly published foreign patches make the original stop result win. The transpiler itself has a separate guard. Missing frameworks return before method checks; incompatible functions retain ordinary behavior. PNG integration validates a separate function set.
 
-The method reads the original stop result after Loading Progress has consumed its repaint request. Only an active, main-thread, compatible true result is suppressed. It does not remove the original elapsed-time check or change gameplay loading behavior after the startup menu. Progress can update less frequently during startup. This feature does not include the rejected Gagarin XML compatibility bridge. See the [five-opportunity report](archive/five-loading-opportunities.md) for matched results and limits.
+The method reads the original stop result after Loading Progress has consumed its repaint request. Only an active, main-thread, compatible true result is suppressed. It does not remove the original elapsed-time check or change gameplay loading behavior after the startup menu. Progress can update less frequently during startup. This feature does not include the rejected Gagarin XML compatibility bridge. See the [five-opportunity report](https://github.com/kt-nyx/wake-up/blob/v0.3.0/docs/archive/five-loading-opportunities.md) for matched results and limits.
 
 ## Giddy-Up riding-offset preparation
 
 Giddy-Up calculates where riders sit by reading the middle column of a creature texture. [GiddyTextureRuntime](../src/WakeUp/GiddyUp/GiddyTextureRuntime.cs) preserves the original full GPU conversion but reads back only that column. The installed supplier retains its offset calculation and setup order. Normal settings select this optional improvement; explicit fixture comparisons use `--giddy-textures on`.
 
-The required supplier function signatures and method bodies, relevant patch state, startup window, thread and supported Windows Direct3D 11 or Linux OpenGL backend must all match. Other conditions retain the supplier's original texture reader. Temporary textures are released at the loaded menu. Verification mode compares the original column alpha values and completed offset hashes; the [qualification record](archive/further-loading-improvements.md) separates those checks from timing runs.
+The required supplier function signatures and method bodies, relevant patch state, startup window, thread and supported Windows Direct3D 11 or Linux OpenGL backend must all match. Other conditions retain the supplier's original texture reader. Temporary textures are released at the loaded menu. Verification mode compares the original column alpha values and completed offset hashes; the [qualification record](https://github.com/kt-nyx/wake-up/blob/v0.3.0/docs/archive/further-loading-improvements.md) separates those checks from timing runs.
 
 ## Checks and evidence
 
@@ -401,7 +402,7 @@ display's existing active-Loading-Progress refusal now gives both user choices
 in its retained settings/log status. No additional unconditional conflict or
 conditional launch dialog was justified by the accepted capabilities and pinned
 supplier hooks, so there is no new queue, constructor callback or popup lifecycle.
-See the [catalog and per-surface evidence](archive/ecosystem-replacement-20260910/s14-conflict-warnings.md).
+See the [catalog and per-surface evidence](https://github.com/kt-nyx/wake-up/blob/v0.3.0/docs/archive/ecosystem-replacement-20260910/s14-conflict-warnings.md).
 
 [Focused managed tests](../tests/WakeUp.Tests) cover search semantics, mutation and fallback behavior, optional reuse and compatibility guards. [Fixture checks](../tests/test_fixture.py) and [Gagarin fixture checks](../tests/test_gagarin_fixture.py) cover preparation, identities, selectors and cache comparisons. They support safe iteration but do not execute the Unity game or establish gameplay compatibility.
 

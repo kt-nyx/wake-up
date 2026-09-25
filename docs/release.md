@@ -1,8 +1,8 @@
 # Release procedure
 
-This is the reusable packaging and publication procedure. Current source/package status belongs in [current state](current-state.md); historical copy, preparation and validation records are in the [archive](archive/README.md). Finishing an implementation slice or producing a package does not authorize publication.
+This is the reusable packaging and publication procedure. Current source/package status belongs in [current state](current-state.md); historical copy, preparation and validation records are in the [history summary](history.md). Finishing an implementation slice or producing a package does not authorize publication.
 
-The owner authorized releasing the confirmed Windows-tested candidate on 22 September
+Historical authorization: the owner authorized releasing the confirmed Windows-tested candidate on 22 September
 2026 as **0.3.0**, without waiting for separate Linux/Deck qualification. Windows
 Steam and GOG evidence is accepted within its recorded scope; Linux validation
 remains false. Release readiness is scoped to the disclosed Windows candidate.
@@ -12,9 +12,18 @@ requested; version notes and qualification limits belong in separate release not
 The owner authorization covers this release's commit, merge, push, tag and publication.
 Later releases and platform tests require their own applicable permission.
 
+On 25 September the owner separately authorized publication of corrected
+**0.4.0** to Workshop and GitHub with matching source and updated developer docs,
+after the targeted Windows check. Reuse the tested `3ac8973a` DLL; do not rebuild or
+run additional platform/performance tests for this publication. Preserve the live
+Workshop description exactly and all unrelated listing fields. Only package
+content and separate change notes are authorized. Historical 0.3.0 platform
+claims do not qualify this changed binary. Restore `codex/compatibility-phase-1`
+after public-source synchronization.
+
 ## Qualification and promotion
 
-First establish every feature and the combined candidate on isolated GOG. Prepare its concrete source-inclusive candidate and evidence, then obtain the owner's explicit approval before isolated Windows Steam testing. Linux/Steam Deck is a later, separately authorized promotion only after Windows Steam behavior is proven; it remains outside this Windows campaign. Follow [the promotion gates](ecosystem-replacement/next-campaign-proposal.md#platform-promotion-and-later-release-validation) and the unattended-only performance policy. Neither a GOG pass nor promotion approval is a release/publication grant.
+Establish changed behavior on the authorized isolated Windows fixture. Keep exact runtime and package identities in the evidence. Linux/Steam Deck testing remains separately authorized and outside this release. Follow the [development rules](development.md) and obtain fresh performance authorization. Testing and publication are separate authorizations.
 
 ## Product identity
 
@@ -105,7 +114,7 @@ The packager verifies its executable/notices/source hashes and exact committed h
 source, copies only the helper overlay (never the older core), and includes its matching
 source separately at `Source/TextureHelper/source.zip`. The manifest records that
 helper's original source revision separately from the current core/source archive.
-See [R2 implementation and protocol](archive/ecosystem-replacement-20260910/r2-texture-preparation.md).
+See [R2 implementation and protocol](https://github.com/kt-nyx/wake-up/blob/v0.3.0/docs/archive/ecosystem-replacement-20260910/r2-texture-preparation.md).
 
 The generated public manifest records source/package identities and the qualification fields selected in `release/product.json`. Set those fields from the exact candidate's evidence; the packager does not qualify a platform. The source archive contains only the current tree,
 not Git history. This avoids dependence on an external source offer or a link
@@ -118,7 +127,7 @@ can change the assembly's recorded source revision and hence its bytes; do not
 describe it as the older DLL unless the hashes match. Distinguish verified
 unchanged runtime inputs from any product change needing fresh live checks.
 Existing balanced Steam comparisons remain evidence for their older core. The
-combined candidate requires its own live qualification. Record build-source and
+next changed candidate requires its own live qualification. Record build-source and
 documentation handoff revisions separately; do not rebuild after documentation-only
 closeout merely to make the package revision equal the final documentation HEAD.
 
@@ -126,20 +135,18 @@ closeout merely to make the package revision equal the final documentation HEAD.
 
 Public `main` began as a parentless snapshot: a source commit deliberately
 separated from the private investigation history. That private history remains
-local. The local `codex/public-source` branch tracks public `main`; local `main`
-retains the investigation lineage. Preserve this arrangement unless the owner
-changes it. Public commits use the GitHub no-reply identity. Do not push private
+local. Local main retains the private investigation lineage; origin/main and published tags retain the public lineage. Cleanup removed the local public-source branch. Recreate a temporary codex/public-source branch from origin/main only for separately authorized publication. Public commits use the GitHub no-reply identity. Do not push private
 `main`, private tags, `--all` or a mirror to the public remote.
 
 For later synchronization, fetch public `main`, review any remote changes, and
 reconcile the intended local source and documentation changes with that public
 tree using the same checkout. Review the complete result so newer public work
 is not overwritten by an older local tree. Commit with
-`git -c core.hooksPath=.githooks commit`, then push only
-`codex/public-source:main`. Restore local `main` afterward. Do not force-push over
+`git -c core.hooksPath=.githooks commit -s`, then push only
+`codex/public-source:main`. Restore the task's original private checkout afterward (`codex/compatibility-phase-1` for 0.4.0). Do not force-push over
 external contributions. Published source tags belong to the public history.
 
-S01 reconciled the previously documented source mismatch in `bed726d`, as described in [current state](current-state.md). This is a private-lineage import, not a merge of public history or a publication. Preserve both histories and the accepted runtime base before building. Changing the permanent branch policy is a separate owner decision; do not infer permission to replace private main or merge unrelated histories.
+The published v0.3.0 source tree equals private release 12e616dc. Keep those identities separate from their unrelated histories; do not replace private main or merge unrelated histories.
 
 ## Evidence and public claims
 
@@ -147,6 +154,6 @@ Qualify the exact release candidate using the authorized environment and workloa
 
 Include matching source and required license/attribution material in every distributed package. Check the provenance and permissions of any newly copied code or bundled dependency before inclusion. Existing project licensing does not grant rights to third-party material. See [LICENSE.md](../LICENSE.md), [notices](../THIRD_PARTY_NOTICES.md) and [contribution rules](../CONTRIBUTING.md).
 
-Do not add percentages from different features or repeat an old combined average as the result of a new runtime. State workload, cache conditions and the measured endpoint. The [historical benchmark results](archive/feature-benchmark-results.md) are evidence for their recorded builds, not a forecast for this roadmap.
+Do not add percentages from different features or repeat an old combined average as the result of a new runtime. State workload, cache conditions and the measured endpoint. The [historical benchmark results](https://github.com/kt-nyx/wake-up/blob/v0.3.0/docs/archive/feature-benchmark-results.md) are evidence for their recorded builds, not a forecast for this roadmap.
 
 Publication needs explicit owner authorization. Preserve the Workshop description, preview, item ID and unrelated listing fields unless the owner requests changes; do not call `SetItemDescription` during an ordinary content update. Release change notes are separate from the listing description. Publish only the reviewed source branch/tag and matching package, never private history or fixture data.

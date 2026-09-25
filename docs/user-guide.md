@@ -1,9 +1,9 @@
 # Using Wake-Up
 
-Wake-Up avoids selected repeated loading work. This guide describes the retained
-candidate after the owner's 19 September 2026 scope amendment. Its combined GOG
-qualification is pending; old public and fixture packages retain their own evidence.
-See [current state](current-state.md) and the [retained candidate report](ecosystem-replacement/c15a-retained-candidate.md).
+Wake-Up avoids selected repeated loading work. This guide describes corrected
+0.4.0, authorized for publication after a targeted Windows menu check with
+YaOpt, Image Opt and Adaptive Storage Framework. Linux/Deck remains outside the tested scope. See [current state](current-state.md) for
+publication status and [release notes](release-notes-0.4.0.md) for evidence limits.
 
 Each feature checks the functions and cooperating mods it needs. Unsupported
 conditions normally retain ordinary loading. This is partial loading coverage:
@@ -12,7 +12,7 @@ replacement claim or advice to remove a supplier solely because Wake-Up is insta
 
 ## Installation and settings
 
-An approved distribution is installed as a normal RimWorld mod folder containing `About` and `Assemblies`, together with its included source and notices. Place that folder in the game's `Mods` directory, enable it in the mod list, and load it after Prepatcher and, if installed, the separate Harmony mod. Prepatcher is the only required Workshop dependency for Wake-Up; it supplies the Harmony library Wake-Up uses. No DLC is required. The corrected candidate has bounded fixture evidence; this guide does not authorize its installation into a normal game. No observer or test DLL is included. A Windows-helper bundle includes the optional DDS export executable, matching source and notices. Source archives also include development tooling and experiments; those sources are not automatically installed runtime components.
+An approved distribution is installed as a normal RimWorld mod folder containing `About` and `Assemblies`, together with its included source and notices. Place that folder in the game's `Mods` directory, enable it in the mod list, and load it after Prepatcher and, if installed, the separate Harmony mod. Prepatcher is the only required Workshop dependency for Wake-Up; it supplies the Harmony library Wake-Up uses. No DLC is required. Release qualification is bounded to the workloads recorded in the release notes. No observer or test DLL is included. A Windows-helper bundle includes the optional DDS export executable, matching source and notices. Source archives also include development tooling and experiments; those sources are not automatically installed runtime components.
 
 Open **Options → Mod settings → Wake-Up** to select features. Changes take effect after restarting RimWorld. The master switch disables all optimizations for the next launch. Each feature can also be disabled separately. Settings use RimWorld's ordinary settings storage, including any save-data-folder override selected for that game.
 
@@ -30,7 +30,7 @@ are retained. Entries can exceed the former 8 MiB limit within the shared
 allowance and per-image bounds.
 
 Building entries adds work; loading benefits depend on the source workload. The
-[C05 record](ecosystem-replacement/c05-texture-storage.md) separates PNG-selected
+[C05 record](https://github.com/kt-nyx/wake-up/blob/v0.3.0/docs/ecosystem-replacement/c05-texture-storage.md) separates PNG-selected
 results, ordinary DDS loading, explicit preparation and compression costs. Disk
 savings do not by themselves establish faster loading. Automatic construction
 saves bounded batches; an interrupted startup may rebuild its last unfinished
@@ -80,8 +80,11 @@ functions. If Loading Progress is active, Wake-Up's independent display stays
 inactive. Keep Loading Progress if you need its other capabilities; Wake-Up's
 partial display coverage is not a reason to remove it. Restart after changing
 either display choice. Supported Loading Progress repaint and PNG integrations
-remain available under their own checks. The existing settings status explains
-this; no extra launch popup is added.
+remain available under their own checks. Settings show the individual decisions.
+New conflicts appear in one persistent compatibility window; acknowledgement
+requires the entries to have been displayed and preserves saved choices. Wake-Up
+never changes the other mod's settings or removes its patches. See the
+[compatibility guide](compatibility.md) for exact suppliers and useful setting choices.
 
 Independent parsed XML, inherited XML reuse, ordered read-ahead, parsed-language
 persistence, faithful DDS recaching and managed first-build acceleration are retired.
@@ -98,15 +101,18 @@ status. It formats updates up to four times per second; native synchronous work
 can hold the last visible frame. It is not a full per-mod profiler. Loading
 Progress keeps its own screen when enabled.
 
-- **Allow save, world and new-colony loading while unfocused** now includes new
-  colonies started through ordinary entry pages. It restores your current
-  background preference after loading and preserves native pause behavior. The existing
-  setting remains off by default. Standalone/pocket maps and initial direct or
-  autostart entry are not included.
+- **Allow loading to finish while unfocused** covers supported save, world, new-colony and
+  later native map loading. It restores your current background preference and
+  preserves native pause behavior. It defaults off. Startup, direct synchronous
+  map/pocket generation and unknown mod-created queues remain native. Loading
+  Progress cooperation requires its specified renderer-repaint option to be off;
+  each operation still has its own checks.
 - **Hide native loading mod summary**, off by default, hides the expansion/mod
   list on supported loading screens. Native loading text, tips and error handling
   remain; mod information stays in Mods. This is independent of Wake-Up's panel
   and is not a measured startup improvement. Loading Progress keeps its own screen.
+  No Modlist on Loading keeps its official-content panel unless **Hide summary
+  with No Modlist on Loading** is explicitly selected.
 - **Record per-mod XML loading timings**, off by default, records up to 512 calls
   after Wake-Up initializes. A separate bounded report now observes actual mod
   constructors from the first constructor and saves `WakeUp/early-loading.txt`.
@@ -120,11 +126,14 @@ Progress keeps its own screen when enabled.
 patches make to definition files. It defaults off, retains required callbacks and
 native definition creation, and uses ordinary loading for unsupported work. Source
 parsing and inheritance stay native. Historical processed-only gains were small and
-workload-specific; the retained combined candidate is not yet performance-qualified.
+workload-specific; no new standalone benefit claim for this option follows from
+the 0.4.0 supplier comparisons.
 
 **Extend live XML query reuse** also defaults off. It reuses compiled query instructions
 and completed single-node queries during patching. XML changes discard cached
-query results and misses; each multi-node query still uses native evaluation.
+query results and misses. Ordinary lazy multi-node queries keep native evaluation;
+the exact XML Extensions integration separately supports its eagerly evaluated
+queries while preserving node identity, order and mutation behavior.
 This can avoid repeated work on a cold launch as well as uncached patch regions.
 
 **Shared cache size** starts at 1 GiB, with 1/2/4 GiB choices. Texture, atlas and
@@ -136,11 +145,16 @@ Restart after changing choices. The existing display diagnostics also show
 streaming XML, routing and prepared-texture status; per-mod
 attribution appears only with the timing choice. A selected feature may refuse
 or have no eligible work; its status distinguishes those conditions. This candidate does not replace the remaining XML/texture/profiler
-capabilities of other mods. See [coverage and live limits](archive/ecosystem-replacement-20260910/r4c-remaining-coverage.md).
+capabilities of other mods. See [coverage and live limits](https://github.com/kt-nyx/wake-up/blob/v0.3.0/docs/archive/ecosystem-replacement-20260910/r4c-remaining-coverage.md).
 
-Improvement depends on which work your modlist performs. Cached XML can already skip the searches Wake-Up accelerates, and DDS-heavy lists may do no PNG processing. Separate feature percentages cannot be added. The older core's [Steam comparison](archive/ecosystem-replacement-20260910/steam-qualification-comparisons.md) used four measured repeats per arm on one French, 99-package mixed workload with fresh application caches and unmanaged Windows file caches. Mean menu times were 153.600 seconds absent, 68.258 for public 0.2.1, 68.634 for new defaults and 67.164 with translation/routing enabled. New defaults were 0.55% slower than public; the optional bundle was 1.60% shorter. These are historical menu results for the older core, not a prediction for this new package, universal average or colony-entry timing.
+Improvement depends on which work your modlist performs. Cached XML can already skip the searches Wake-Up accelerates, and DDS-heavy lists may do no PNG processing. Separate feature percentages cannot be added. The older core's [Steam comparison](https://github.com/kt-nyx/wake-up/blob/v0.3.0/docs/archive/ecosystem-replacement-20260910/steam-qualification-comparisons.md) used four measured repeats per arm on one French, 99-package mixed workload with fresh application caches and unmanaged Windows file caches. Mean menu times were 153.600 seconds absent, 68.258 for public 0.2.1, 68.634 for new defaults and 67.164 with translation/routing enabled. New defaults were 0.55% slower than public; the optional bundle was 1.60% shorter. These are historical menu results for the older core, not a prediction for this new package, universal average or colony-entry timing.
 
-Successful startup and focused new-colony/save-reload checks are different levels of evidence. Neither establishes every mod combination, long-running colony behavior, all graphics settings or every game update. The dated qualification reports state what was exercised in each older package; the combined candidate remains live-unqualified. No Workshop binary release is created by these instructions. Source licensing is defined in [LICENSE.md](../LICENSE.md).
+Successful startup and focused new-colony/save-reload checks are different levels
+of evidence. Neither establishes every mod combination, long-running colony
+behavior, all graphics settings or every game update. The earlier 0.4.0 combined Windows
+collection passed those focused checks; its [release notes](release-notes-0.4.0.md)
+identify the tested binary, suppliers and limits. No Workshop publication follows
+from these instructions. Source licensing is defined in [LICENSE.md](../LICENSE.md).
 
 ## Experimental options
 
@@ -150,7 +164,7 @@ allocations; it is not an XML cache and has no measured game startup benefit yet
 The settings status reports selection, active work, refusal and completed counts.
 Supplier hooks or unsupported input keep ordinary loading; a supplier cache that
 skips XML reading leaves no work for this option. Restart after changing it.
-See [R4a details](archive/ecosystem-replacement-20260910/r4a-ordered-reads-types.md).
+See [R4a details](https://github.com/kt-nyx/wake-up/blob/v0.3.0/docs/archive/ecosystem-replacement-20260910/r4a-ordered-reads-types.md).
 
 On-demand audio/texture/graphic and progressive-detail experiments are inactive in
 this release. Their previous instructions and captures remain historical research.
@@ -173,7 +187,7 @@ they share this owned category.
 
 ## Code searches
 
-The existing **Faster code type searches** option also skips some repeated searches for classes with no further descendants (leaf subclasses). It preserves the game's result order and mutable lists. This part operates only while constructing the colony's alert interface, including colony entry after the menu, and releases its temporary data immediately afterward. Existing name searches still stop at the menu. Unsupported conditions retain ordinary searches. There is no additional setting or dependency. The earlier core passed focused offline and bounded Windows execution checks; an isolated speed benefit has not been measured. Ordinary screen-driven entry has bounded evidence for that older core; it is not qualification of this candidate or universal gameplay compatibility.
+The existing **Faster code type searches** option also skips some repeated searches for classes with no further descendants (leaf subclasses). It preserves the game's result order and mutable lists. This part operates only while constructing the colony's alert interface, including colony entry after the menu, and releases its temporary data immediately afterward. Existing name searches still stop at the menu. Unsupported conditions retain ordinary searches. There is no additional setting or dependency. An isolated speed benefit has not been measured. The current combined GOG colony-entry check and older focused evidence have bounded scope; neither is universal gameplay compatibility.
 
 
 ## Remember successful asset routes
@@ -186,7 +200,7 @@ routes. Missing assets retain ordinary diagnostics and retry behavior.
 
 This changes lookup work, not loading readiness, image quality or audio playback.
 Direct provider and folder queries retain native results and order. Unsupported
-lookup hooks use ordinary loading. Audio uses its native loading points. The [C09 record](ecosystem-replacement/c09-broad-routes.md)
+lookup hooks use ordinary loading. Audio uses its native loading points. The [C09 record](https://github.com/kt-nyx/wake-up/blob/v0.3.0/docs/ecosystem-replacement/c09-broad-routes.md)
 separates current functional coverage from pending loading-benefit and broader
 gameplay qualification. No supplier-removal claim follows from this option alone.
 
@@ -234,9 +248,9 @@ DDS exports retain their separate 8 MiB limit. Source snapshots are at most
 96 MiB for full-size preparation (16 MiB for exports), with base decoded images
 at most 64 MiB. Engine working memory is additional.
 
-Earlier native preparation has bounded [live evidence](archive/ecosystem-replacement-20260910/overnight-qualification.md);
+Earlier native preparation has bounded [live evidence](https://github.com/kt-nyx/wake-up/blob/v0.3.0/docs/archive/ecosystem-replacement-20260910/overnight-qualification.md);
 the C05 record adds real batch and ordinary startup-consumer evidence. This does not constitute a new interactive-window or helper-quality qualification. A Windows-helper
 bundle includes its actual helper executable, matching source and notices; package contents determine whether that optional helper is included. Linux helper packaging is deferred. The
-[R2 report](archive/ecosystem-replacement-20260910/r2-texture-preparation.md) details alpha, standard
+[R2 report](https://github.com/kt-nyx/wake-up/blob/v0.3.0/docs/archive/ecosystem-replacement-20260910/r2-texture-preparation.md) details alpha, standard
 color-space, generated mip levels, sampling/ownership limits and later live checks.
 Prepatcher remains required; general on-demand texture loading is not implemented.

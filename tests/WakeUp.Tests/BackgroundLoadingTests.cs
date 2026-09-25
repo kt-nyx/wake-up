@@ -489,6 +489,7 @@ public sealed class BackgroundLoadingTests
         });
     }
 
+    [TestCase(TypeSearchLifetime.Owner, typeof(TypeSearchLifetime), "MenuUpdate")]
     [TestCase("wakeup.type-lookup", typeof(TypeLookupRuntime), "MenuUpdate")]
     [TestCase(PngRuntime.Owner, typeof(PngRuntime), "Menu")]
     [TestCase(DeferredAudioRuntime.Owner, typeof(DeferredAudioRuntime), "Idle")]
@@ -941,6 +942,31 @@ public sealed class BackgroundLoadingTests
         Assert.That(Harmony.GetPatchInfo(AccessTools.Method(typeof(TickManager), "DoSingleTick")), Is.Null);
         var apply = BackgroundLoadingRuntime.RewritePreference(PatchProcessor.GetOriginalInstructions(BackgroundLoadingRuntime.Apply)).ToList();
         Assert.That(apply.Count(c => c.Calls(AccessTools.Method(typeof(BackgroundLoadingRuntime), "SetBackground"))), Is.EqualTo(1));
+    }
+
+    [TestCase(true, true)]
+    [TestCase(true, false)]
+    [TestCase(false, true)]
+    [TestCase(false, false)]
+    public void LoadingProgressRetirementRestoresPermissionButKeepsCompletionFence(bool setting, bool resumeByFocus)
+    {
+        WithHooks(context =>
+        {
+            using var mode = new LoadingProgressBackgroundPolicyTests.ModeScope();
+            GameDataSaveLoader.LoadGame("offline-placeholder");
+            BackgroundLoadingRuntime.Session.ArrivedOrCanceled();
+            ReplaceFirstQueuedAction(() => LongEventHandler.ExecuteWhenFinished(() => mode.Retire(setting)));
+            Assert.That(context.Background, Is.True);
+            UpdateNative(); UpdateNative(); JoinWorker(); UpdateNative();
+            Assert.That(BackgroundLoadingRuntime.Session.Active, Is.False);
+            Assert.That(context.Background, Is.False, "Saved background preference resumes immediately.");
+            Assert.That(BackgroundLoadingRuntime.ShouldBlockPlay(), Is.True, "The delivered completion frame remains protected.");
+            context.Frame++;
+            Assert.That(BackgroundLoadingRuntime.ShouldBlockPlay(), Is.True);
+            if (resumeByFocus) BackgroundLoadingRuntime.Focused = () => true;
+            else { context.Preference = true; BackgroundLoadingRuntime.SetBackground(true); }
+            Assert.That(BackgroundLoadingRuntime.ShouldBlockPlay(), Is.False);
+        });
     }
 
     private static Action? baseUpdateAction;

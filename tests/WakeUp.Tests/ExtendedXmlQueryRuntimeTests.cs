@@ -21,7 +21,7 @@ public sealed class ExtendedXmlQueryRuntimeTests
     private static Assembly Supplier()
     {
         string managed = Environment.GetEnvironmentVariable("WAKE_UP_RIMWORLD_MANAGED_DIR")!;
-        string path = Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(managed))!, "Mods", "2574315206", "1.6", "Assemblies", "XmlExtensions.dll");
+        string path = Environment.GetEnvironmentVariable("WAKE_UP_XML_EXTENSIONS_ASSEMBLY") ?? Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(managed))!, "Mods", "2574315206", "1.6", "Assemblies", "XmlExtensions.dll");
         return Assembly.LoadFrom(path);
     }
 

@@ -55,7 +55,10 @@ internal static class UserStartupSelection
         if (settings.GiddyTextures)
             selected.Add("--wake-up-giddy-textures=on");
         if (settings.HideLoadingSummary)
+        {
             selected.Add("--wake-up-hide-loading-summary=on");
+            if (settings.HideSummaryWithNoModlist) selected.Add("--wake-up-summary-provider=wakeup");
+        }
         if (settings.LoadingTimings)
             selected.Add("--wake-up-loading-timings=on");
         if (settings.CompressTextureStorage) selected.Add("--wake-up-texture-storage=deflate");

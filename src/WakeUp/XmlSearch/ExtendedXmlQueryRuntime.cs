@@ -28,6 +28,7 @@ internal static class ExtendedXmlQueryRuntime
     private static Func<XmlNode, string, XmlNodeList?>? select;
     private static MethodInfo? precheck, helper;
     private static PublishedPatchGuard[] guards = Array.Empty<PublishedPatchGuard>();
+    internal static bool SupplierPresent => AppDomain.CurrentDomain.GetAssemblies().Any(a => a.GetName().Name == "XmlExtensions");
     internal static bool Installed { get; private set; }
     internal static string Reason { get; private set; } = "not-attempted";
     internal static long Hits { get; private set; }
@@ -88,7 +89,7 @@ internal static class ExtendedXmlQueryRuntime
         // A later foreign transpiler causes recompilation: keep the supplier
         // helper call rather than attempting to interpret its new caller.
         if (precheck == null || helper == null || Harmony.GetPatchInfo(precheck)?.Transpilers.Any(p => p.owner != Owner) == true)
-            return code;
+        { CompatibilityStatus.Guard("extended-query", false); return code; }
         CodeInstruction[] calls = code.Where(i => i.opcode == OpCodes.Call && Equals(i.operand, helper)).ToArray();
         if (calls.Length != 1) throw new InvalidOperationException("Unique eager XML query call unavailable.");
         calls[0].operand = AccessTools.Method(typeof(ExtendedXmlQueryRuntime), nameof(SelectNodes));
@@ -100,7 +101,7 @@ internal static class ExtendedXmlQueryRuntime
         // Root admission supplies the active loading document and all native
         // query publication guards. The helper is pure only at its pinned body
         // and while no foreign hook adds effects to this caller/helper chain.
-        if (Installed && guards.All(g => g.AllowsOriginalContract()) && select != null)
+        if (Installed && CompatibilityStatus.Guard("extended-query", guards.All(g => g.AllowsOriginalContract())) && select != null)
         {
             XmlNodeList? indexed = select(xml, xpath);
             if (indexed != null) { Hits++; return indexed; }

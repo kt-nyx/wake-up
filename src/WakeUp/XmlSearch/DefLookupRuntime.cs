@@ -22,6 +22,7 @@ internal static class DefLookupRuntime
     private static readonly MethodInfo NativeSingle = typeof(XmlNode).GetMethod(nameof(XmlNode.SelectSingleNode), new[] { typeof(string) })!;
     private static readonly List<MethodBase> Targets = new();
     private static readonly List<PublishedPatchGuard> Guards = new();
+    private static readonly HashSet<MethodBase> YieldedWorkers = new();
     private static readonly List<PublishedPatchGuard> SingleGuards = new();
     private static bool attempted;
     private static bool installed;
@@ -56,34 +57,50 @@ internal static class DefLookupRuntime
             evidencePath = Path.Combine(mode.SaveDataRoot!, "WakeUp", "def-lookup.jsonl");
             candidate = mode.Selection == StartupSelection.Candidate;
             queryExtensions = candidate && arguments.Contains("--wake-up-query-extensions=on");
+            if (candidate && LoaderSupplierPolicy.YieldXml)
+            {
+                LoaderSupplierPolicy.RefuseXml("definitions", "single-query", "query-plans");
+                if (ExtendedXmlQueryRuntime.SupplierPresent) LoaderSupplierPolicy.RefuseXml("extended-query"); else CompatibilityStatus.Absent("extended-query");
+                return true;
+            }
             if (!RuntimeIdentity.ValidateBinaryIdentity(out string reason))
             {
+                foreach (string id in new[] { "definitions", "single-query", "query-plans" }) CompatibilityStatus.Refuse(id, reason);
+                if (ExtendedXmlQueryRuntime.SupplierPresent) CompatibilityStatus.Refuse("extended-query", reason); else CompatibilityStatus.Absent("extended-query");
                 Receipt("refused", reason);
                 return true;
             }
             Assembly game = typeof(LoadedModManager).Assembly;
             if (candidate)
             {
+                if (!arguments.Contains("--wake-up-user-def-search=off"))
                 foreach (string name in new[] { "Add", "AddModExtension", "Insert", "Remove", "Replace", "SetName",
                     "AttributeAdd", "AttributeRemove", "AttributeSet", "Test", "Conditional" })
                     InstallWorker(harmony, game.GetType("Verse.PatchOperation" + name, true)!);
-                if (Targets.Count == 0)
-                {
-                    Receipt("refused", "no-compatible-query-workers");
-                    return true;
-                }
+                if (Targets.Count == 0) CompatibilityStatus.Refuse("definitions", "No compatible native query workers.");
+                else CompatibilityStatus.Available("definitions", Targets.Count + " native workers admitted; individual refusals are listed separately.");
                 if (queryExtensions)
                 {
-                    singleMemoInstalled = InstallSingleMemo(harmony);
-                    if (singleMemoInstalled) ExtendedXmlQueryRuntime.Install(SelectEagerCustom);
+                    bool queryGuards = PrepareQueryGuards();
+                    singleMemoInstalled = queryGuards && InstallSingleMemo(harmony);
+                    if (singleMemoInstalled) CompatibilityStatus.Available("single-query");
+                    else CompatibilityStatus.Refuse("single-query", "Required XML query hooks or native query contract are unavailable.");
+                    bool eager = queryGuards && ExtendedXmlQueryRuntime.Install(SelectEagerCustom);
+                    if (eager) CompatibilityStatus.Available("extended-query");
+                    else if (!ExtendedXmlQueryRuntime.SupplierPresent) CompatibilityStatus.Absent("extended-query");
+                    else CompatibilityStatus.Refuse("extended-query", queryGuards ? ExtendedXmlQueryRuntime.Reason : "Required XML query contract unavailable.");
                     bool plans = XPathPlanRuntime.Install(harmony);
-                    queryExtensions = singleMemoInstalled || plans;
+                    if (plans) CompatibilityStatus.Available("query-plans");
+                    else CompatibilityStatus.Refuse("query-plans", "Required XPath syntax or query-library hooks are unavailable.");
+                    queryExtensions = singleMemoInstalled || plans || eager;
                 }
             }
+            if (candidate && Targets.Count == 0 && !queryExtensions) return true;
             harmony.Patch(AccessTools.Method(typeof(LoadedModManager), "ApplyPatches"),
                 prefix: new HarmonyMethod(typeof(DefLookupRuntime), nameof(StagePrefix)) { priority = Priority.Last },
                 finalizer: new HarmonyMethod(typeof(DefLookupRuntime), nameof(StageFinalizer)));
             installed = true;
+            CompatibilityStatus.Registry?.SummarizeChildren("definitions");
             Receipt("installed", candidate ? "literal-def-and-template-name-lookup" : "baseline-stage-timer",
                 "\"optimizationEnabled\":" + (candidate ? "true" : "false") + ",\"patchedMethods\":" + Targets.Count
                 + ",\"queryExtensions\":" + (queryExtensions ? "true" : "false")
@@ -99,13 +116,21 @@ internal static class DefLookupRuntime
             }
             catch { }
             installed = false;
+            CompatibilityStatus.Registry?.RefuseChildren("definitions", "Shared XML stage setup failed.");
+            singleMemoInstalled = false;
+            XPathPlanRuntime.Reset();
+            ExtendedXmlQueryRuntime.Uninstall();
+            foreach (string id in new[] { "definitions", "single-query", "query-plans" })
+                CompatibilityStatus.Refuse(id, "Shared XML stage setup failed: " + exception.GetType().Name);
+            if (ExtendedXmlQueryRuntime.SupplierPresent) CompatibilityStatus.Refuse("extended-query", "Shared XML stage setup failed."); else CompatibilityStatus.Absent("extended-query");
             Receipt("refused", "installation-" + exception.GetType().Name);
         }
         return true;
     }
 
-    private static bool InstallSingleMemo(Harmony harmony)
+    private static bool PrepareQueryGuards()
     {
+        SingleGuards.Clear();
         try
         {
             if (!XPathPlanRuntime.NativeStringWrapper()) return false;
@@ -129,6 +154,14 @@ internal static class DefLookupRuntime
                 }
                 SingleGuards.Add(guard);
             }
+            return true;
+        }
+        catch { SingleGuards.Clear(); return false; }
+    }
+    private static bool InstallSingleMemo(Harmony harmony)
+    {
+        try
+        {
             harmony.Patch(NativeSingle,
                 prefix: new HarmonyMethod(typeof(DefLookupRuntime), nameof(SinglePrefix)) { priority = Priority.Last },
                 postfix: new HarmonyMethod(typeof(DefLookupRuntime), nameof(SinglePostfix)) { priority = Priority.Last });
@@ -137,7 +170,6 @@ internal static class DefLookupRuntime
         catch (Exception exception)
         {
             harmony.Unpatch(NativeSingle, HarmonyPatchType.All, Owner);
-            SingleGuards.Clear();
             Receipt("query-extensions-refused", "installation-" + exception.GetType().Name);
             return false;
         }
@@ -147,7 +179,7 @@ internal static class DefLookupRuntime
     {
         __state = null;
         ScopedSingleQueryMemo? memo = singleMemo;
-        if (!__runOriginal || memo == null || selectingIndexedSingle || !SingleGuards.All(g => g.AllowsOriginalContract()))
+        if (!__runOriginal || memo == null || selectingIndexedSingle || !CompatibilityStatus.Guard("single-query", SingleGuards.All(g => g.AllowsOriginalContract())))
             return true;
         if (memo.TryRead(__instance, xpath, out XmlNode? result, out long version))
         {
@@ -184,7 +216,7 @@ internal static class DefLookupRuntime
 
     private static XmlNodeList? SelectEagerCustom(XmlNode context, string xpath)
     {
-        if (active == null || !SingleGuards.All(g => g.AllowsOriginalContract())) return null;
+        if (active == null || !CompatibilityStatus.Guard("extended-query", SingleGuards.All(g => g.AllowsOriginalContract()))) return null;
         if (!active.TrySelectNodesEager(context, xpath, out XmlNodeList? result)) return null;
         eagerCustomIndexHits++;
         return result;
@@ -205,16 +237,49 @@ internal static class DefLookupRuntime
 
     private static void InstallWorker(Harmony harmony, Type type)
     {
+        string id = "definitions/" + type.Name;
+        CompatibilityStatus.Declare(id, "Definition query: " + type.Name);
         MethodInfo? worker = type.GetMethod("ApplyWorker", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly,
             null, new[] { typeof(XmlDocument) }, null);
-        if (worker == null || worker.ReturnType != typeof(bool) || Harmony.GetPatchInfo(worker)?.Transpilers.Any(p => p.owner != Owner) == true)
-            return;
-        // Recheck published Harmony state without deserializing unchanged records.
-        if (!PublishedPatchGuard.TryCreate(worker, Owner, out PublishedPatchGuard? guard))
-            return;
-        Targets.Add(worker);
-        Guards.Add(guard!);
-        harmony.Patch(worker, transpiler: new HarmonyMethod(typeof(DefLookupRuntime), nameof(Transpiler)) { priority = Priority.Last });
+        int index = Targets.Count;
+        bool patchAttempted = false;
+        try
+        {
+            if (worker == null || worker.ReturnType != typeof(bool) || Harmony.GetPatchInfo(worker)?.Transpilers.Any(p => p.owner != Owner) == true
+                || !PublishedPatchGuard.TryCreate(worker, Owner, out PublishedPatchGuard? guard) || !guard!.AllowsOriginalContract())
+                throw new InvalidOperationException("Native worker query is occupied or unsupported.");
+            var native = PatchProcessor.GetOriginalInstructions(worker);
+            if (native.Count(IsNativeQuery) != 1)
+                throw new InvalidOperationException("Unique native worker XPath callsite unavailable.");
+            bool single = native.Any(i => Equals(i.operand, NativeSingle));
+            if (single && !SingleWorkerQueryPolicy.CanInstall()) throw new InvalidOperationException("A downstream single-result query observer requires the original expression and context.");
+            Targets.Add(worker); Guards.Add(guard);
+            patchAttempted = true;
+            harmony.Patch(worker, transpiler: new HarmonyMethod(typeof(DefLookupRuntime), nameof(Transpiler)) { priority = Priority.Last });
+            if (!YieldedWorkers.Contains(worker)) CompatibilityStatus.Available(id);
+        }
+        catch (Exception error)
+        {
+            // Harmony rebuilds the method even when this owner has no patch.
+            // An admission refusal must leave the supplier's publication alone.
+            if (patchAttempted) harmony.Unpatch(worker!, HarmonyPatchType.Transpiler, Owner);
+            // Only the just-appended slot can be removed: preceding indices are in IL.
+            if (Targets.Count > index) { Targets.RemoveAt(index); Guards.RemoveAt(index); }
+            if (worker != null) YieldedWorkers.Remove(worker);
+            CompatibilityStatus.Refuse(id, error.Message, "required-contract",
+                LoaderSupplierPolicy.ProviderFor(worker == null ? new MethodBase[] { NativeSingle } : new MethodBase[] { worker, NativeSingle }));
+        }
+    }
+
+    private static bool IsNativeQuery(CodeInstruction instruction)
+        => instruction.opcode == OpCodes.Callvirt && (Equals(instruction.operand, NativeNodes) || Equals(instruction.operand, NativeSingle));
+
+    private static void YieldWorker(MethodBase worker)
+    {
+        if (!YieldedWorkers.Add(worker)) return;
+        CompatibilityStatus.Refuse("definitions/" + worker.DeclaringType!.Name,
+            "This worker changed while loading patches were being rebuilt. Wake-Up leaves its incoming implementation unchanged for this launch.",
+            "worker-rewritten", "Other loading mod");
     }
 
     internal static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, MethodBase __originalMethod)
@@ -223,13 +288,20 @@ internal static class DefLookupRuntime
         if (target < 0)
             throw new InvalidOperationException("Def lookup worker is not registered.");
         List<CodeInstruction> code = instructions.Select(i => new CodeInstruction(i)).ToList();
-        if (Harmony.GetPatchInfo(__originalMethod)?.Transpilers.Any(p => p.owner != Owner) == true)
-            return code;
+        // Harmony publishes a new patch record only AFTER rebuilding its wrapper.
+        // An earlier transpiler can already have changed this incoming body while
+        // GetPatchInfo still reports only our previous publication. Inspect the
+        // complete incoming body before modifying any instruction or metadata.
+        if (YieldedWorkers.Contains(__originalMethod)) return code;
+        if (Harmony.GetPatchInfo(__originalMethod)?.Transpilers.Any(p => p.owner != Owner) == true
+            || code.Count(IsNativeQuery) != 1
+            || !InstructionComparison.SameInstructions(code, PatchProcessor.GetOriginalInstructions(__originalMethod)))
+        { YieldWorker(__originalMethod); return code; }
         int replacements = 0;
         for (int index = 0; index < code.Count; index++)
         {
             CodeInstruction instruction = code[index];
-            if (instruction.opcode != OpCodes.Callvirt || (!Equals(instruction.operand, NativeNodes) && !Equals(instruction.operand, NativeSingle)))
+            if (!IsNativeQuery(instruction))
                 continue;
             bool single = Equals(instruction.operand, NativeSingle);
             var argument = new CodeInstruction(OpCodes.Ldc_I4, target);
@@ -247,11 +319,23 @@ internal static class DefLookupRuntime
         return code;
     }
 
+    private static bool WorkerAllowed(int worker)
+    {
+        if (YieldedWorkers.Contains(Targets[worker])) return false;
+        if (Guards[worker].AllowsOriginalContract()) return true;
+        return CompatibilityStatus.Guard("definitions/" + Targets[worker].DeclaringType!.Name, false);
+    }
     private static XmlNodeList SelectNodes(XmlNode node, string xpath, int worker)
-        => active != null && Guards[worker].AllowsOriginalContract() ? active.SelectNodes(node, xpath) : node.SelectNodes(xpath)!;
+        => active != null && WorkerAllowed(worker) ? active.SelectNodes(node, xpath) : node.SelectNodes(xpath)!;
 
     private static XmlNode? SelectSingleNode(XmlNode node, string xpath, int worker)
-        => active != null && Guards[worker].AllowsOriginalContract() ? active.SelectSingleNode(node, xpath) : node.SelectSingleNode(xpath);
+    {
+        if (active == null || !WorkerAllowed(worker)) return node.SelectSingleNode(xpath);
+        if (SingleWorkerQueryPolicy.CanUse()) return active.SelectSingleNode(node, xpath);
+        CompatibilityStatus.Refuse("definitions/" + Targets[worker].DeclaringType!.Name,
+            "The single-result query observer or its patch-stage scope changed; original query context retained.", "single-query-observer");
+        return node.SelectSingleNode(xpath);
+    }
 
     private static void StagePrefix(XmlDocument __0, bool __runOriginal, out StageState? __state)
     {
@@ -260,7 +344,7 @@ internal static class DefLookupRuntime
             return;
         consumed = true;
         __state = new StageState();
-        if (candidate)
+        if (candidate && (Targets.Count != 0 || singleMemoInstalled || ExtendedXmlQueryRuntime.Installed))
             active = __state.Lookup = new ScopedDefLookup(__0);
         if (singleMemoInstalled)
         {

@@ -33,11 +33,13 @@ internal static class LoadingInvocationObservation
             if (!AtlasContract.Matches(NativeCallbacks)) throw new InvalidOperationException("Native callback body changed");
             Patch(harmony, NativeConstructors, nameof(RewriteConstructors));
             Patch(harmony, NativeCallbacks, nameof(RewriteCallbacks));
+            CompatibilityStatus.Available("invocations");
             Status = "Native constructor and callback invocations observed independently of the display. CLR initialization checks can be no-ops for initialized types.";
         }
         catch (Exception error)
         {
             harmony.UnpatchAll(Owner); targets.Clear();
+            CompatibilityStatus.Refuse("invocations", error.Message);
             Status = "Individual native invocations unobserved: " + error.Message;
             LoadingObservationRuntime.Current?.NoteUnobserved(Status);
             return;
@@ -58,6 +60,7 @@ internal static class LoadingInvocationObservation
                 targets.Remove(target);
             }
             providerMod = null;
+            CompatibilityStatus.Registry?.Set("invocations", OperationState.PartiallyAvailable, "Native observation retained; Loading Progress detail is unavailable: " + error.Message, "supplier-detail-unavailable", "Loading Progress");
             Status += " Loading Progress execution detail unobserved: " + error.Message;
             LoadingObservationRuntime.Current?.NoteUnobserved("Loading Progress execution detail unavailable: " + error.Message);
         }

@@ -1,6 +1,6 @@
 # Building the public source
 
-These instructions apply to the preserved candidate's committed source. Public 0.2.1 remains the released baseline. See [current state](current-state.md) for source, package and qualification distinctions. Use the SDK actually pinned in the selected checkout's `global.json`, not an assumed installed version.
+These instructions apply to corrected 0.4.0. See [current state](current-state.md) for source, package and qualification identities. Use the SDK pinned in global.json.
 
 The source archive contains the corresponding implementation, tests and build
 scripts. It does not contain game files, third-party mod binaries or the
@@ -11,14 +11,15 @@ Obtain the required game and Prepatcher references legally. The present build
 example below selects the exact reviewed Steam rev590 game and Harmony binaries;
 version labels alone are insufficient. Their hashes are in
 `build/Verify-LocalReferences.ps1`. The explicit `linux-rev600` target also permits
-the captured native Linux references for offline compilation. The historical
-`gog-rev573` target remains available for its separately identified references. Runtime platform support and the build
+the captured native Linux references for offline compilation. The
+`gog-rev573` target supplies the corrected 0.4.0 release build. Compilation targets
+are not live platform qualifications; exact build references remain reproducibility details. Runtime platform support and the build
 host are separate: these instructions still use Windows and PowerShell 7.
 Do not weaken identity checks to make another build compile; see the
-[Linux qualification limits](archive/linux-support.md).
+[Linux qualification limits](https://github.com/kt-nyx/wake-up/blob/v0.3.0/docs/archive/linux-support.md).
 
 These exact references keep builds reproducible. They are separate from the
-retained [runtime forward compatibility policy](archive/forward-compatibility.md),
+retained [runtime forward compatibility policy](https://github.com/kt-nyx/wake-up/blob/v0.3.0/docs/archive/forward-compatibility.md),
 which permits future game revisions to attempt each feature's checks.
 
 Texture supplier routing also checks `0PrepatcherAPI.dll` 1.2.0.0 from that same frozen
@@ -27,8 +28,7 @@ to expose Harmony's embedded Cecil assembly-rewriting types to the compiler.
 Only a reference copy under build output is altered; the original Harmony/API
 binaries are not changed or packaged. Generated access attributes are part of
 Wake-Up; see [third-party notices](../THIRD_PARTY_NOTICES.md). No additional game
-dependency is installed. The existing core Linux fallback remains; the current
-candidate has no Linux live qualification. Native texture preparation requires
+dependency is installed. The existing core Linux fallback remains; neither 0.3.0 nor 0.4.0 has Linux live qualification. Native texture preparation requires
 no helper. A Windows-helper release bundle
 also includes the optional DDS export executable and matching source/notices.
 Linux helper work remains deferred.
@@ -46,6 +46,11 @@ dotnet test tests/WakeUp.Tests -c Release --no-build
 python -m unittest discover -s tests -p 'test_*.py'
 ```
 
+When running the optional XML Extensions adapter tests outside the private
+fixture, set `WAKE_UP_XML_EXTENSIONS_ASSEMBLY` to a legally obtained
+`XmlExtensions.dll`. The tests validate its method contracts; they do not require
+copying it into a normal game installation.
+
 These commands do not launch the game. Runtime output is under
 `artifacts/bin/WakeUp/Release/net472/`.
 Tests require the separately obtained references; no public CI runner is
@@ -57,7 +62,7 @@ and `dotnet test tests/WakeUp.Translation.Tests -c Release --no-restore`.
 This separate project executes the unmodified native translation methods with a
 test-only CoreCLR Harmony 2.4.2 dependency; the product still builds against the
 frozen Prepatcher reference. It is not part of the ordinary net472 suite. See
-[S03 host differences and limits](archive/ecosystem-replacement-20260910/s03-translations.md#offline-host-limitation)
+[S03 host differences and limits](https://github.com/kt-nyx/wake-up/blob/v0.3.0/docs/archive/ecosystem-replacement-20260910/s03-translations.md#offline-host-limitation)
 before interpreting these checks as game-runtime evidence.
 
 To check compilation against the reviewed Linux game without changing the
@@ -71,9 +76,11 @@ compiling Linux references on Windows is not a Linux execution test.
 
 The package's `Source/source.zip` carries the actual corresponding source,
 including these instructions, pinned dependencies, project files and scripts.
-`Source/source-revision.txt` records the original build revision. When rebuilding
-that archive without its Git history, pass
-`-p:SourceRevisionId=<revision-from-that-file>` to `dotnet build` to preserve
+`Source/source-revision.txt` records the packaging/source revision. The manifest's
+`buildSourceRevision` records the original DLL build revision; these differ when
+an unchanged tested DLL is reused across documentation or packaging edits. When
+rebuilding that archive without its Git history, pass
+`-p:SourceRevisionId=<buildSourceRevision>` to `dotnet build` to preserve
 the informational version. A public snapshot commit can differ from that build
 revision; neither implies a different source file automatically.
 
@@ -91,7 +98,7 @@ the product; do not install a development observer alongside it.
 
 The pinned helper source is built separately by `scripts/build_texture_helper.py`
 using the documented existing Windows toolchain and dependencies. Read the
-[R2 source and protocol report](archive/ecosystem-replacement-20260910/r2-texture-preparation.md)
+[R2 source and protocol report](https://github.com/kt-nyx/wake-up/blob/v0.3.0/docs/archive/ecosystem-replacement-20260910/r2-texture-preparation.md)
 for exact inputs and checks, and the [release procedure](release.md) for the
 `--texture-helper` packaging overlay. The helper's matching source, executable,
 notices and metadata travel together. Native preservation and core loading remain

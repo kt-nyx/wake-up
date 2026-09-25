@@ -17,7 +17,7 @@ checks. On each platform, all **1,682 Giddy-Up reads matched the original**, and
 zero cache errors**. Earlier checks created those six entries successfully.
 The samples cover compressed textures with mipmaps and small uncompressed
 textures. Exact scope and package identities are in the
-[validation record](../docs/archive/steam-linux-live-validation.md).
+[validation record](https://github.com/kt-nyx/wake-up/blob/v0.3.0/docs/archive/steam-linux-live-validation.md).
 
 Modern Dev Tools was temporarily disabled for the final unattended checks;
 its log/stack-trace window blocks the menu callback. The test observer and PNG

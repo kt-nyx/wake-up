@@ -30,19 +30,28 @@ internal static class NativeLoadingSummaryRuntime
         var harmony = new Harmony(Owner);
         try
         {
+            if (LifecycleSupplierPolicy.RimThemesOwnsDisplay())
+                throw LifecycleSupplierPolicy.ThemeDisplayConflict();
+            if (LifecycleSupplierPolicy.PreserveDlcPanel(args.Contains("--wake-up-summary-provider=wakeup")))
+            {
+                Status = "No Modlist on Loading keeps the DLC panel. Wake-Up preserves it; select 'Also hide the DLC panel' to hide the entire summary and restart.";
+                CompatibilityStatus.Refuse("summary", Status, "supplier-dlc-panel", "No Modlist on Loading");
+                return;
+            }
             if (LoadedModManager.RunningModsListForReading.Any(m => m.PackageId == LoadingProgressCompatibility.PackageId))
-                throw new InvalidOperationException("Loading Progress owns the loading screen; its display stays in use");
+                throw new SupplierConflictException("Loading Progress owns the loading screen; its display stays in use", "Loading Progress", "supplier-display");
             if (!RuntimeIdentity.ValidateBinaryIdentity(out string reason)) throw new InvalidOperationException(reason);
             if (!SemanticMethodIdentity.TryHash(Target, out string body, out _) || body != LoadingDisplayRuntime.ExpectedBodies[0])
                 throw new InvalidOperationException("native loading drawing changed");
             Install(harmony);
+            CompatibilityStatus.Available("summary");
             Status = "Native loading summary hiding selected; waiting for a screen that would show it.";
         }
         catch (Exception e)
         {
             enabled = false;
             harmony.UnpatchAll(Owner);
-            Status = "Native loading summary hiding refused: " + e.Message + ". Ordinary drawing remains.";
+            Status = "Native loading summary hiding refused: " + e.Message + ". Ordinary drawing remains."; LifecycleSupplierPolicy.Refuse("summary", Status, e);
         }
         Log.Message("[Wake-Up] " + Status);
     }
@@ -93,10 +102,16 @@ internal static class NativeLoadingSummaryRuntime
     internal static bool ShowSummary(bool nativeChoice)
     {
         if (!nativeChoice || !enabled) return nativeChoice;
+        if (LifecycleSupplierPolicy.RimThemesOwnsDisplay())
+        {
+            enabled = false; Status = LifecycleSupplierPolicy.DisplayReason();
+            LifecycleSupplierPolicy.Refuse("summary", Status, LifecycleSupplierPolicy.ThemeDisplayConflict());
+            return nativeChoice;
+        }
         if (guard?.AllowsOriginalContract() != true)
         {
             enabled = false;
-            Status = "Native loading summary hiding refused a changed drawing hook; ordinary drawing remains.";
+            Status = "Native loading summary hiding refused a changed drawing hook; ordinary drawing remains."; CompatibilityStatus.Refuse("summary", Status);
             return nativeChoice;
         }
         hidden++;

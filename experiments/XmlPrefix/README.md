@@ -21,6 +21,6 @@ remain unchanged. Ordinary-product tests verify that all five experiment types
 and the setting are absent from the compiled product, and that the experimental
 prepatch has no registration attribute.
 
-See the [R1 report](../../docs/archive/ecosystem-replacement-20260910/r1-independent-xml.md) for
+See the [R1 report](https://github.com/kt-nyx/wake-up/blob/v0.3.0/docs/archive/ecosystem-replacement-20260910/r1-independent-xml.md) for
 historical source/build identities, the negative result and the bounded R4
 follow-up premise. This directory adds no project, runner or dependency.

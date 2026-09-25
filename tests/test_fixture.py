@@ -18,6 +18,26 @@ spec.loader.exec_module(f)
 
 
 class FixtureTests(unittest.TestCase):
+    def test_compatibility_carry_requires_authentic_successful_capture(self):
+        profile = self.root / "results/warnings/profile"
+        ledger = profile / "WakeUp/Compatibility/notices.xml"
+        ledger.parent.mkdir(parents=True)
+        ledger.write_text('<compatibility version="1"><pending key="real">warning</pending></compatibility>')
+        run = dict(purpose="functional", automaticTestPassed=True, compatibilityTestPassed=True,
+                   capturedUtc="recorded", evidence=f.inventory(profile))
+        f.write(profile.parent / "run.json", run)
+        target = self.root / "staging/carry"
+        result = f.carry_compatibility_notices(self.root, "warnings", target)
+        self.assertEqual(result["sha256"], f.digest(ledger))
+        self.assertEqual(ledger.read_bytes(), (target / "WakeUp/Compatibility/notices.xml").read_bytes())
+        ledger.write_text("changed")
+        with self.assertRaisesRegex(RuntimeError, "Captured notices changed"):
+            f.carry_compatibility_notices(self.root, "warnings", self.root / "staging/changed")
+        run["compatibilityTestPassed"] = False
+        f.write(profile.parent / "run.json", run)
+        with self.assertRaisesRegex(RuntimeError, "successful functional"):
+            f.carry_compatibility_notices(self.root, "warnings", self.root / "staging/failed")
+
     def test_reviewed_steam_core_binding_keeps_exact_binary_and_reference_target(self):
         source = self.base / "steam-core"
         (source / "Assemblies").mkdir(parents=True)
@@ -52,6 +72,28 @@ class FixtureTests(unittest.TestCase):
             self.assertEqual(receipt["referenceTarget"], "steam-rev590")
             self.assertEqual(receipt["runtimeContract"], contract)
             self.assertEqual((Path(result["package"]) / "Assemblies/WakeUp.dll").read_bytes(), b"reviewed steam core")
+
+    def test_timing_notice_carry_requires_acknowledged_functional_history(self):
+        profile = self.root / "results/warnings/profile"
+        ledger = profile / "WakeUp/Compatibility/notices.xml"
+        ledger.parent.mkdir(parents=True)
+        for content, allowed in [
+            ('<compatibility version="1"><pending key="real">warning</pending></compatibility>', False),
+            ('<compatibility version="1"><ack key="real"/><pending key="late">late</pending></compatibility>', False),
+            ('<compatibility version="1"><ack key="real"/></compatibility>', True),
+        ]:
+            ledger.write_text(content)
+            f.write(profile.parent / "run.json", dict(purpose="functional", automaticTestPassed=True,
+                    compatibilityTestPassed=True, capturedUtc="recorded", evidence=f.inventory(profile)))
+            target = self.root / "staging/timing"
+            if allowed:
+                receipt = f.carry_compatibility_notices(self.root, "warnings", target, "performance")
+                self.assertEqual((target / "WakeUp/Compatibility/notices.xml").read_bytes(), ledger.read_bytes())
+                self.assertEqual(receipt["runSha256"], f.digest(profile.parent / "run.json"))
+            else:
+                with self.assertRaisesRegex(RuntimeError, "fully acknowledged"):
+                    f.carry_compatibility_notices(self.root, "warnings", target, "performance")
+                self.assertFalse(target.exists())
 
     def test_steam_scene_carry_requires_exact_save_direct_parent_and_content(self):
         label = "c15a-owner-scene-setup-09"
@@ -1353,6 +1395,22 @@ class FixtureTests(unittest.TestCase):
                 f.prepare(self.root, "candidate", "refused-old-package", menu_observer=False, exit_after_menu_ready=False)
             self.assertFalse((self.root / "results/refused-old-package").exists())
             f.write(self.root / "candidate.json", installed)
+            history = self.root / "results/acknowledged/profile"
+            ledger = history / "WakeUp/Compatibility/notices.xml"
+            ledger.parent.mkdir(parents=True)
+            ledger.write_text('<compatibility version="1"><ack key="real"/></compatibility>')
+            f.write(history.parent / "run.json", dict(purpose="functional", automaticTestPassed=True,
+                    compatibilityTestPassed=True, capturedUtc="recorded", evidence=f.inventory(history)))
+            f.prepare(self.root, "candidate", "ordinary-history", purpose="performance",
+                      compatibility_notices_from="acknowledged", menu_observer=False, exit_after_menu_ready=False)
+            ordinary = f.read(self.root / "results/ordinary-history/run.json")
+            self.assertEqual(ordinary["compatibilityNoticesFrom"]["sha256"], f.digest(ledger))
+            self.assertIsNone(ordinary["compatibilityProbe"])
+            self.assertFalse(any("fixture-compatibility" in arg or "fixture-functional-probes" in arg for arg in ordinary["arguments"]))
+            self.assertEqual((self.root / "profile/WakeUp/Compatibility/notices.xml").read_bytes(), ledger.read_bytes())
+            with self.assertRaisesRegex(RuntimeError, "Compatibility probe requires"):
+                f.prepare(self.root, "candidate", "timing-probe-refused", purpose="performance",
+                          compatibility_probe="ack", menu_observer=False, exit_after_menu_ready=False)
             for mode in ["baseline", "candidate"]:
                 prepared = f.prepare(self.root, mode, mode, menu_observer=False, exit_after_menu_ready=False,
                                      character_presets="on" if mode == "candidate" else "off",

@@ -21,15 +21,15 @@ internal static class StartupSearchRuntime
             // Each explicit single-search selector remains interpreted by its
             // own component; missing/conflicting selectors still refuse work.
             StartupFeatureRunner.Run("Definition searches", () => DefLookupRuntime.TryInitialize(arguments));
-            StartupFeatureRunner.Run("Type searches", () => TypeLookupRuntime.TryInitialize(arguments));
+            StartupFeatureRunner.Run("Type searches", () => TypeSearchLifetime.Initialize(arguments));
             return;
         }
         // Retain every other argument, including the comparison mode and
         // isolated profile path. Multiple strategy arguments stay invalid in
         // each component's existing selector validation.
         if (!arguments.Contains("--wake-up-user-type-search=off"))
-            StartupFeatureRunner.Run("Type searches", () => TypeLookupRuntime.TryInitialize(For(arguments, "type-lookup")));
-        if (!arguments.Contains("--wake-up-user-def-search=off"))
+            StartupFeatureRunner.Run("Type searches", () => TypeSearchLifetime.Initialize(For(arguments, "type-lookup")));
+        if (!arguments.Contains("--wake-up-user-def-search=off") || arguments.Contains("--wake-up-query-extensions=on"))
             StartupFeatureRunner.Run("Definition searches", () => DefLookupRuntime.TryInitialize(For(arguments, "def-lookup")));
     }
 

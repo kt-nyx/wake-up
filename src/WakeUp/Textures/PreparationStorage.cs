@@ -102,7 +102,7 @@ public sealed class PreparationStorageSession : IDisposable
         {
             OwnedCacheStore.RejectLinkedPath(root);
             if (!Directory.Exists(root)) return result;
-            var existingBudget = SharedCacheBudget.ForRoot(root);
+            var existingBudget = SharedCacheBudget.ForRoot(root, acquire: false);
             if (existingBudget != null) return existingBudget.ReadIdleCategory(root, ReadChoices);
             string budgetLock = Path.Combine(wakeRoot, ".budget-owner"), categoryLock = Path.Combine(root, ".owner");
             OwnedCacheStore.RejectLinkedPath(budgetLock); OwnedCacheStore.RejectLinkedPath(categoryLock);

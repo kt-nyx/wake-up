@@ -95,7 +95,7 @@ internal static class GiddyTextureRuntime
     {
         var code = instructions.Select(i => new CodeInstruction(i)).ToList();
         if (offset == null || !InstructionComparison.SameInstructions(code, PatchProcessor.GetOriginalInstructions(offset)))
-            return code;
+        { CompatibilityStatus.Guard("giddy", false); return code; }
         if (code.Count(i => i.opcode == OpCodes.Call && Equals(i.operand, readable)) != 1)
             throw new InvalidOperationException("Unique readable texture call unavailable.");
         foreach (var i in code)
@@ -132,12 +132,19 @@ internal static class GiddyTextureRuntime
         Scope? s = scope;
         if (!enabled || s == null || completed || Thread.CurrentThread.ManagedThreadId != mainThread)
             return original!(source);
-        if (!guards.All(g => g.AllowsOriginalContract()) || !TexturePlatformSupport.SupportsReadback(GameBuildContract.Current, SystemInfo.graphicsDeviceType) || s.Textures.Count >= 4096)
+        if (!CompatibilityStatus.Guard("giddy", guards.All(g => g.AllowsOriginalContract())) || !TexturePlatformSupport.SupportsReadback(GameBuildContract.Current, SystemInfo.graphicsDeviceType) || s.Textures.Count >= 4096)
         {
             s.Fallbacks++;
             return original!(source);
         }
         Texture2D? column = null;
+        if (!ImageOptReadiness.CanRead(source, out string producerReason, out string producerCode))
+        {
+            s.Fallbacks++;
+            CompatibilityStatus.Registry?.Set("giddy", OperationState.PartiallyAvailable, producerReason,
+                producerCode, "Image Opt");
+            return original!(source);
+        }
         try
         {
             column = ReadColumn(source);
@@ -213,6 +220,8 @@ internal static class GiddyTextureRuntime
         string digest = BitConverter.ToString(sha.ComputeHash(s.Data.ToArray())).Replace("-", "");
         Receipt("complete", "original-offsets", "\"calls\":" + s.Calls + ",\"hits\":" + s.Hits + ",\"fallbacks\":" + s.Fallbacks
             + ",\"errors\":" + s.Errors + ",\"verified\":" + s.Verified + ",\"mismatches\":" + s.Mismatches + ",\"sourcePixels\":" + s.Pixels
+            + ",\"imageOptReadyReads\":" + ImageOptReadiness.ReadyReads + ",\"imageOptExternalReads\":" + ImageOptReadiness.ExternalReads
+            + ",\"imageOptPendingRefusals\":" + ImageOptReadiness.PendingRefusals + ",\"imageOptContractRefusals\":" + ImageOptReadiness.ContractRefusals
             + ",\"graphicsBackend\":\"" + SystemInfo.graphicsDeviceType + "\",\"offsetSha256\":\"" + digest + "\",\"retainedTextures\":" + s.Textures.Count
             + ",\"offsetMs\":" + (s.Ticks * 1000d / Stopwatch.Frequency).ToString("F3", CultureInfo.InvariantCulture)
             + ",\"scopeThroughMenuMs\":" + s.Watch.Elapsed.TotalMilliseconds.ToString("F3", CultureInfo.InvariantCulture)
@@ -233,5 +242,8 @@ internal static class GiddyTextureRuntime
         }
     }
     private static void Receipt(string kind, string reason, string? fields = null)
-        => JsonLineLog.WriteReceipt(evidencePath, kind, reason, fields);
+    {
+        CompatibilityStatus.Receipt("giddy", kind, reason);
+        JsonLineLog.WriteReceipt(evidencePath, kind, reason, fields);
+    }
 }

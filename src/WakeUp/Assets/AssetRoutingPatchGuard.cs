@@ -17,8 +17,10 @@ internal sealed class AssetRoutingPatchGuard
     private readonly Dictionary<MethodBase, byte[]> state;
     private IEnumerator? version;
     private bool allowed;
-    internal AssetRoutingPatchGuard()
+    private readonly bool bundlesOnly;
+    internal AssetRoutingPatchGuard(bool bundlesOnly = false)
     {
+        this.bundlesOnly = bundlesOnly;
         var field = typeof(Harmony).Assembly.GetType("HarmonyLib.HarmonySharedState")?
             .GetField("state", BindingFlags.NonPublic | BindingFlags.Static);
         if (field?.IsInitOnly != true || field.FieldType != typeof(Dictionary<MethodBase, byte[]>))
@@ -35,7 +37,7 @@ internal sealed class AssetRoutingPatchGuard
         // Never take Harmony's processor lock while holding its state lock.
         MethodBase[] methods;
         IEnumerator snapshot;
-        lock (state) { snapshot = (IEnumerator)state.GetEnumerator(); methods = state.Keys.Where(Relevant).ToArray(); }
+        lock (state) { snapshot = (IEnumerator)state.GetEnumerator(); methods = state.Keys.Where(m => Relevant(m, bundlesOnly)).ToArray(); }
         bool decision = methods.All(m =>
         {
             var info = Harmony.GetPatchInfo(m);
@@ -50,12 +52,13 @@ internal sealed class AssetRoutingPatchGuard
             version = snapshot; allowed = decision; return allowed;
         }
     }
-    internal static bool Relevant(MethodBase method)
+    internal static bool Relevant(MethodBase method) => Relevant(method, false);
+    internal static bool Relevant(MethodBase method, bool bundlesOnly)
     {
         var type = method.DeclaringType;
         if (type?.IsGenericType == true) type = type.GetGenericTypeDefinition();
-        return (type == typeof(ContentFinder<>) || type == typeof(ModContentHolder<>)) && (method.Name == "Get" || method.Name == "TryFindAssetInModBundles")
-            || type == typeof(ModContentPack) && (method.Name == "GetContentHolder" || method.Name == "get_FolderName"
+        return (type == typeof(ContentFinder<>) || type == typeof(ModContentHolder<>)) && ((!bundlesOnly && method.Name == "Get") || method.Name == "TryFindAssetInModBundles")
+            || type == typeof(ModContentPack) && ((!bundlesOnly && method.Name == "GetContentHolder") || method.Name == "get_FolderName"
                 || method.Name == "get_PackageIdPlayerFacing" || method.Name == "get_IsOfficialMod")
             || type == typeof(GenFilePaths) && method.Name == "ContentPath"
             || type == typeof(UnityEngine.AssetBundle) && (method.Name == "LoadAsset" || method.Name == "LoadAsset_Internal")

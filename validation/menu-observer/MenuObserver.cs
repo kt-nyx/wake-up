@@ -28,6 +28,7 @@ public sealed class MenuObserverMod : Mod
     private static long startCounter;
     private static long counterFrequency;
     private static int emitted;
+    internal static bool MenuObserved => Volatile.Read(ref emitted) != 0;
     private static bool exitAfterMenuReady;
     private static bool initialized;
 
@@ -75,8 +76,10 @@ public sealed class MenuObserverMod : Mod
             if (target == null || !target.IsStatic || target.ReturnType != typeof(void) || target.GetParameters().Length != 0)
                 throw new InvalidOperationException("Main-menu drawing method unavailable.");
             harmony.Patch(target, postfix: new HarmonyMethod(typeof(MenuObserverMod), nameof(MenuDrawn)) { priority = Priority.Last });
+            if (Environment.GetCommandLineArgs().Contains("--fixture-supplier-menu=rimthemes")) RimThemesMenuProbe.Install(harmony);
             C01StageTimings.Install(directory);
             C14BackgroundProbe.InstallAutostart(directory);
+            if (CompatibilityProbe.Selected) CompatibilityProbe.Install(directory);
             if (Environment.GetCommandLineArgs().Contains("--fixture-c13-loading-probe")) C13LoadingProbe.Install(directory);
             if (Environment.GetCommandLineArgs().Contains("--fixture-functional-probes")
                 && !Environment.GetCommandLineArgs().Contains("--fixture-c10-bootstrap-probe"))
@@ -95,6 +98,7 @@ public sealed class MenuObserverMod : Mod
                 + startCounter.ToString(Invariant) + "; nativeCounter=" + Counter().ToString(Invariant)
                 + "; monoStopwatchCounter=" + Stopwatch.GetTimestamp().ToString(Invariant));
             if (Environment.GetCommandLineArgs().Contains("--fixture-c05-texture-probe")) C05TextureProbe.StageSources(content);
+            SourceSelectionProbe.Schedule(content, directory);
             initialized = true;
         }
         catch (Exception exception)
@@ -118,7 +122,7 @@ public sealed class MenuObserverMod : Mod
         {
             // Layout/input events are not a displayed menu. No button tests,
             // focus changes, quiet-period heuristics or minimized-state checks.
-            if (Volatile.Read(ref emitted) != 0 || !__runOriginal || directory == null
+            if (Volatile.Read(ref emitted) != 0 || (!__runOriginal && !RimThemesMenuProbe.Completed) || directory == null
                 || Event.current == null || Event.current.type != EventType.Repaint
                 || Current.ProgramState != ProgramState.Entry || !PlayDataLoader.Loaded) return;
             long counter = Counter();
@@ -127,7 +131,7 @@ public sealed class MenuObserverMod : Mod
             using (Process process = Process.GetCurrentProcess()) pid = process.Id;
             double elapsed = (counter - startCounter) / (double)counterFrequency;
             string json = "{\"schema\":\"fixture-menu-ready.v1\",\"event\":\"menu-ready\","
-                + "\"definition\":\"first-completed-main-menu-repaint\",\"runId\":\"" + runId
+                + "\"definition\":\"" + (__runOriginal ? "first-completed-main-menu-repaint" : "first-completed-rimthemes-menu-repaint") + "\",\"runId\":\"" + runId
                 + "\",\"processId\":" + pid.ToString(Invariant)
                 + ",\"utc\":\"" + DateTime.UtcNow.ToString("O", Invariant)
                 + "\",\"counter\":" + counter.ToString(Invariant)
@@ -139,6 +143,7 @@ public sealed class MenuObserverMod : Mod
             File.Move(path + ".tmp", path);
             Log.Message("[FixtureMenuObserver] menu-ready elapsedSeconds=" + elapsed.ToString("F6", Invariant));
             C01StageTimings.Menu();
+            if (CompatibilityProbe.Selected) { CompatibilityProbe.Start(directory); return; }
             if (C10DemandTextureProbe.Required)
             {
                 C10DemandTextureProbe.Start(directory);

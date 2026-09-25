@@ -23,6 +23,9 @@ public sealed class WakeUpMod : Mod
         {
             if (PlayDataLoader.Loaded)
                 return;
+            CompatibilityStatus.EnsureInitialized(GenFilePaths.SaveDataFolderPath);
+            CompatibilityStatus.InstallDelivery();
+            CompatibilityStatus.LogHardExclusions();
             string[] arguments = Environment.GetCommandLineArgs();
             if (!UserStartupSelection.HasExplicitSelection(arguments))
             {
@@ -50,8 +53,18 @@ public sealed class WakeUpMod : Mod
                 CacheLaunchPolicy.Initialize("normal", () => { });
                 launchStatus = "This launch uses explicit development controls instead of these settings.";
             }
-            StartupFeatureRunner.Run("shared cache budget", () => SharedCacheBudget.Initialize(GenFilePaths.SaveDataFolderPath,
+            CompatibilityStatus.Select(arguments);
+            LoaderSupplierPolicy.Configure(settings);
+            StartupFeatureRunner.Run("shared cache budget selection", () => SharedCacheBudget.Configure(GenFilePaths.SaveDataFolderPath,
                 settings?.SharedCacheMiB ?? SharedCacheBudget.DefaultMiB, CacheLaunchPolicy.Current));
+            StartupFeatureRunner.Run("Prepared textures", () => PreparedTextureRuntime.Initialize(GenFilePaths.SaveDataFolderPath, content.RootDir, arguments));
+            if (!UserStartupSelection.HasExplicitSelection(Environment.GetCommandLineArgs())
+                && CompatibilityStatus.Registry?.HasRequested != true && CacheLaunchPolicy.Current.Action == CacheAction.Normal)
+            {
+                StartupFeatureRunner.Run("XML export selection", () => LoadingDiagnosticsRuntime.Initialize(GenFilePaths.SaveDataFolderPath));
+                StartupFeatureRunner.Run("Requested XML export completion", () => LoadingDiagnosticsRuntime.ObserveStartupCompletion());
+                return;
+            }
             if (CacheLaunchPolicy.Current.Action == CacheAction.Clear)
             {
                 // Preserve explicit maintenance of old owned stores without
@@ -60,7 +73,6 @@ public sealed class WakeUpMod : Mod
                 StartupFeatureRunner.Run("retired inheritance maintenance", () => ResolvedInheritanceRuntime.Initialize(Array.Empty<string>(), GenFilePaths.SaveDataFolderPath));
                 StartupFeatureRunner.Run("retired language maintenance", () => ParsedLanguageRuntime.Initialize(Array.Empty<string>(), GenFilePaths.SaveDataFolderPath));
             }
-            PreparedTextureRuntime.Initialize(GenFilePaths.SaveDataFolderPath, content.RootDir, arguments);
             StartupFeatureRunner.Run("prepared cache maintenance", () =>
                 PreparedTextureStore.Maintain(GenFilePaths.SaveDataFolderPath, CacheLaunchPolicy.Current));
             StartupFeatureRunner.Run("cache maintenance", () =>
@@ -68,24 +80,27 @@ public sealed class WakeUpMod : Mod
             StartupFeatureRunner.Run("Character Editor", () => CharacterPresetRuntime.TryInitialize(arguments));
             StartupFeatureRunner.Run("Giddy-Up", () => GiddyTextureRuntime.TryInitialize(arguments));
             StartupFeatureRunner.Run("Loading Progress", () => RepaintCoalescer.TryInitialize(arguments));
-            StartupFeatureRunner.Run("PNG cache", () => PngRuntime.TryInitialize(arguments));
-            StartupFeatureRunner.Run("retired atlas maintenance", () => AtlasRuntime.Initialize(arguments, GenFilePaths.SaveDataFolderPath));
-            StartupFeatureRunner.Run("Gagarin", () => GagarinCacheRuntime.TryInitialize(arguments));
-            StartupFeatureRunner.Run("Translations", () => TranslationRuntime.TryInitialize(arguments));
-            StartupFeatureRunner.Run("Asset routing", () => AssetRoutingRuntime.TryInitialize(arguments));
-            StartupFeatureRunner.Run("Streaming XML", () => StreamingXmlRuntime.TryInitialize(arguments));
-            StartupFeatureRunner.Run("Processed XML", () => ProcessedXmlRuntime.Initialize(arguments, GenFilePaths.SaveDataFolderPath));
-            StartupSearchRuntime.Initialize(arguments);
-            StartupFeatureRunner.Run("Native loading summary", () => NativeLoadingSummaryRuntime.TryInitialize(arguments));
-            StartupFeatureRunner.Run("Per-mod XML timings", () => LoadingTimingRuntime.TryInitialize(arguments));
+            LoaderSupplierPolicy.Run("PNG cache", () => PngRuntime.TryInitialize(arguments));
+            if (CacheLaunchPolicy.Current.Action == CacheAction.Clear || Array.IndexOf(arguments, "--wake-up-loading-display=on") >= 0)
+                StartupFeatureRunner.Run("retired atlas maintenance", () => AtlasRuntime.Initialize(arguments, GenFilePaths.SaveDataFolderPath));
+            LoaderSupplierPolicy.Run("Gagarin", () => GagarinCacheRuntime.TryInitialize(arguments));
+            LoaderSupplierPolicy.Run("Translations", () => TranslationRuntime.TryInitialize(arguments));
+            LoaderSupplierPolicy.Run("Asset routing", () => AssetRoutingRuntime.TryInitialize(arguments));
+            LoaderSupplierPolicy.Run("Streaming XML", () => StreamingXmlRuntime.TryInitialize(arguments));
+            LoaderSupplierPolicy.Run("Processed XML", () => ProcessedXmlRuntime.Initialize(arguments, GenFilePaths.SaveDataFolderPath));
+            LoaderSupplierPolicy.Run("Search setup", () => StartupSearchRuntime.Initialize(arguments));
+            LoaderSupplierPolicy.Run("Native loading summary", () => NativeLoadingSummaryRuntime.TryInitialize(arguments));
+            LoaderSupplierPolicy.Run("Per-mod XML timings", () => LoadingTimingRuntime.TryInitialize(arguments));
             StartupFeatureRunner.Run("Requested XML export completion", () => LoadingDiagnosticsRuntime.ObserveStartupCompletion());
-            StartupFeatureRunner.Run("Loading display", () => LoadingDisplayRuntime.TryInitialize(arguments));
-            StartupFeatureRunner.Run("Background save loading", () => BackgroundLoadingRuntime.TryInitialize(arguments));
+            LoaderSupplierPolicy.Run("Loading display", () => LoadingDisplayRuntime.TryInitialize(arguments));
+            LoaderSupplierPolicy.Run("Background save loading", () => BackgroundLoadingRuntime.TryInitialize(arguments));
         }
         catch (Exception exception)
         {
+            CompatibilityStatus.Registry?.InterruptSetup("Startup setup was interrupted; this operation was not attempted.");
             Log.Warning("[Wake-Up] Startup setup stopped: " + exception.GetType().Name + ". Ordinary fallback remains available.");
         }
+        finally { CompatibilityStatus.Registry?.FinishSetup(); }
     }
 
     public override string SettingsCategory() => "Wake-Up";
@@ -100,10 +115,15 @@ public sealed class WakeUpMod : Mod
         list.Begin(contentRect);
         list.Label("Changes take effect after restarting RimWorld.");
         list.Label(launchStatus);
+        if (list.ButtonText("Current compatibility status...")) Find.WindowStack.Add(new CompatibilityDetailsWindow());
         if (linuxSupport)
             list.Label("Linux OpenGL support: PNG caching and the Giddy-Up texture improvement use feature compatibility checks. No extra launch flag is required.");
         list.Gap();
         list.CheckboxLabeled("Enable startup optimizations", ref settings.Enabled);
+        list.Label("When WOWGAG is active, choose who handles XML reuse and early content loading. Automatic preserves its attached operations. Other Wake-Up improvements keep their own checks.");
+        if (list.ButtonText("XML provider: " + LoaderSupplierPolicy.ChoiceLabel(settings.XmlProvider))) settings.XmlProvider = LoaderSupplierPolicy.NextChoice(settings.XmlProvider);
+        if (list.ButtonText("Content provider: " + LoaderSupplierPolicy.ChoiceLabel(settings.ContentProvider))) settings.ContentProvider = LoaderSupplierPolicy.NextChoice(settings.ContentProvider);
+        list.Label("Buttons cycle Automatic / Wake-Up / WOWGAG. To select Wake-Up, also turn off the corresponding WOWGAG setting and restart. Wake-Up never changes another mod's settings. An absent supplier leaves ordinary Wake-Up checks in place; a partial installation is reported separately.");
         list.CheckboxLabeled("Faster definition and template searches", ref settings.DefinitionSearches);
         list.CheckboxLabeled("Faster code type searches", ref settings.TypeSearches);
         list.CheckboxLabeled("Stream XML input (experimental)", ref settings.StreamingXml);
@@ -122,6 +142,8 @@ public sealed class WakeUpMod : Mod
         list.Label("Shows actual startup and later loading work, completed units where known, unknown totals otherwise, and logged errors. A single constructor can still hold a frame; Wake-Up never invents a smooth percentage. Loading Progress retains screen ownership when active.");
         list.Label(LoadingDisplayRuntime.Status);
         list.CheckboxLabeled("Hide native loading mod summary", ref settings.HideLoadingSummary);
+        if (settings.HideLoadingSummary && LifecycleSupplierPolicy.Active("ferny.nomodlistonloading"))
+            list.CheckboxLabeled("Also hide the DLC panel kept by No Modlist on Loading (restart required)", ref settings.HideSummaryWithNoModlist);
         list.Label("Default off. Hides the native summary of expansions and mods on supported loading screens. Loading text, tips and error handling remain; mod information stays in Mods. Independent of Wake-Up's panel. Not a measured startup improvement.");
         list.Label(NativeLoadingSummaryRuntime.Status);
         list.CheckboxLabeled("Record loading session reports", ref settings.LoadingTimings);

@@ -55,10 +55,12 @@ internal static class LoadingDisplayRuntime
         path = Path.Combine(StartupLaunchSelector.Parse(args).SaveDataRoot!, "WakeUp", "loading-display.jsonl");
         try
         {
+            if (LifecycleSupplierPolicy.RimThemesOwnsDisplay())
+                throw LifecycleSupplierPolicy.ThemeDisplayConflict();
             if (LoadedModManager.RunningModsListForReading.Any(m => m.PackageId == LoadingProgressCompatibility.PackageId))
-                throw new InvalidOperationException("Loading Progress is active, so Wake-Up's display is inactive. "
+                throw new SupplierConflictException("Loading Progress is active, so Wake-Up's display is inactive. "
                     + "To keep Loading Progress, turn off 'Show Wake-Up loading display'. "
-                    + "To use Wake-Up's display, disable Loading Progress in Mods. Restart after changing either choice.");
+                    + "To use Wake-Up's display, disable Loading Progress in Mods. Restart after changing either choice.", "Loading Progress", "supplier-display");
             if (!RuntimeIdentity.ValidateBinaryIdentity(out _))
                 throw new InvalidOperationException("The required game or patching functions are unavailable.");
             for (int i = 0; i < Targets.Length; i++)
@@ -69,6 +71,8 @@ internal static class LoadingDisplayRuntime
             Begin(args.Count(a => a.StartsWith("--wake-up-loading-display-diagnostics=", StringComparison.Ordinal)) == 1
                 && args.Contains("--wake-up-loading-display-diagnostics=on"));
             enabled = true;
+            CompatibilityStatus.Available("display");
+            CompatibilityStatus.Available("display-diagnostics");
             LoadingObservationRuntime.SetDisplaySelected(true);
             AtlasBatchScheduling.EnableDisplayScheduling();
             Status = "Wake-Up observes startup and later save/world/map loading. Unknown totals and indivisible native work are labelled explicitly.";
@@ -76,7 +80,7 @@ internal static class LoadingDisplayRuntime
         }
         catch (Exception e)
         {
-            Stop("inactive", e.Message);
+            Stop("inactive", e.Message, e);
             try { harmony.UnpatchAll(Owner); } catch { }
         }
     }
@@ -139,6 +143,8 @@ internal static class LoadingDisplayRuntime
     internal static bool CheckOwnership()
     {
         if (state?.Active != true) return false;
+        if (LifecycleSupplierPolicy.RimThemesOwnsDisplay())
+        { var conflict = LifecycleSupplierPolicy.ThemeDisplayConflict(); Stop("inactive", conflict.Message, conflict); return false; }
         for (int i = 0; i < guards.Length; i++)
             if (!guards[i].AllowsOriginalContract())
             {
@@ -221,14 +227,18 @@ internal static class LoadingDisplayRuntime
         }
         catch (Exception e) { Stop("inactive", "Loading display drawing failed: " + e.GetType().Name + "."); }
     }
-    internal static void Stop(string kind, string reason)
+    internal static void Stop(string kind, string reason, Exception? error = null)
     {
         LoadingDisplayState? previous = Interlocked.Exchange(ref state, null);
         observedEvent = null;
         style = null;
         content = null;
         Status = "Wake-Up loading display: " + reason;
-        if (kind == "inactive") { enabled = false; LoadingObservationRuntime.SetDisplaySelected(false); }
+        if (kind == "inactive")
+        {
+            enabled = false; LoadingObservationRuntime.SetDisplaySelected(false);
+            foreach (string id in new[] { "display", "display-diagnostics", "display-scheduling" }) LifecycleSupplierPolicy.Refuse(id, reason, error ?? new InvalidOperationException(reason));
+        }
         if (previous != null) JsonLineLog.WriteEvent(path, kind, previous.Stop(reason));
         else JsonLineLog.WriteReceipt(path, kind, reason);
         if (kind == "inactive") Log.Message("[Wake-Up] " + Status);

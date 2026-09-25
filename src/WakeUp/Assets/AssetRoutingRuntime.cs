@@ -21,7 +21,8 @@ public static class AssetRoutingRuntime
     private static readonly BundleRouteCache<AudioClip> AudioBundles = new();
     private static readonly BundleRouteCache<Shader> ShaderBundles = new();
     private static AssetRoutingPatchGuard? guard;
-    private static bool enabled, busy, bundleBusy;
+    private static AssetRoutingPatchGuard? bundleGuard;
+    private static bool enabled, bundlesEnabled, busy, bundleBusy;
     private static bool audioDeferred;
     internal static string Status { get; private set; } = "Asset routing is off.";
     internal static readonly string[] Bodies = {
@@ -49,9 +50,23 @@ public static class AssetRoutingRuntime
         if (StartupLaunchSelector.Parse(args).Selection != StartupSelection.Candidate
             || args.Count(a => a.StartsWith("--wake-up-asset-routing=", StringComparison.Ordinal)) != 1
             || !args.Contains("--wake-up-asset-routing=on")) return;
+        CompatibilityStatus.Declare("asset-routing/top-level", "Top-level asset lookup");
+        CompatibilityStatus.Declare("asset-routing/bundles", "Native asset bundle lookup");
         try
         {
             if (!RuntimeIdentity.ValidateBinaryIdentity(out string reason)) throw new InvalidOperationException(reason);
+            if (!MutationStampsWork()) throw new InvalidOperationException("unsupported-dictionary-stamps");
+            UnityData.DisposeStatic += Clear;
+        }
+        catch (Exception e)
+        {
+            CompatibilityStatus.Refuse("asset-routing/top-level", e.Message);
+            CompatibilityStatus.Refuse("asset-routing/bundles", e.Message);
+            Status = "Asset routing unavailable: " + e.Message;
+            return;
+        }
+        try
+        {
             MethodBase[] methods = ContractMethods();
             for (int i = 0; i < methods.Length; i++)
             {
@@ -59,18 +74,37 @@ public static class AssetRoutingRuntime
                     || body != Bodies[i] && (i >= DeferredBodies.Length || body != DeferredBodies[i]))
                     throw new InvalidOperationException("changed-routing-body-" + methods[i].Name);
             }
-            // Dictionary version stamps are admitted only when replacement,
-            // removal and Clear invalidate enumerators on this runtime.
-            if (!MutationStampsWork()) throw new InvalidOperationException("unsupported-dictionary-stamps");
             guard = new AssetRoutingPatchGuard();
             if (!guard.Allows()) throw new InvalidOperationException("foreign-routing-hook");
             AssetRoutingContract.Validate();
             audioDeferred = false; // C10 is deferred; stale flags cannot disable retained audio routes.
-            UnityData.DisposeStatic += Clear;
             enabled = true;
-            Status = "Asset routing is ready; awaiting an eligible asset lookup.";
+            CompatibilityStatus.Available("asset-routing/top-level");
         }
-        catch (Exception e) { enabled = false; Textures.Clear(); Status = "Asset routing unavailable: " + e.Message; }
+        catch (Exception e)
+        {
+            enabled = false; Textures.Clear();
+            bool yaopt = LoaderSupplierPolicy.HasYaOptContentWrapper(ContractMethods()[0]);
+            CompatibilityStatus.Refuse("asset-routing/top-level", yaopt ? "YaOpt's top-level wrapper retains texture completion, including when its lazy setting is off." : e.Message,
+                yaopt ? "supplier-content-wrapper" : "required-contract", yaopt ? "YaOpt" : "Wake-Up");
+        }
+        try
+        {
+            // Bundle discovery does not read texture/audio/string holders or
+            // call Get/Resources. Preserve all its actual native dependencies.
+            var methods = ContractMethods();
+            foreach (int i in new[] { 3, 4 })
+                if (!SemanticMethodIdentity.TryHash(methods[i], out string hash, out _) || hash != Bodies[i])
+                    throw new InvalidOperationException("changed-bundle-dependency-" + methods[i].Name);
+            AssetRoutingContract.Validate(bundlesOnly: true);
+            bundleGuard = new AssetRoutingPatchGuard(bundlesOnly: true);
+            if (!bundleGuard.Allows()) throw new InvalidOperationException("foreign-bundle-hook");
+            bundlesEnabled = true;
+            CompatibilityStatus.Available("asset-routing/bundles");
+        }
+        catch (Exception e) { bundlesEnabled = false; CompatibilityStatus.Refuse("asset-routing/bundles", e.Message); }
+        Status = "Asset routing: top-level " + (enabled ? "available" : "ordinary/provider lookup")
+            + "; native bundles " + (bundlesEnabled ? "available" : "ordinary lookup") + ".";
         Log.Message("[Wake-Up] " + Status);
     }
     internal static bool MutationStampsWork()
@@ -93,8 +127,8 @@ public static class AssetRoutingRuntime
         TextureBundles.Clear(); AudioBundles.Clear(); ShaderBundles.Clear();
     }
 
-    private static bool Admitted(Type type)
-        => enabled && (type == typeof(Texture2D) || type == typeof(AudioClip)
+    private static bool Admitted(Type type, bool selected)
+        => selected && (type == typeof(Texture2D) || type == typeof(AudioClip)
             || type == typeof(string) || type == typeof(Shader)) && UnityData.IsInMainThread;
 
     // True means resolution ran, including a native miss. The prepatch sends a
@@ -105,22 +139,26 @@ public static class AssetRoutingRuntime
         // private population uses the native provider search and request bridge.
         if (type == typeof(Texture2D) && DemandTextureRuntime.Enabled) { result = null; return false; }
         result = null;
-        if (!Admitted(type) || busy || path == null) return false;
+        if (!Admitted(type, enabled) || busy || path == null) return false;
         busy = true;
         try
         {
             if (guard?.Allows() != true)
             {
                 Clear();
-                Status = "Asset routing refused a changed hook chain; ordinary loading is in use.";
+                Status = "Top-level asset routing refused a changed hook chain; ordinary loading is in use."; CompatibilityStatus.Refuse("asset-routing/top-level", Status);
                 return false;
             }
             var mods = LoadedModManager.RunningModsListForReading;
-            if (type == typeof(Texture2D) && !AssetRouteCache<Texture2D>.CanRoute(mods)
-                || type == typeof(AudioClip) && (audioDeferred || !AssetRouteCache<AudioClip>.CanRoute(mods))
-                || type == typeof(string) && !AssetRouteCache<string>.CanRoute(mods))
+            bool incompatibleComparer = false;
+            bool canRoute = type == typeof(Texture2D) ? AssetRouteCache<Texture2D>.CanRoute(mods, out incompatibleComparer)
+                : type == typeof(AudioClip) ? !audioDeferred && AssetRouteCache<AudioClip>.CanRoute(mods, out incompatibleComparer)
+                : type != typeof(string) || AssetRouteCache<string>.CanRoute(mods, out incompatibleComparer);
+            if (!canRoute)
             {
                 Clear(); Status = "Asset routing could not validate the last lookup; ordinary loading is in use.";
+                if (incompatibleComparer) CompatibilityStatus.Registry?.Set("asset-routing/top-level", OperationState.PartiallyAvailable,
+                    "A provider uses unsupported asset-name comparison; affected lookups stay native.", "provider-comparer");
                 return false;
             }
             if (type == typeof(Texture2D))
@@ -154,9 +192,10 @@ public static class AssetRoutingRuntime
     public static bool TryBundles(Type type, string path, out object? result)
     {
         result = null;
-        if (!Admitted(type) || type == typeof(string) || bundleBusy || path == null) return false;
+        if (!Admitted(type, bundlesEnabled) || type == typeof(string) || bundleBusy || path == null) return false;
         // Recheck after a Resources callback, which may have changed hooks.
-        if (guard?.Allows() != true) { Clear(); return false; }
+        if (bundleGuard?.Allows() != true)
+        { Clear(); CompatibilityStatus.Refuse("asset-routing/bundles", "The native bundle hook chain changed."); return false; }
         bundleBusy = true;
         try
         {

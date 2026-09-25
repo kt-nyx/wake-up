@@ -30,8 +30,10 @@ try:
     import fixture_audio_bootstrap
     import fixture_serialized_texture
     import fixture_demand_texture
+    import fixture_supplier_settings
+    import fixture_fastloader
 except ModuleNotFoundError:
-    from scripts import fixture_audio_bootstrap, fixture_serialized_texture, fixture_demand_texture
+    from scripts import fixture_audio_bootstrap, fixture_serialized_texture, fixture_demand_texture, fixture_supplier_settings, fixture_fastloader
 
 # Private fixture paths, package ID and v1 record schemas retain their original
 # spelling. Existing inventories and captures are immutable; they are not branding.
@@ -48,7 +50,7 @@ C08_HELPER_SHA = "ca12d392e0a173b1dd7b87d85b95621166f4aca53860550808319b4b0c285c
 HELPER_PATH = "Tools/win-x64/WakeUp.TextureHelper.exe"
 USER_BOOLEAN_SETTINGS = frozenset({
     "translationApplication", "assetRouting", "deferredAudio", "streamingXml", "backgroundLoading", "loadingDisplay",
-    "loadingDisplayDiagnostics", "hideLoadingSummary", "loadingTimings", "pngCache", "preparedTextures", "compressTextureStorage", "psdSupport", "firstBuildImages", "staticAtlases", "atlasBatching", "orderedInput", "parsedXml", "processedXml", "resolvedInheritance", "xmlQueryExtensions", "parsedLanguage",
+    "loadingDisplayDiagnostics", "hideLoadingSummary", "hideSummaryWithNoModlist", "loadingTimings", "pngCache", "preparedTextures", "compressTextureStorage", "psdSupport", "firstBuildImages", "staticAtlases", "atlasBatching", "orderedInput", "parsedXml", "processedXml", "resolvedInheritance", "xmlQueryExtensions", "parsedLanguage",
 })
 XML_EXPANDED_MODS = frozenset({
     "ceteam.combatextended", "vr.missilegirl",
@@ -554,6 +556,64 @@ def discover():
             "modsConfigSha256": digest(config), "steamVersion": (game / "Version.txt").read_text().strip()}
 
 
+def explicit_sources(root, specification):
+    """Admit a small named collection without reading normal Steam/profile state."""
+    specification = physical(specification)
+    require(not specification.is_relative_to(root), "Source specification must be outside the fixture")
+    value = read(specification)
+    require(isinstance(value, dict) and set(value) == {"schema", "packages", "official", "activeOrder"}
+            and value["schema"] == "rlo-fixture-sources.v1", "Invalid explicit fixture sources")
+    require(isinstance(value["packages"], list), "Explicit packages must be a list")
+    packages = []
+    for entry in value["packages"]:
+        require(isinstance(entry, dict) and set(entry) == {"path", "packageId"}
+                and isinstance(entry["path"], str) and Path(entry["path"]).is_absolute(),
+                "Explicit package requires an absolute path and packageId")
+        source = physical(entry["path"])
+        require(not source.is_relative_to(root) and not root.is_relative_to(source),
+                "Explicit package source must not overlap the fixture")
+        pkg = package(source, "explicit")
+        require(pkg["id"] == entry["packageId"], "Explicit package ID does not match source")
+        require(pkg["id"] not in (PACKAGE_ID, MENU_ID, "kt.nyx.wakeup")
+                and pkg["leaf"].casefold() not in (PACKAGE_LEAF.casefold(), MENU_LEAF.casefold()),
+                "Reserved product/observer package must use deployment")
+        packages.append(pkg)
+    requested = value["official"]
+    require(isinstance(requested, list) and all(isinstance(pid, str) for pid in requested)
+            and len(requested) == len(set(requested)) and "ludeon.rimworld" in requested,
+            "Explicit official IDs require unique IDs including Core")
+    data = physical(root / "game/Data")
+    available = [package(physical(p), "official") for p in sorted(data.iterdir()) if p.is_dir()]
+    require(len({p["id"] for p in available}) == len(available), "Duplicate official package IDs")
+    require(set(requested).issubset({p["id"] for p in available}), "Requested official package is absent")
+    official = [next(p for p in available if p["id"] == pid) for pid in requested]
+    pids = [p["id"] for p in packages + official]
+    require(len(pids) == len(set(pids)), "Duplicate source package IDs; select one edition per generation")
+    leaves = [p["leaf"].casefold() for p in packages]
+    require(len(leaves) == len(set(leaves)), "Folder-name collision in explicit sources")
+    active = value["activeOrder"]
+    require(isinstance(active, list) and all(isinstance(pid, str) for pid in active)
+            and len(active) == len(set(active)) and set(active).issubset(pids), "Invalid explicit active order")
+    require(active[:2] == ["zetrith.prepatcher", "brrainz.harmony"] and "ludeon.rimworld" in active,
+            "Explicit order requires reviewed bootstrap and Core")
+    return {"initializationMode": "explicit-clean-profile", "specification": str(specification),
+            "specificationSha256": digest(specification), "game": str(root / "game"), "profile": None,
+            "packages": packages, "official": official, "activeOrder": active}
+
+
+def clean_profile(destination, active, version):
+    """Generate only the selected mod order; never import user settings or saves."""
+    config = destination / "Config"
+    config.mkdir(parents=True)
+    doc = ET.Element("ModsConfigData")
+    ET.SubElement(doc, "version").text = version.split()[0]
+    enabled = ET.SubElement(doc, "activeMods")
+    for pid in active:
+        ET.SubElement(enabled, "li").text = pid
+    ET.ElementTree(doc).write(config / "ModsConfig.xml", encoding="utf-8", xml_declaration=True)
+    return inventory(destination)
+
+
 def profile_selection(source, packages):
     # Folder leaves are deliberately unchanged, preserving RimWorld's Mod_<folder> naming.
     prefixes = tuple("Mod_" + p["leaf"] + "_" for p in packages)
@@ -740,7 +800,7 @@ def source_identity(sources):
     return {k: v for k, v in sources.items() if k != "steamAppManifestSha256"}
 
 
-def initialize(root, refresh=False, resume=None):
+def initialize(root, refresh=False, resume=None, sources_path=None):
     require(refresh == (root / "current.json").exists(), "Use initialize once; refresh is explicit thereafter")
     require(not (root / "pending.json").exists(), "Recover pending transaction first")
     game = inside(root, root / "game")
@@ -748,14 +808,19 @@ def initialize(root, refresh=False, resume=None):
     require((game / "RimWorldWin64.exe").is_file(), "Canonical DRM-free executable missing")
     require(digest(game / "RimWorldWin64_Data/Managed/Assembly-CSharp.dll") == DEVELOPMENT_GAME,
             "GOG development runtime drift; refreshing mods does not authorize changing the pinned game")
-    sources = discover()
+    if refresh and current(root)[0]["sources"].get("initializationMode") == "explicit-clean-profile":
+        require(sources_path is not None, "Explicit fixture refresh requires --sources; no implicit normal-profile import")
+    sources = explicit_sources(root, sources_path) if sources_path is not None else discover()
     if not refresh:
         require(not any((game / "Mods").glob("*/About/About.xml")), "Unowned fixture mods already exist")
-        require(not any((root / "profile").iterdir()), "Unowned fixture profile is not empty")
+        require(not (root / "profile").exists() or not any((root / "profile").iterdir()), "Unowned fixture profile is not empty")
     gid = token(resume) if resume else time.strftime("%Y%m%d-%H%M%S-") + uuid.uuid4().hex[:8]
     stage = inside(root, root / "staging" / gid)
     if resume:
         previous = read(stage / "sources.json")
+        require(previous.get("initializationMode") == sources.get("initializationMode")
+                and previous.get("specificationSha256") == sources.get("specificationSha256"),
+                "Resume explicit source specification changed")
         for key in ("game", "profile", "activeOrder"):
             require(previous[key] == sources[key], "Resume discovery/order changed; initialize a fresh snapshot")
         require([(p["id"], p["source"]) for p in previous["packages"]] ==
@@ -803,17 +868,19 @@ def initialize(root, refresh=False, resume=None):
         write(stage / inv, rows)
         official.append(dict(pkg, fixture=str(dest), inventory=inv, inventorySha256=digest(stage / inv),
                              files=sum(r["kind"] == "file" for r in rows), bytes=sum(r.get("bytes", 0) for r in rows),
-                             provenance="Existing GOG install; Steam path is identity comparison only, not copied"))
-    profile = Path(sources["profile"])
-    selection = profile_selection(profile, sources["packages"])
-    seed_rows = copy_profile(profile, stage / "seed", selection)
-    require(selection == profile_selection(profile, sources["packages"]), "Source settings selection changed")
+                             provenance="Existing GOG install; not copied"))
+    profile = Path(sources["profile"]) if sources["profile"] is not None else None
+    selection = profile_selection(profile, sources["packages"]) if profile is not None else []
+    seed_rows = (copy_profile(profile, stage / "seed", selection) if profile is not None else
+                 clean_profile(stage / "seed", sources["activeOrder"], (game / "Version.txt").read_text()))
+    if profile is not None:
+        require(selection == profile_selection(profile, sources["packages"]), "Source settings selection changed")
     write(stage / "inventories/profile.json", seed_rows)
     # Runtime recorded once, including all game files outside Mods; no content hashing before launches.
     runtime = inventory(game, exclude=("Mods",))
     write(stage / "inventories/game.json", runtime)
-    after = discover()
-    require(source_identity(sources) == source_identity(after), "Steam discovery/order/build changed; refresh again explicitly")
+    after = explicit_sources(root, sources_path) if sources_path is not None else discover()
+    require(source_identity(sources) == source_identity(after), "Source discovery/order/build changed; refresh again explicitly")
     write(stage / "sources-after.json", after)
     for pkg in prepared:
         require(scan(Path(pkg["source"])) == metadata(read(stage / pkg["inventory"])),
@@ -831,14 +898,15 @@ def initialize(root, refresh=False, resume=None):
                 "profileInventorySha256": digest(stage / "inventories/profile.json"),
                 "gameInventorySha256": digest(stage / "inventories/game.json"),
                 "gogVersion": (game / "Version.txt").read_text().strip(), "gogAssemblySha256": digest(game / assembly),
-                "steamAssemblySha256": digest(Path(sources["game"]) / assembly),
+                "steamAssemblySha256": digest(Path(sources["game"]) / assembly) if profile is not None else None,
                 "acceptedCandidateRuntimeMatches": digest(game / assembly) == PINNED_GAME,
                 "developmentRuntimeSha256": DEVELOPMENT_GAME,
                 "developmentRuntimePolicy": "owner-approved-fixed-GOG-rev573",
                 "steamProductionPolicy": "latest-Steam-at-post-MVP-test-time",
                 "copiedModFiles": sum(p["files"] for p in prepared), "copiedModBytes": sum(p["bytes"] for p in prepared),
                 "profileFiles": sum(r["kind"] == "file" for r in seed_rows), "profileBytes": sum(r.get("bytes", 0) for r in seed_rows),
-                "excludedProfilePolicy": "No saves, presets, generated caches, logs or Wake-Up state. Applicable Mod_<folder> XML, startup preferences, Config settings subfolders and HugsLib/ModSettings.xml only."}
+                "excludedProfilePolicy": ("Clean generated ModsConfig only; no normal profile read or copied." if profile is None else
+                    "No saves, presets, generated caches, logs or Wake-Up state. Applicable Mod_<folder> XML, startup preferences, Config settings subfolders and HugsLib/ModSettings.xml only.")}
     write(stage / "manifest.json", manifest)
     final = inside(root, root / "snapshots" / gid)
     final.parent.mkdir(exist_ok=True)
@@ -994,7 +1062,7 @@ def benchmark_selection(manifest, state, value, excluded_ids=()):
     return value
 
 
-def run_order(manifest, lane, mode, menu_observer=False, excluded_ids=(), selection=None):
+def run_order(manifest, lane, mode, menu_observer=False, excluded_ids=(), selection=None, product_after=None):
     require(lane in ("representative", "activation", "xml-expanded"), "Unknown fixture lane")
     require(mode in ("absent", "baseline", "candidate"), "Unknown fixture mode")
     require(selection is None or lane == "representative", "Benchmark selection requires representative lane")
@@ -1006,7 +1074,12 @@ def run_order(manifest, lane, mode, menu_observer=False, excluded_ids=(), select
         active = [pid for pid in active if pid in official or pid in ("zetrith.prepatcher", "brrainz.harmony") or pid in extras]
     require(active[:2] == ["zetrith.prepatcher", "brrainz.harmony"], "Reviewed candidate insertion requires Prepatcher/Harmony at indexes 0/1")
     additions = ([MENU_ID] if menu_observer else []) + ([] if mode == "absent" else [PACKAGE_ID])
-    return active[:2] + additions + active[2:]
+    ordered = active[:2] + additions + active[2:]
+    if product_after:
+        require(mode == "candidate" and product_after in active[2:], "Product order control needs an active non-bootstrap supplier")
+        ordered.remove(PACKAGE_ID)
+        ordered.insert(ordered.index(product_after) + 1, PACKAGE_ID)
+    return ordered
 
 def run_arguments(root, mode, observation="timing", strategy="startup-searches",
                   exit_after_menu_ready=False, gagarin_cache="off", png="off", png_source="native", loading_progress="off", character_presets="off", giddy_textures="off", activation="fixture", gameplay_smoke=False, residual_probe=False, background_hold=False, gameplay_save_from=None, purpose="performance", settings=None, world_background=False, native_stack_traces=False, xml_source_observer=False, processed_xml_observer=False, c14_background=None, first_build_images=False, raw_pixel_helper=False):
@@ -1017,7 +1090,7 @@ def run_arguments(root, mode, observation="timing", strategy="startup-searches",
             "World background requires functional automatic user activation, backgroundLoading=true and no other scene probe")
     require(not c14_background or (purpose == "functional" and exit_after_menu_ready and activation == "user"
             and not gameplay_smoke and not world_background and not residual_probe
-            and re.fullmatch(r"(?:autostart|save|save-hold|refused-save|world|colony|settle|camp|encounter|standalone|pocket|portal|portal-error|portal-job|world-render|world-render-cancel)-(?:false|true|false-to-true|true-to-false)(?:-unpaused)?", c14_background)),
+            and re.fullmatch(r"(?:autostart|save|save-recovery|save-hold|refused-save|world|colony|settle|camp|encounter|standalone|pocket|portal|portal-error|portal-job|world-render|world-render-cancel)-(?:false|true|false-to-true|true-to-false)(?:-unpaused)?", c14_background)),
             "C14 requires an isolated functional automatic native loading phase")
     require(not gameplay_smoke or exit_after_menu_ready, "Gameplay smoke requires automatic capture and normal exit")
     require(not background_hold or (purpose == "functional" and gameplay_smoke and activation == "user"
@@ -1379,6 +1452,7 @@ def build_menu_observer(root, artwork_specification=None, native_texture_probe=F
     write(destination.with_suffix(".json"), {"sourceRevision": revision, "gameSha256": runtime_contract(root)["gameAssemblySha256"],
                                           "functionalArtwork": artwork,
                                           "nativeDeviceProbe": native_probe,
+                                          "supportsCompatibilityProbe": True,
                                           "supportsNativeStackTraces": True,
                                           "supportsAudioStreamProbe": True,
                                           "supportsAudioBootstrapProbe": True,
@@ -1458,11 +1532,13 @@ def user_settings(value, activation, purpose):
     require(activation == "user" and purpose in ("functional", "performance"),
             "User settings overrides require user activation and a valid purpose")
     require(isinstance(value, dict), "User settings must be a JSON object")
-    require(set(value).issubset(USER_BOOLEAN_SETTINGS | {"preparedPreset", "cacheMaintenanceNextLaunch", "sharedCacheMiB"}),
+    require(set(value).issubset(USER_BOOLEAN_SETTINGS | {"preparedPreset", "cacheMaintenanceNextLaunch", "sharedCacheMiB", "xmlProvider", "contentProvider"}),
             "Unknown user setting override")
     for key, selected in value.items():
         if key in USER_BOOLEAN_SETTINGS:
             require(type(selected) is bool, "User setting " + key + " requires a JSON boolean")
+        elif key in ("xmlProvider", "contentProvider"):
+            require(type(selected) is str and selected in ("Automatic", "WakeUp", "Wowgag"), "Unknown loader provider")
         elif key == "preparedPreset":
             require(type(selected) is int and 0 <= selected <= 2, "preparedPreset requires an integer from 0 to 2")
         elif key == "sharedCacheMiB":
@@ -1627,8 +1703,34 @@ def validate_audio_measurement(run, bootstrap_receipt):
     require(bool(run.get("audioCacheFrom")) == (selected == "warm"), "Only warm audio measurement requires an audio cache source")
 
 
+def carry_compatibility_notices(root, label, staged_profile, purpose="functional"):
+    """Carry only authentic captured warning history, never a caller-supplied ledger."""
+    source_folder = inside(root, root / "results" / token(label))
+    source_run_path = source_folder / "run.json"
+    source_run = read(source_run_path)
+    relative = "WakeUp/Compatibility/notices.xml"
+    source = source_folder / "profile" / relative
+    row = next((r for r in source_run.get("evidence", []) if r["path"] == relative), None)
+    require(source_run.get("purpose") == "functional" and source_run.get("automaticTestPassed")
+            and source_run.get("compatibilityTestPassed") and source_run.get("capturedUtc") and row is not None,
+            "Notices must come from a captured successful functional compatibility run")
+    require(source.is_file() and source.stat().st_size <= 4 * 1024 * 1024 and digest(source) == row["sha256"],
+            "Captured notices changed or exceed bound")
+    if purpose == "performance":
+        history = ET.parse(source).getroot()
+        require(history.tag == "compatibility" and history.get("version") == "1"
+                and all(item.tag == "ack" for item in history),
+                "Ordinary timing preparation requires fully acknowledged history with no pending notices")
+    target = staged_profile / relative
+    require(not target.exists(), "Seed unexpectedly contains warning history")
+    target.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(source, target)
+    require(digest(target) == row["sha256"] and digest(source) == row["sha256"], "Notice carry changed during copy")
+    return {"label": label, "runSha256": digest(source_run_path), "sha256": row["sha256"]}
+
+
 def prepare(root, mode, label, lane="representative", observation="timing", strategy="startup-searches",
-            foreign_cache_from=None, menu_observer=True, exit_after_menu_ready=True, gagarin_cache="off", png="off", png_source="native", png_cache_from=None, selection_path=None, loading_progress="off", character_presets="off", giddy_textures="off", activation="fixture", gameplay_smoke=False, residual_probe=False, purpose="performance", user_settings_path=None, language=None, prepared_cache_from=None, background_hold=False, gameplay_save_from=None, world_background=False, native_stack_traces=False, parsed_xml_cache_from=None, xml_source_observer=False, processed_xml_cache_from=None, inheritance_cache_from=None, processed_xml_observer=False, language_cache_from=None, language_lifecycle=False, language_source_probe=False, texture_storage_probe=False, texture_source_change=False, atlas_cache_from=None, atlas_cache_corrupt=False, atlas_lifecycle=False, texture_quality_probe=None, audio_stream_probe=False, audio_bootstrap_probe=False, loading_ui_probe=False, loading_ui_layout=None, loading_xml_request_from=None, audio_prepared_probe=None, audio_cache_from=None, audio_native_entry_probe=False, audio_native_entry_stop_only=False, audio_native_entry_domain_probe=False, audio_patch_probe=None, audio_measurement=None, language_observer=False, serialized_texture_input=None, demand_texture_probe=None, demand_texture_selection=None, c14_background=None, first_build_images=False, raw_pixel_helper=False):
+            foreign_cache_from=None, menu_observer=True, exit_after_menu_ready=True, gagarin_cache="off", png="off", png_source="native", png_cache_from=None, selection_path=None, loading_progress="off", character_presets="off", giddy_textures="off", activation="fixture", gameplay_smoke=False, residual_probe=False, purpose="performance", user_settings_path=None, language=None, prepared_cache_from=None, background_hold=False, gameplay_save_from=None, world_background=False, native_stack_traces=False, parsed_xml_cache_from=None, xml_source_observer=False, processed_xml_cache_from=None, inheritance_cache_from=None, processed_xml_observer=False, language_cache_from=None, language_lifecycle=False, language_source_probe=False, texture_storage_probe=False, texture_source_change=False, atlas_cache_from=None, atlas_cache_corrupt=False, atlas_lifecycle=False, texture_quality_probe=None, audio_stream_probe=False, audio_bootstrap_probe=False, loading_ui_probe=False, loading_ui_layout=None, loading_xml_request_from=None, audio_prepared_probe=None, audio_cache_from=None, audio_native_entry_probe=False, audio_native_entry_stop_only=False, audio_native_entry_domain_probe=False, audio_patch_probe=None, audio_measurement=None, language_observer=False, serialized_texture_input=None, demand_texture_probe=None, demand_texture_selection=None, c14_background=None, first_build_images=False, raw_pixel_helper=False, compatibility_probe=None, compatibility_notices_from=None, supplier_settings_path=None, product_after=None, supplier_menu=None, fastloader_probe=None, fastloader_cache_from=None):
     require(purpose in ("functional", "performance"), "Unknown run purpose")
     demand_texture = fixture_demand_texture.admit(demand_texture_probe, demand_texture_selection, purpose, exit_after_menu_ready, menu_observer, mode, selection_path, types.SimpleNamespace(**globals()))
     serialized_texture = fixture_serialized_texture.admit(serialized_texture_input, purpose, exit_after_menu_ready, menu_observer, mode, selection_path, types.SimpleNamespace(**globals()))
@@ -1680,6 +1782,14 @@ def prepare(root, mode, label, lane="representative", observation="timing", stra
             "Muted UI layout requires a functional automatic observer run")
     overrides = profile_overrides(exit_after_menu_ready, settings, activation, purpose, language, texture_quality_probe, loading_ui_layout, audio_measurement, c14_background)
     arguments = run_arguments(root, mode, observation, strategy, exit_after_menu_ready, gagarin_cache, png, png_source, loading_progress, character_presets, giddy_textures, activation, gameplay_smoke, residual_probe, background_hold, gameplay_save_from, purpose, settings, world_background, native_stack_traces, xml_source_observer, processed_xml_observer, c14_background, first_build_images, raw_pixel_helper)
+    if compatibility_probe:
+        require(purpose == "functional" and mode == "candidate" and menu_observer and exit_after_menu_ready
+                and compatibility_probe in ("none", "observe", "dismiss", "ack")
+                and not any((gameplay_smoke, loading_ui_probe, audio_bootstrap_probe, audio_measurement, xml_source_observer, processed_xml_observer, texture_storage_probe, texture_quality_probe, atlas_lifecycle, language_lifecycle, c14_background)),
+                "Compatibility probe requires an isolated functional automatic candidate run")
+        arguments.append("--fixture-compatibility=" + compatibility_probe)
+    # Verified history may also seed ordinary preparations. Functional UI probes
+    # remain separately restricted above; pending history is rejected for timing.
     arguments.extend(fixture_demand_texture.arguments(root, demand_texture))
     if serialized_texture:
         arguments.append("--fixture-c10-serialized-texture")
@@ -1688,6 +1798,9 @@ def prepare(root, mode, label, lane="representative", observation="timing", stra
         require(texture_quality_probe != "inspection-scene" or (gameplay_smoke and gameplay_save_from and native_stack_traces),
                 "Inspection scene requires copied-save gameplay and ordinary native logging")
         arguments.append("--fixture-c08-quality=" + texture_quality_probe)
+    if supplier_menu:
+        require(supplier_menu == "rimthemes" and purpose == "functional" and menu_observer, "Supplier menu observer requires its named functional fixture")
+        arguments.append("--fixture-supplier-menu=" + supplier_menu)
     if loading_ui_probe:
         require(purpose == 'functional' and menu_observer and exit_after_menu_ready and mode == 'candidate', 'Loading UI proof requires functional candidate automatic observation')
         arguments.append('--fixture-c13-loading-probe')
@@ -1712,7 +1825,7 @@ def prepare(root, mode, label, lane="representative", observation="timing", stra
         require(purpose == "functional" and menu_observer and exit_after_menu_ready, "Texture storage probes require functional automatic observation")
         arguments.append("--fixture-c05-texture-probe")
         if texture_source_change: arguments.append("--fixture-c05-source-change")
-    if purpose == "functional" and exit_after_menu_ready and not audio_measurement:
+    if purpose == "functional" and exit_after_menu_ready and not audio_measurement and not compatibility_probe:
         arguments.append("--fixture-functional-probes")
         if not atlas_lifecycle and ((settings or {}).get("staticAtlases") or (settings or {}).get("atlasBatching")):
             arguments.append("--fixture-atlas-probe")
@@ -1755,7 +1868,12 @@ def prepare(root, mode, label, lane="representative", observation="timing", stra
     exclusions = excluded_mods(root, m, state)
     excluded_ids = {p["id"] for p in exclusions}
     selection = benchmark_selection(m, state, read(physical(selection_path)), excluded_ids) if selection_path else None
-    active = run_order(m, lane, mode, menu_observer, excluded_ids, selection)
+    require(not product_after or purpose == "functional", "Product order controls require functional purpose")
+    active = run_order(m, lane, mode, menu_observer, excluded_ids, selection, product_after)
+    fixture_fastloader.validate(fastloader_probe, fastloader_cache_from, purpose, compatibility_probe, active, types.SimpleNamespace(**globals()))
+    if fastloader_probe:
+        arguments.append("--fixture-fastloader=" + fastloader_probe)
+    require(not supplier_menu or "arandomkiwi.rimthemes" in active, "Supplier menu observer needs its active supplier")
     label = token(label)
     results = root / "results" / label
     require(not results.exists(), "Run label already used")
@@ -2034,8 +2152,15 @@ def prepare(root, mode, label, lane="representative", observation="timing", stra
             entry.text = str(overrides[key])
         prefs_doc.write(prefs, encoding="utf-8", xml_declaration=True)
     apply_user_settings(staged_profile, settings)
+    supplier_settings = fixture_supplier_settings.stage(staged_profile, supplier_settings_path, m.get("packages", []), active, purpose, types.SimpleNamespace(**globals()))
+    fastloader_bindings = dict(generation=m['generation'], manifestSha256=state['manifestSha256'], candidate=receipt,
+        menuObserverPackage=menu_receipt, activeOrder=active, profileOverrides=overrides, supplierSettings=supplier_settings,
+        mode=mode, lane=lane, png=png, pngSource=png_source, loadingProgress=loading_progress, activation=activation)
+    fastloader_source = fixture_fastloader.carry(root, staged_profile, fastloader_cache_from, fastloader_bindings,
+        types.SimpleNamespace(**globals())) if fastloader_cache_from else None
     fixture_serialized_texture.stage(staged_profile, serialized_texture, types.SimpleNamespace(**globals()))
     fixture_demand_texture.stage(staged_profile, demand_texture, types.SimpleNamespace(**globals()))
+    compatibility_reference = carry_compatibility_notices(root, compatibility_notices_from, staged_profile, purpose) if compatibility_notices_from else None
     if loading_xml_request_from:
         require(purpose == "functional" and mode == "candidate" and menu_observer and exit_after_menu_ready,
                 "XML request replay requires a functional automatic candidate run")
@@ -2138,13 +2263,14 @@ def prepare(root, mode, label, lane="representative", observation="timing", stra
            "atlasLifecycle": atlas_lifecycle,
            "atlasCacheSource": extra_xml["StaticAtlases"][2] if "StaticAtlases" in extra_xml else None,
            "languageObserver": language_observer, "languageLifecycle": language_lifecycle,
+           "compatibilityProbe": compatibility_probe, "compatibilityNoticesFrom": compatibility_reference,
            "languageSourceProbe": language_source_probe, "textureStorageProbe": texture_storage_probe, "textureQualityProbe": texture_quality_probe, "textureSourceChange": texture_source_change, "audioStreamProbe": audio_stream_probe, "audioBootstrapProbe": audio_bootstrap_probe, "loadingUiProbe": loading_ui_probe, "loadingUiLayout": loading_ui_layout, "loadingXmlRequestFrom": loading_xml_request_from,
            "languageCacheSource": extra_xml["ParsedLanguage"][2] if "ParsedLanguage" in extra_xml else None,
            "extraXmlCacheSources": {k: v[2] for k, v in extra_xml.items() if k not in ("ParsedLanguage", "StaticAtlases")}, "processedXmlObserver": processed_xml_observer,
            "xmlSourceObserver": xml_source_observer,
            "nativeStackTraces": native_stack_traces, "backgroundHold": background_hold, "gameplaySaveFrom": gameplay_save_from, "gameplaySaveSource": gameplay_reference, "worldBackground": world_background, "c14Background": c14_background,
            "excludedMods": exclusions, "profileOverrides": overrides,
-           "userSettings": settings,
+           "userSettings": settings, "supplierSettings": supplier_settings, "productAfter": product_after, "supplierMenu": supplier_menu,
            "language": language,
            "frozenEnabledCount": len(m["activeOrder"]),
            "selectedFrozenEnabledCount": len([pid for pid in active if pid not in (MENU_ID, PACKAGE_ID)]),
@@ -2156,6 +2282,7 @@ def prepare(root, mode, label, lane="representative", observation="timing", stra
            "activeOrder": active, "profileBefore": inventory(root / "profile"),
            "profileTransaction": tid, "preflight": check,
            "foreignCacheFrom": foreign_cache_from,
+           "fastLoaderProbe": fastloader_probe, "fastLoaderCacheSource": fastloader_source,
            "restoredCacheKinds": (["gagarin-MissileGirl"] if foreign_cached is not None else []) + (["terrain-colors"] if terrain_cached is not None else []) + (["wake-up-PngCache"] if png_cached is not None else []) + (["wake-up-PreparedTextures"] if prepared_cached is not None else []) + (["wake-up-ParsedXml"] if parsed_cached is not None else []) + ["wake-up-" + k for k in extra_xml] + (["wake-up-PreparedAudio"] if audio_cached is not None else []),
            "runtimeMismatch": mode != "absent" and not check["deployedRuntimeMatches"], "status": "prepared-offline"}
     write(results / "run.json", run)
@@ -2368,7 +2495,8 @@ def verify_prepared(root, label):
         benchmark_selection(m, state, selection, {p["id"] for p in exclusions})
         require(identity(selection) == run.get("benchmarkSelectionSha256"), "Benchmark selection identity drift")
     require(run["activeOrder"] == run_order(m, run["lane"], run["mode"], run.get("menuObserver", False),
-            {p["id"] for p in exclusions}, selection), "Frozen launch order drift")
+            {p["id"] for p in exclusions}, selection, run.get("productAfter")), "Frozen launch order drift")
+    require(not run.get("productAfter") or run["purpose"] == "functional", "Product order controls require functional purpose")
     verify_profile_overrides(root / "profile", run)
     if run.get("serializedTextureInput"):
         require(run.get("purpose") == "functional" and run.get("menuObserver") and run.get("exitAfterMenuReady") and run.get("benchmarkSelection"), "Serialized texture purpose/selection drift")
@@ -2406,6 +2534,22 @@ def verify_prepared(root, label):
         require(run.get("purpose") == "functional" and run.get("exitAfterMenuReady"), "Texture storage probe purpose drift")
         args.append("--fixture-c05-texture-probe")
         if run.get("textureSourceChange"): args.append("--fixture-c05-source-change")
+    if run.get("compatibilityProbe"):
+        require(run.get("purpose") == "functional" and run.get("mode") == "candidate" and run.get("menuObserver") and run.get("exitAfterMenuReady")
+                and run["compatibilityProbe"] in ("none", "observe", "dismiss", "ack")
+                and (run.get("menuObserverPackage") or {}).get("supportsCompatibilityProbe"), "Compatibility probe binding drift")
+        args.append("--fixture-compatibility=" + run["compatibilityProbe"])
+    if run.get("supplierMenu"):
+        require(run["supplierMenu"] == "rimthemes" and run["purpose"] == "functional", "Supplier menu observer purpose drift")
+        args.append("--fixture-supplier-menu=" + run["supplierMenu"])
+    if run.get("fastLoaderProbe"):
+        source = run.get("fastLoaderCacheSource")
+        fixture_fastloader.validate(run['fastLoaderProbe'], source, run['purpose'], run.get('compatibilityProbe'), run['activeOrder'], types.SimpleNamespace(**globals()))
+        if source:
+            current_source = fixture_fastloader.carry(root, None, source['label'],
+                {key: run.get(key) for key in fixture_fastloader.BINDINGS}, types.SimpleNamespace(**globals()))
+            require(current_source == source, 'FastLoader source receipt changed')
+        args.append("--fixture-fastloader=" + run['fastLoaderProbe'])
     if run.get("loadingUiProbe"):
         require(run.get("purpose") == "functional" and run.get("menuObserver") and run.get("exitAfterMenuReady")
                 and run["mode"] == "candidate", "Loading UI proof purpose drift")
@@ -2449,7 +2593,7 @@ def verify_prepared(root, label):
                 and run["audioPreparedProbe"] in ("completion", "prepare", "warm", "natural-prepare", "natural-warm", "wav-prepare", "wav-warm", "formats-prepare", "formats-warm", "frames-prepare", "frames-warm", "readiness-prepare", "readiness-warm", "advance-prepare", "advance-warm"), "Prepared audio probe binding drift")
         require(run["audioPreparedProbe"] not in ("natural-prepare", "natural-warm", "wav-prepare", "wav-warm", "formats-prepare", "formats-warm", "frames-prepare", "frames-warm", "readiness-prepare", "readiness-warm", "advance-prepare", "advance-warm") or run.get("gameplaySmoke"), "Natural audio gameplay binding drift")
         args.append("--fixture-c10-prepared-audio=" + run["audioPreparedProbe"])
-    if run.get("purpose") == "functional" and run.get("exitAfterMenuReady", False) and not run.get("audioMeasurement"):
+    if run.get("purpose") == "functional" and run.get("exitAfterMenuReady", False) and not run.get("audioMeasurement") and not run.get("compatibilityProbe"):
         args.append("--fixture-functional-probes")
         if not run.get("atlasLifecycle") and ((run.get("userSettings") or {}).get("staticAtlases") or (run.get("userSettings") or {}).get("atlasBatching")):
             args.append("--fixture-atlas-probe")
@@ -2899,7 +3043,15 @@ def launch(root, label, authorized, window_style="normal"):
         run["c14BackgroundPassed"] = probe.get("passed") is True and probe.get("phase") == run["c14Background"]
         run["automaticTestPassed"] = run.get("automaticTestPassed") is True and run["c14BackgroundPassed"]
         write(folder / "run.json", run)
+    if run.get("compatibilityProbe"):
+        report = root / "profile/FixtureMenuObserver/compatibility.json"
+        probe = read(report) if report.is_file() else {}
+        run["compatibilityTestPassed"] = bool(probe.get("schema") == "fixture-compatibility.v1" and probe.get("mode") == run["compatibilityProbe"]
+            and probe.get("passed") is True and probe.get("failure") == "" and probe.get("images"))
+        write(folder / "run.json", run)
     result = capture(root, label)
+    if run.get("compatibilityProbe"):
+        require(run.get("compatibilityTestPassed"), "Compatibility probe failed; evidence captured")
     if run.get("c14Background"):
         require(run.get("c14BackgroundPassed"), "C14 loading checks failed; evidence captured")
     if run.get("textureQualityProbe"):
@@ -2947,6 +3099,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("action", choices=["stage-gog", "stage-steam", "bind-comparison-package", "discover", "initialize", "refresh", "audit", "full-audit", "test", "build", "deploy", "deploy-helper", "build-menu-observer", "deploy-menu-observer", "build-audio-bootstrap", "deploy-audio-bootstrap", "prepare", "external-prepare", "verify-prepared", "restore-profile", "restore-runtime-file", "exclude-mod", "restore-mod", "launch", "capture", "recover", "rollback"])
     parser.add_argument("--steam-source", type=Path)
+    parser.add_argument("--sources", type=Path, help="Initialize/refresh/discover only: explicit package sources and order JSON; generate a clean profile")
     parser.add_argument("--native-stack-traces", action="store_true", help="Functional scene probe without the private GOG logging workaround")
     parser.add_argument("--test-filter", help="Optional focused managed checks; always retain fixture safety tests")
     parser.add_argument("--package-id", help="Exact frozen package ID for reversible exclusion")
@@ -2963,6 +3116,9 @@ def main():
     parser.add_argument("--gameplay-save-from", help="Restore only RloFixtureSmoke.rws from a successful captured matching fixture gameplay run for functional automatic smoke or manual loading")
     parser.add_argument("--residual-probe", action="store_true", help="Qualification-only first-menu/late-type cost observation")
     parser.add_argument("--activation", choices=["fixture", "user"], default="fixture", help="User exercises normal activation without Wake-Up command-line selectors")
+    parser.add_argument("--supplier-menu", choices=["rimthemes"], help="Functional only: observe the exact supplier replacement menu")
+    parser.add_argument("--product-after", help="Functional only: place candidate after this selected supplier to qualify reverse constructor order")
+    parser.add_argument("--supplier-settings", type=Path, help="Prepare only: minimal allowlisted supplier boolean settings for functional fixtures")
     parser.add_argument("--user-settings", type=Path, help="Prepare only: allowlisted ordinary settings JSON for functional user activation")
     parser.add_argument("--preparation-app", type=Path, help="External-prepare only: packaged WakeUp.Preparation.exe under artifacts")
     parser.add_argument("--preparation-job", type=Path, help="External-prepare only: fixture-bound functional job JSON under artifacts")
@@ -2991,6 +3147,8 @@ def main():
     parser.add_argument("--audio-patch-probe", choices=["public", "same-file"], help="Functional only: public audio patch compatibility in absent or native-bootstrap formats candidate")
     parser.add_argument("--audio-stream-probe", action="store_true", help="Functional only: silent native streaming reader and callback causal check")
     parser.add_argument("--loading-ui-layout", choices=["1280x720@1", "1920x1080@1.5"], help="Functional private framebuffer size and UI scale; mutes fixture")
+    parser.add_argument("--compatibility-probe", choices=["none", "observe", "dismiss", "ack"], help="Functional only: native warning frames and shared acknowledgment handler; omit legacy probes")
+    parser.add_argument("--compatibility-notices-from", help="Carry actual captured compatibility notices with checked hash")
     parser.add_argument("--loading-xml-request-from", help="Restore captured explicit next-launch XML request from a successful UI handler run")
     parser.add_argument("--loading-ui-probe", action="store_true", help="Functional only: in-fixture rendered loading/report evidence")
     parser.add_argument("--audio-prepared-probe", choices=["completion", "prepare", "warm", "natural-prepare", "natural-warm", "wav-prepare", "wav-warm", "formats-prepare", "formats-warm", "frames-prepare", "frames-warm", "readiness-prepare", "readiness-warm", "advance-prepare", "advance-warm"], help="Functional first-build/warm prepared audio qualification")
@@ -3014,6 +3172,8 @@ def main():
     parser.add_argument("--selection", type=Path, help="Frozen benchmark selection JSON; representative lane only")
     parser.add_argument("--label")
     parser.add_argument("--foreign-cache-from", help="Restore only captured Gagarin MissileGirl cache; other caches stay reset")
+    parser.add_argument("--fastloader-probe", choices=["build", "warm"], help="Functional native texture-cache build or startup-hit proof")
+    parser.add_argument("--fastloader-cache-from", help="Captured native FastLoader texture build for its warm probe")
     parser.add_argument("--menu-observer", action=argparse.BooleanOptionalAction, default=True,
                         help="Timestamp the first completed main-menu repaint (default: enabled)")
     parser.add_argument("--exit-after-menu-ready", action=argparse.BooleanOptionalAction, default=True,
@@ -3026,6 +3186,8 @@ def main():
     parser.add_argument("--allow-other-session-game", action="store_true",
                         help="Owner-authorized functional ASTER coexistence: allow an inaccessible game only in another Windows session; never waive performance isolation")
     args = parser.parse_args()
+    require(args.sources is None or args.action in ("initialize", "refresh", "discover"),
+            "--sources is limited to initialization and discovery")
     require(not args.allow_other_session_game or args.action in (
         "test", "build", "build-menu-observer", "deploy", "deploy-menu-observer", "deploy-helper", "prepare",
         "verify-prepared", "launch", "capture", "rollback", "audit", "restore-runtime-file"),
@@ -3037,7 +3199,7 @@ def main():
     require(root == CANONICAL, "Canonical fixture path mismatch")
     require(not git("ls-files", "--", ".rlo-test-instance", ":(glob)**/.rlo-test-instance/**"), "Fixture payload is tracked by Git")
     if args.action == "discover":
-        result = discover()
+        result = explicit_sources(root, args.sources) if args.sources is not None else discover()
     else:
         with fixture_lock(root):
             guard_operation_processes(root, args.action, args.label, args.allow_other_session_game)
@@ -3051,7 +3213,7 @@ def main():
                 require(args.package is not None, "bind-comparison-package requires --package")
                 result = bind_comparison_package(root, args.package)
             elif args.action in ("initialize", "refresh"):
-                result = initialize(root, args.action == "refresh", args.resume)
+                result = initialize(root, args.action == "refresh", args.resume, args.sources)
             elif args.action in ("audit", "full-audit"):
                 result = audit(root, args.action == "full-audit")
             elif args.action == "build":
@@ -3080,7 +3242,7 @@ def main():
             elif args.action == "prepare":
                 require(args.label is not None, "prepare requires --label")
                 result = prepare(root, args.mode, args.label, args.lane, args.observation, args.strategy,
-                                 args.foreign_cache_from, args.menu_observer, args.exit_after_menu_ready, args.gagarin_cache, args.png, args.png_source, args.png_cache_from, args.selection, args.loading_progress, args.character_presets, args.giddy_textures, args.activation, args.gameplay_smoke, args.residual_probe, args.purpose, args.user_settings, args.language, args.prepared_cache_from, args.background_hold, args.gameplay_save_from, args.world_background, args.native_stack_traces, args.parsed_xml_cache_from, args.xml_source_observer, args.processed_xml_cache_from, args.inheritance_cache_from, args.processed_xml_observer, args.language_cache_from, args.language_lifecycle, args.language_source_probe, args.texture_storage_probe, args.texture_source_change, args.atlas_cache_from, args.atlas_cache_corrupt, args.atlas_lifecycle, args.texture_quality_probe, args.audio_stream_probe, args.audio_bootstrap_probe, args.loading_ui_probe, args.loading_ui_layout, args.loading_xml_request_from, args.audio_prepared_probe, args.audio_cache_from, args.audio_native_entry_probe, args.audio_native_entry_stop_only, args.audio_native_entry_domain_probe, args.audio_patch_probe, args.audio_measurement, args.language_observer, args.serialized_texture_input, args.demand_texture_probe, args.demand_texture_selection, args.c14_background, args.first_build_images, args.raw_pixel_helper)
+                                 args.foreign_cache_from, args.menu_observer, args.exit_after_menu_ready, args.gagarin_cache, args.png, args.png_source, args.png_cache_from, args.selection, args.loading_progress, args.character_presets, args.giddy_textures, args.activation, args.gameplay_smoke, args.residual_probe, args.purpose, args.user_settings, args.language, args.prepared_cache_from, args.background_hold, args.gameplay_save_from, args.world_background, args.native_stack_traces, args.parsed_xml_cache_from, args.xml_source_observer, args.processed_xml_cache_from, args.inheritance_cache_from, args.processed_xml_observer, args.language_cache_from, args.language_lifecycle, args.language_source_probe, args.texture_storage_probe, args.texture_source_change, args.atlas_cache_from, args.atlas_cache_corrupt, args.atlas_lifecycle, args.texture_quality_probe, args.audio_stream_probe, args.audio_bootstrap_probe, args.loading_ui_probe, args.loading_ui_layout, args.loading_xml_request_from, args.audio_prepared_probe, args.audio_cache_from, args.audio_native_entry_probe, args.audio_native_entry_stop_only, args.audio_native_entry_domain_probe, args.audio_patch_probe, args.audio_measurement, args.language_observer, args.serialized_texture_input, args.demand_texture_probe, args.demand_texture_selection, args.c14_background, args.first_build_images, args.raw_pixel_helper, args.compatibility_probe, args.compatibility_notices_from, args.supplier_settings, args.product_after, args.supplier_menu, args.fastloader_probe, args.fastloader_cache_from)
             elif args.action == "verify-prepared":
                 require(args.label is not None, "verify-prepared requires --label")
                 result = verify_prepared(root, args.label)

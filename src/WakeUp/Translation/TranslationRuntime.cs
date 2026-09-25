@@ -51,6 +51,7 @@ internal static class TranslationRuntime
         evidencePath = Path.Combine(mode.SaveDataRoot!, "WakeUp", "translations.jsonl");
         if (!RuntimeIdentity.ValidateBinaryIdentity(out string reason))
         {
+            CompatibilityStatus.Refuse("translations", reason);
             JsonLineLog.WriteReceipt(evidencePath, "refused", reason);
             return false;
         }
@@ -83,6 +84,7 @@ internal static class TranslationRuntime
                 transpiler: new HarmonyMethod(typeof(TranslationRuntime), nameof(DuplicateTranspiler)) { priority = Priority.Last },
                 finalizer: new HarmonyMethod(typeof(TranslationRuntime), nameof(EndSetter)));
             installed = true;
+            CompatibilityStatus.Available("translations");
             JsonLineLog.WriteReceipt(evidencePath, "installed", "per-package-application-successful-targets");
             return true;
         }
@@ -90,12 +92,13 @@ internal static class TranslationRuntime
         {
             installed = false;
             try { harmony.UnpatchAll(Owner); } catch { }
+            CompatibilityStatus.Refuse("translations", exception.Message);
             JsonLineLog.WriteReceipt(evidencePath, "refused", exception.Message);
             return false;
         }
     }
 
-    private static bool Compatible() => installed && guards.All(g => g.AllowsOriginalContract());
+    private static bool Compatible() => installed && CompatibilityStatus.Guard("translations", guards.All(g => g.AllowsOriginalContract()));
 
     internal static void Begin(DefInjectionPackage __instance, bool errorOnDefNotFound, out bool __state)
     {

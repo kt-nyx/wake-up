@@ -29,10 +29,9 @@ public sealed class LeafSubclassRuntimeTests
     [OneTimeSetUp]
     public void InstallGuardedAdapter()
     {
-        foreach (string name in new[] { "installed", "candidate", "finished" })
-            previousActivation.Add(name, AccessTools.Field(typeof(TypeLookupRuntime), name).GetValue(null));
-        SetActivation("installed", true);
-        SetActivation("candidate", true);
+        foreach (string name in new[] { "selected", "finished" })
+            previousActivation.Add(name, AccessTools.Field(typeof(TypeSearchLifetime), name).GetValue(null));
+        SetActivation("selected", true);
         SetActivation("finished", 0);
         LeafSubclassRuntime.Initialize();
         Assert.That(AccessTools.Field(typeof(LeafSubclassRuntime), "installed").GetValue(null), Is.True);
@@ -56,7 +55,7 @@ public sealed class LeafSubclassRuntimeTests
         cache = new Dictionary<Type, List<Type>>();
         SetNative("allTypesCached", types);
         SetNative("cachedSubclasses", cache);
-        SetActivation("candidate", true);
+        SetActivation("selected", true);
         SetActivation("finished", 0);
         LeafSubclassRuntime.BeginConstruction(out testScope);
     }
@@ -70,7 +69,7 @@ public sealed class LeafSubclassRuntimeTests
         new Harmony(ForeignOwner).UnpatchAll(ForeignOwner);
         SetNative("allTypesCached", previousTypes);
         SetNative("cachedSubclasses", previousSubclasses);
-        SetActivation("candidate", true);
+        SetActivation("selected", true);
         SetActivation("finished", 0);
     }
 
@@ -90,12 +89,12 @@ public sealed class LeafSubclassRuntimeTests
     {
         Type[] order = { typeof(Right), typeof(Branch), typeof(AbstractLeaf), typeof(Left), typeof(Left) };
         cache.Add(typeof(Root), order.ToList());
-        SetActivation("candidate", false);
+        SetActivation("selected", false);
         Type[] expected = typeof(Root).AllLeafSubclasses().ToArray();
         var expectedCache = cache.ToDictionary(p => p.Key, p => p.Value.ToArray());
         cache.Clear();
         cache.Add(typeof(Root), order.ToList());
-        SetActivation("candidate", true);
+        SetActivation("selected", true);
         long before = AvoidedScans;
         IEnumerable<Type> result = typeof(Root).AllLeafSubclasses();
         Assert.That(cache.Count, Is.EqualTo(1), "Child searches remain deferred.");
@@ -190,11 +189,11 @@ public sealed class LeafSubclassRuntimeTests
         types.AddRange(new[] { typeof(GenericChild), typeof(AbstractLeaf) });
         Type[] candidates = { typeof(Root), typeof(Generic<>), typeof(Generic<int>), typeof(AbstractLeaf) };
         cache.Add(typeof(string), candidates.ToList()); // Mutated outer lists need not describe a real hierarchy.
-        SetActivation("candidate", false);
+        SetActivation("selected", false);
         Type[] expected = typeof(string).AllLeafSubclasses().ToArray();
         cache.Clear();
         cache.Add(typeof(string), candidates.ToList());
-        SetActivation("candidate", true);
+        SetActivation("selected", true);
         Assert.That(typeof(string).AllLeafSubclasses().ToArray(), Is.EqualTo(expected));
         Assert.That(expected, Is.EqualTo(new[] { typeof(Generic<>), typeof(AbstractLeaf) }));
     }
@@ -359,7 +358,7 @@ public sealed class LeafSubclassRuntimeTests
     {
         EndTestScope();
         SetActivation("finished", 1);
-        Assert.That(TypeLookupRuntime.ActiveCandidate, Is.False, "The name-search cutoff remains closed.");
+        Assert.That(TypeSearchLifetime.Active, Is.False, "The name-search cutoff remains closed.");
         List<Type> savedAlerts = AlertsReadout.allAlertTypesCached;
         bool savedProfiling = DeepProfiler.enabled;
         try
@@ -391,7 +390,7 @@ public sealed class LeafSubclassRuntimeTests
                 Assert.That(AlertsReadout.allAlertTypesCached, Is.Empty);
             }
             Assert.That(AvoidedScans, Is.EqualTo(before + 1), "The real patched constructor reaches the native leaf predicate after the menu cutoff.");
-            Assert.That(TypeLookupRuntime.ActiveCandidate, Is.False);
+            Assert.That(TypeSearchLifetime.Active, Is.False);
             var index = (LeafSubclassIndex)AccessTools.Field(typeof(LeafSubclassRuntime), "Index").GetValue(null);
             Assert.That(index.IsCurrent(types), Is.False, "Finalizer releases the proof on both return and throw.");
             Assert.That(AccessTools.Field(typeof(LeafSubclassRuntime), "constructionDepth").GetValue(null), Is.EqualTo(0));
@@ -462,7 +461,7 @@ public sealed class LeafSubclassRuntimeTests
         testScope = 0;
     }
     private static void SetNative(string name, object? value) => AccessTools.Field(typeof(GenTypes), name).SetValue(null, value);
-    private static void SetActivation(string name, object value) => AccessTools.Field(typeof(TypeLookupRuntime), name).SetValue(null, value);
+    private static void SetActivation(string name, object value) => AccessTools.Field(typeof(TypeSearchLifetime), name).SetValue(null, value);
     private static void ThrowEnumeration() => throw new InvalidOperationException("native enumeration failure");
     private static int foreignConstructorCalls, foreignNativeCalls;
     private static void ForeignConstructorEffect() => foreignConstructorCalls++;

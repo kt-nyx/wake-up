@@ -77,11 +77,14 @@ internal static class LeafSubclassRuntime
             harmony.Patch(methods[5], prefix: new HarmonyMethod(typeof(LeafSubclassRuntime), nameof(BeginConstruction)),
                 finalizer: new HarmonyMethod(typeof(LeafSubclassRuntime), nameof(EndConstruction)));
             installed = true;
+            CompatibilityStatus.Available("leaf");
             TypeLookupRuntime.LeafReceipt("leaf-installed", "startup-and-alerts-readout-construction");
         }
         catch (Exception exception)
         {
             installed = false;
+            CompatibilityStatus.Refuse("leaf", exception.Message, "required-contract",
+                LoaderSupplierPolicy.ProviderFor(AccessTools.Method(typeof(GenTypes), nameof(GenTypes.AllLeafSubclasses), new[] { typeof(Type) })));
             try { harmony.UnpatchAll(Owner); } catch { }
             TypeLookupRuntime.LeafReceipt("leaf-refused", exception.Message);
         }
@@ -93,7 +96,7 @@ internal static class LeafSubclassRuntime
         MethodInfo target = AccessTools.Method(typeof(GenTypes), nameof(GenTypes.AllLeafSubclasses), new[] { typeof(Type) });
         if (Harmony.GetPatchInfo(target)?.Transpilers.Any(p => p.owner != Owner) == true
             || !InstructionComparison.SameInstructions(code, PatchProcessor.GetOriginalInstructions(target)))
-            return code;
+        { CompatibilityStatus.Guard("leaf", false); return code; }
         CodeInstruction where = code.Single(i => i.opcode == OpCodes.Call && i.operand is MethodInfo method
             && method.DeclaringType == typeof(Enumerable) && method.Name == nameof(Enumerable.Where)
             && method.IsGenericMethod && method.GetGenericArguments().SequenceEqual(new[] { typeof(Type) }));
@@ -104,17 +107,17 @@ internal static class LeafSubclassRuntime
     private static IEnumerable<Type> Filter(IEnumerable<Type> source, Func<Type, bool> predicate)
         // Keep native eager AllSubclasses capture and LINQ's List iterator. Do
         // not return an array/set or take a snapshot of the caller's result.
-        => (TypeLookupRuntime.ActiveCandidate || Compatible())
+        => (TypeSearchLifetime.Active || Compatible())
             ? source.Where(type => Evaluate(type, predicate)) : source.Where(predicate);
 
     private static bool Admitted(bool construction)
     {
-        if (!installed || !TypeLookupRuntime.CandidateSelected || guards?.Length != 6) return false;
+        if (!installed || !TypeSearchLifetime.Selected || guards?.Length != 6) return false;
         // Startup discovery depends only on the five native leaf/type methods.
         // An unrelated AlertsReadout hook cannot change their contract. The
         // constructor scope additionally requires its own sixth guard.
         for (int i = 0; i < (construction ? 6 : 5); i++)
-            if (!guards[i].AllowsOriginalContract()) return false;
+            if (!CompatibilityStatus.Guard("leaf", guards[i].AllowsOriginalContract())) return false;
         return true;
     }
 
@@ -126,13 +129,13 @@ internal static class LeafSubclassRuntime
         // predicate evaluation owns the shared proof until menu completion; other
         // threads keep the native predicate and native caches.
         lock (IndexGate)
-            if (TypeLookupRuntime.ActiveCandidate && constructionDepth == 0 && constructionEntries == 0)
+            if (TypeSearchLifetime.Active && constructionDepth == 0 && constructionEntries == 0)
                 Interlocked.CompareExchange(ref ownerThread, thread, 0);
         return Volatile.Read(ref ownerThread) == thread && ScopeActive();
     }
 
     private static bool ScopeActive() => (constructionDepth == 1 && constructionEntries == 1)
-        || (constructionDepth == 0 && constructionEntries == 0 && TypeLookupRuntime.ActiveCandidate);
+        || (constructionDepth == 0 && constructionEntries == 0 && TypeSearchLifetime.Active);
 
     // The ordinary menu-first path constructs AlertsReadout while creating the
     // play UI. After startup only this constructor owns a proof. Nested

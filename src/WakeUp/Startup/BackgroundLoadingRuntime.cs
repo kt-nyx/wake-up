@@ -31,6 +31,7 @@ internal static partial class BackgroundLoadingRuntime
     private static PublishedPatchGuard[] guards = Array.Empty<PublishedPatchGuard>();
     private static bool installed;
     private static bool releaseRequested;
+    private static bool retiredFocusGuard;
     private static PublishedPatchGuard[] worldGuards = Array.Empty<PublishedPatchGuard>();
     private static bool worldInstalled;
     private static PublishedPatchGuard[] colonyGuards = Array.Empty<PublishedPatchGuard>();
@@ -61,7 +62,7 @@ internal static partial class BackgroundLoadingRuntime
         {
             if (!RuntimeIdentity.ValidateBinaryIdentity(out _)) throw new InvalidOperationException("Required patching functions are unavailable.");
             InstallHooks(harmony);
-            Status = "Supported save and direct Play loads can continue while unfocused; your current background preference resumes afterward. Native initial loading remains native.";
+            Status = "Supported save and direct Play loads can continue while unfocused; your current background preference resumes afterward. Native initial loading remains native."; CompatibilityStatus.Available("background");
         }
         catch (Exception e)
         {
@@ -72,10 +73,10 @@ internal static partial class BackgroundLoadingRuntime
             try { new Harmony(MapOwner).UnpatchAll(MapOwner); } catch { }
             worldInstalled = false;
             colonyInstalled = false;
-            WorldStatus = "Background world generation is unavailable because the shared loading lifecycle is unavailable.";
-            ColonyStatus = "Background new-colony loading is unavailable because the shared loading lifecycle is unavailable.";
-            MapStatus = "Background map loading is unavailable because the shared loading lifecycle is unavailable; native loading remains.";
-            Status = "Background save loading is unavailable: " + e.Message;
+            WorldStatus = "Background world generation is unavailable: " + e.Message; LifecycleSupplierPolicy.Refuse("background-world", WorldStatus, e);
+            ColonyStatus = "Background new-colony loading is unavailable: " + e.Message; LifecycleSupplierPolicy.Refuse("background-colony", ColonyStatus, e);
+            MapStatus = "Background map loading is unavailable: " + e.Message; LifecycleSupplierPolicy.Refuse("background-map", MapStatus, e);
+            Status = "Background save loading is unavailable: " + e.Message; LifecycleSupplierPolicy.Refuse("background", Status, e);
             Log.Message("[Wake-Up] " + Status);
         }
     }
@@ -91,9 +92,10 @@ internal static partial class BackgroundLoadingRuntime
             if (!PublishedPatchGuard.TryCreate(target, Owner, out var guard, allPatchKinds: true,
                 allowedForeignPatch: patch => target == Update && patch.owner == LoadingDisplayRuntime.Owner
                     && patch.PatchMethod == AccessTools.Method(typeof(LoadingDisplayRuntime), nameof(LoadingDisplayRuntime.AfterUpdate))
-                    || AtlasBatchScheduling.AllowsOwnHook(target, patch) || LoadingObservationRuntime.AllowsHook(target, patch))
+                    || AtlasBatchScheduling.AllowsOwnHook(target, patch) || LoadingObservationRuntime.AllowsHook(target, patch)
+                    || LifecycleSupplierPolicy.AllowsThemeObserver(target, patch) || LoadingProgressBackgroundPolicy.Allows(target, patch))
                 || !guard!.AllowsOriginalContract())
-                throw new InvalidOperationException("Another mod changes the save-loading lifecycle.");
+                throw LifecycleSupplierPolicy.BackgroundConflict(target);
             checks.Add(guard);
         }
         guards = checks.ToArray();
@@ -112,6 +114,7 @@ internal static partial class BackgroundLoadingRuntime
             harmony.Patch(PlayUpdate, transpiler: Hook(nameof(GuardPlayUpdate)));
         }
         releaseRequested = false;
+        retiredFocusGuard = false;
         installed = true;
         // Installation occurs during native startup, after Root.Start has
         // granted permission. Observe its drain without repeating that write.
@@ -141,13 +144,13 @@ internal static partial class BackgroundLoadingRuntime
             colonyGuards = checks.ToArray();
             harmony.Patch(NewColony, prefix: Hook(nameof(BeforeNewColony)), finalizer: Hook(nameof(AfterLoad)));
             colonyInstalled = true;
-            ColonyStatus = "Supported new colonies started from the entry pages can continue while unfocused; native pause-on-load is preserved.";
+            ColonyStatus = "Supported new colonies started from the entry pages can continue while unfocused; native pause-on-load is preserved."; CompatibilityStatus.Available("background-colony");
         }
         catch (Exception e)
         {
             colonyInstalled = false;
             try { harmony.UnpatchAll(ColonyOwner); } catch { }
-            ColonyStatus = "Background new-colony loading is unavailable: " + e.Message;
+            ColonyStatus = "Background new-colony loading is unavailable: " + e.Message; CompatibilityStatus.Refuse("background-colony", ColonyStatus);
         }
     }
 
@@ -171,13 +174,13 @@ internal static partial class BackgroundLoadingRuntime
             harmony.Patch(WorldNext, prefix: Hook(nameof(EnterBoundary)),
                 transpiler: Hook(nameof(RewriteWorldQueue)), finalizer: Hook(nameof(LeaveBoundary)));
             worldInstalled = true;
-            WorldStatus = "Supported world generation can also continue while unfocused.";
+            WorldStatus = "Supported world generation can also continue while unfocused."; CompatibilityStatus.Available("background-world");
         }
         catch (Exception e)
         {
             worldInstalled = false;
             try { harmony.UnpatchAll(WorldOwner); } catch { }
-            WorldStatus = "Background world generation is unavailable: " + e.Message;
+            WorldStatus = "Background world generation is unavailable: " + e.Message; CompatibilityStatus.Refuse("background-world", WorldStatus);
         }
     }
     private static bool AllowsOwnEntryPostfix(MethodBase target, Patch patch, Patches? record)
@@ -185,7 +188,8 @@ internal static partial class BackgroundLoadingRuntime
         if (target != AccessTools.Method(typeof(Root_Entry), "Update") || record == null) return false;
         MethodInfo method = patch.PatchMethod;
         if (method.Module != typeof(BackgroundLoadingRuntime).Module) return false;
-        bool known = (patch.owner == "wakeup.type-lookup" && method == AccessTools.Method(typeof(TypeLookupRuntime), "MenuUpdate"))
+        bool known = (patch.owner == TypeSearchLifetime.Owner && method == AccessTools.Method(typeof(TypeSearchLifetime), "MenuUpdate"))
+            || (patch.owner == "wakeup.type-lookup" && method == AccessTools.Method(typeof(TypeLookupRuntime), "MenuUpdate"))
             || (patch.owner == PngRuntime.Owner && method == AccessTools.Method(typeof(PngRuntime), "Menu"))
             || (patch.owner == LoadingDisplayRuntime.Owner && method == AccessTools.Method(typeof(LoadingDisplayRuntime), "Menu"))
             || (patch.owner == StreamingXmlRuntime.Owner && method == AccessTools.Method(typeof(StreamingXmlRuntime), "MenuUpdate"))
@@ -204,17 +208,26 @@ internal static partial class BackgroundLoadingRuntime
     internal static bool CheckOwnership()
     {
         if (!installed) return false;
+        bool supplierCallbacks = LifecycleSupplierPolicy.ThemeCallbacksUnchanged();
+        bool loadingProgress = LoadingProgressBackgroundPolicy.Unchanged(Session.Active);
         foreach (var guard in guards)
-            if (!guard.AllowsOriginalContract())
+            if (!supplierCallbacks || !loadingProgress || !guard.AllowsOriginalContract())
             {
+                Exception conflict = !loadingProgress ? LoadingProgressBackgroundPolicy.Conflict()
+                    : supplierCallbacks ? LifecycleSupplierPolicy.BackgroundConflict(guard.Target)
+                    : LifecycleSupplierPolicy.ThemeBackgroundConflict();
+                // Retiring queue permission must not let the final delivered
+                // frame advance an owned game while still unfocused. Retain only
+                // that completion fence while its independent Play guard holds.
+                retiredFocusGuard = !loadingProgress && (Session.Active || Session.NeedsPlayGuard) && OwnsPlayGuard();
                 installed = false;
                 releaseRequested = true;
-                Status = "Background save loading stopped because another mod changed the loading lifecycle.";
+                Status = "Background save loading stopped: " + conflict.Message; LifecycleSupplierPolicy.Refuse("background", Status, conflict);
                 worldInstalled = false;
-                WorldStatus = "Background world generation stopped because another mod changed the shared loading lifecycle.";
+                WorldStatus = "Background world generation stopped: " + conflict.Message; LifecycleSupplierPolicy.Refuse("background-world", WorldStatus, conflict);
                 colonyInstalled = false;
-                ColonyStatus = "Background new-colony loading stopped because another mod changed the shared loading lifecycle.";
-                MapStatus = "Background map loading stopped because another mod changed the shared loading lifecycle; native loading remains.";
+                ColonyStatus = "Background new-colony loading stopped: " + conflict.Message; LifecycleSupplierPolicy.Refuse("background-colony", ColonyStatus, conflict);
+                MapStatus = "Background map loading stopped: " + conflict.Message; LifecycleSupplierPolicy.Refuse("background-map", MapStatus, conflict);
                 ServiceRelease();
                 return false;
             }
@@ -225,7 +238,7 @@ internal static partial class BackgroundLoadingRuntime
         if (!worldInstalled) return false;
         if (worldGuards.All(guard => guard.AllowsOriginalContract())) return true;
         worldInstalled = false;
-        WorldStatus = "Background world generation stopped because another mod changed its page lifecycle.";
+        WorldStatus = "Background world generation stopped because another mod changed its page lifecycle."; CompatibilityStatus.Refuse("background-world", WorldStatus);
         if (MainThread()) Session.ReleaseOwner(WorldOwner);
         return false;
     }
@@ -241,23 +254,29 @@ internal static partial class BackgroundLoadingRuntime
         if (!colonyInstalled) return false;
         if (colonyGuards.All(guard => guard.AllowsOriginalContract())) return true;
         colonyInstalled = false;
-        ColonyStatus = "Background new-colony loading stopped because another mod changed its entry or initialization lifecycle.";
+        ColonyStatus = "Background new-colony loading stopped because another mod changed its entry or initialization lifecycle."; CompatibilityStatus.Refuse("background-colony", ColonyStatus);
         if (MainThread()) Session.ReleaseOwner(ColonyOwner);
         return false;
     }
+    private static bool OwnsPlayGuard() => guards.Any(g => g.Target == PlayUpdate && g.AllowsOriginalContract())
+        && guards.Any(g => g.Target == Apply && g.AllowsOriginalContract());
     private static void ServiceRelease()
     {
         if (releaseRequested && MainThread())
         {
             releaseRequested = false;
             Session.Release();
-            Session.ClearCompletionGuard();
+            if (!retiredFocusGuard || !OwnsPlayGuard())
+            {
+                retiredFocusGuard = false;
+                Session.ClearCompletionGuard();
+            }
         }
     }
     private static void BeforeLoad(out BackgroundLoadingSession.Lease? __state)
     {
         __state = null;
-        if (!MainThread() || !Loaded() || !CheckOwnership()) return;
+        if (!MainThread() || !Loaded() || !CheckOwnership() || !LoadingProgressBackgroundPolicy.CanAcquire()) return;
         // Do not adopt an unrelated queue. A nested save request belongs to the
         // already owned chain; its caller still controls native event ordering.
         if (!Session.Active && LongEventHandler.AnyEventNowOrWaiting) return;
@@ -267,7 +286,7 @@ internal static partial class BackgroundLoadingRuntime
     private static void BeforeNewColony(out BackgroundLoadingSession.Lease? __state)
     {
         __state = null;
-        if (!MainThread() || !Loaded() || !CheckOwnership() || !CheckColonyOwnership()) return;
+        if (!MainThread() || !Loaded() || !CheckOwnership() || !CheckColonyOwnership() || !LoadingProgressBackgroundPolicy.CanAcquire()) return;
         if (!Session.Active && LongEventHandler.AnyEventNowOrWaiting) return;
         Session.Enter();
         // The page queues preparation, then a Play scene. Shared Root_Play.Start
@@ -285,7 +304,7 @@ internal static partial class BackgroundLoadingRuntime
     private static void BeforePlayStart(out bool __state)
     {
         EnterBoundary(out __state);
-        if (!__state || !Loaded() || !CheckOwnership() || (nativeStartupPending && !Session.Active)) return;
+        if (!__state || !Loaded() || !CheckOwnership() || (nativeStartupPending && !Session.Active) || !LoadingProgressBackgroundPolicy.CanAcquire()) return;
         // Every admitted Root_Play.Start branch queues native save/new-game
         // loading and its fade. It can be reached without the ordinary pages.
         if (!Session.Active && CheckColonyOwnership()) Session.Begin(waitForPlay: false, owner: ColonyOwner);
@@ -315,6 +334,7 @@ internal static partial class BackgroundLoadingRuntime
     }
     private static void CancelSceneWait()
     {
+        retiredFocusGuard = false;
         Session.ArrivedOrCanceled();
         Session.CancelCompletionGuard();
     }
@@ -346,13 +366,16 @@ internal static partial class BackgroundLoadingRuntime
     internal static bool ShouldBlockPlay()
     {
         if (Session.Active) CheckSessionOwnership();
-        else if (Session.NeedsPlayGuard && !CheckOwnership())
+        else if (Session.NeedsPlayGuard && !CheckOwnership() && (!retiredFocusGuard || !OwnsPlayGuard()))
         {
+            retiredFocusGuard = false;
             Session.ClearCompletionGuard();
             return false;
         }
         ServiceRelease();
-        return Session.NeedsPlayGuard && Session.BlockPlay(Focused());
+        bool blocked = Session.NeedsPlayGuard && Session.BlockPlay(Focused());
+        if (!Session.NeedsPlayGuard) retiredFocusGuard = false;
+        return blocked;
     }
 
     internal static IEnumerable<CodeInstruction> RewritePreference(IEnumerable<CodeInstruction> instructions)
@@ -382,7 +405,7 @@ internal static partial class BackgroundLoadingRuntime
     {
         // This wrapper replaces only CanDoNext's exact admitted queue call. The
         // original action, callback, error handling and native queue are intact.
-        if (MainThread() && Loaded() && CheckOwnership() && CheckWorldOwnership()
+        if (MainThread() && Loaded() && CheckOwnership() && CheckWorldOwnership() && LoadingProgressBackgroundPolicy.CanAcquire()
             && (Session.Active || !LongEventHandler.AnyEventNowOrWaiting))
         {
             Session.Begin(waitForPlay: false, owner: WorldOwner);
@@ -409,6 +432,7 @@ internal static partial class BackgroundLoadingRuntime
         Session.ClearCompletionGuard();
         installed = false;
         releaseRequested = false;
+        retiredFocusGuard = false;
         guards = Array.Empty<PublishedPatchGuard>();
         worldGuards = Array.Empty<PublishedPatchGuard>();
         worldInstalled = false;

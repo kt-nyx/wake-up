@@ -44,11 +44,12 @@ internal static class PreparedQualityRuntime
         var ctor = AccessTools.Constructor(typeof(LoadedContentItem<Texture2D>),
             new[] { typeof(VirtualFile), typeof(Texture2D), typeof(IDisposable) });
         if (!PublishedPatchGuard.TryCreate(ctor, PngRuntime.Owner, out holderGuard, true))
-        { unsafeReason = "holder callback guard unavailable"; return; }
+        { unsafeReason = "holder callback guard unavailable"; CompatibilityStatus.Refuse("quality", unsafeReason); return; }
         harmony.Patch(AccessTools.Method(typeof(ModContentHolder<Texture2D>), "Get"),
             prefix: new HarmonyMethod(typeof(PreparedQualityRuntime), nameof(ReadOne)));
         harmony.Patch(AccessTools.Method(typeof(ModContentHolder<Texture2D>), "GetAllUnderPath"),
             prefix: new HarmonyMethod(typeof(PreparedQualityRuntime), nameof(ReadFolder)));
+        CompatibilityStatus.Available("quality", "Quality publication boundary admitted; only complete matching explicit groups can apply.");
     }
     private static void ReadOne(string __0)
     { if (PreparedTextureRuntime.UseAtStartup) exposed.Add(__0 ?? ""); }
@@ -65,8 +66,8 @@ internal static class PreparedQualityRuntime
         // Prefixes are retained even when the later provider is not loaded yet.
         exposed.Add(prefix + "*");
     }
-    internal static void UnsafeBoundary(string reason)
-    { if (PreparedTextureRuntime.UseAtStartup && unsafeReason.Length == 0) unsafeReason = reason; }
+    internal static void UnsafeBoundary(string reason, bool reportCompatibility = true)
+    { if (PreparedTextureRuntime.UseAtStartup && unsafeReason.Length == 0) { unsafeReason = reason; if (reportCompatibility) CompatibilityStatus.Refuse("quality", reason); } }
     internal static void BeforeCallback()
     { if (holderGuard?.AllowsOriginalContract() != true) UnsafeBoundary("foreign texture holder callback"); }
     internal static void BeforeSource(FileInfo source)
@@ -89,6 +90,12 @@ internal static class PreparedQualityRuntime
     internal static void CompleteReload()
     {
         if (!PreparedTextureRuntime.UseAtStartup || !CacheLaunchPolicy.Current.AllowRead) return;
+        if (ImageSupplierPolicy.FastLoaderMayOwnAtlas())
+        {
+            UnsafeBoundary("FastLoader's atlas cache can supply the final pixels; explicit prepared texture output remains inactive.", false);
+            CompatibilityStatus.Refuse("quality", unsafeReason, "supplier-atlas-owner", "FastLoader");
+            return;
+        }
         foreach (var candidate in loaded.Values.ToArray()) TryApply(candidate.Source);
     }
     internal static long Applied, Groups, Refused;
@@ -130,9 +137,9 @@ internal static class PreparedQualityRuntime
             var store = PreparedTextureRuntime.StartupStore;
             if (!store.HasOwner(slot)) return;
             if (!GameBuildContract.Current.HasReviewedTextureConsumers)
-                throw new NotSupportedException("quality runtime has not been qualified for this game build");
+                throw CompatibilityFailure("quality runtime has not been qualified for this game build", "game-consumers");
             if (QualitySettings.activeColorSpace != ColorSpace.Gamma)
-                throw new NotSupportedException("quality output requires the qualified Gamma color-space player");
+                throw CompatibilityFailure("quality output requires the qualified Gamma color-space player", "color-space");
             roles ??= PreparedTextureRoles.Capture();
             if (!roles.Ready || !roles.TryGet(logical, out var role))
                 throw new NotSupportedException(roles.Reason(logical));
@@ -150,13 +157,13 @@ internal static class PreparedQualityRuntime
             void Admit()
             {
                 if (unsafeReason.Length != 0) throw new InvalidDataException(unsafeReason);
-                if (holderGuard?.AllowsOriginalContract() != true) throw new InvalidDataException("texture holder hooks changed");
+                if (holderGuard?.AllowsOriginalContract() != true) throw CompatibilityFailure("texture holder hooks changed", "holder-hooks");
                 foreach (var member in members)
                 {
                     string stem = PreparationContract.Stem(member.Logical);
                     if (exposed.Contains(stem) || exposed.Any(p => p.EndsWith("*", StringComparison.Ordinal)
                         && stem.StartsWith(p.Substring(0,p.Length-1), StringComparison.Ordinal)))
-                        throw new InvalidDataException("native group already read by a consumer: " + member.Logical);
+                        throw CompatibilityFailure("native group already read by a consumer; published output must be preserved", "already-exposed");
                     if (!PngRuntime.QualityRouteAllowed(member.File) || !roles!.TryGet(member.Logical, out var currentRole)
                         || currentRole.Identity != role.Identity) throw new InvalidDataException("group source route or consumer changed");
                     if (!TexturePreparationBatch.StillSelected(member.Provider.foldersToLoadDescendingOrder.ToArray(), member.Logical, member.File.FullName))
@@ -240,13 +247,13 @@ internal static class PreparedQualityRuntime
                     var texture = PngRuntime.RestoreQuality(member.Entry);
                     privateObjects.Add(member.Source.Slot, texture);
                     texture.name = Path.GetFileNameWithoutExtension(member.Source.File.Name);
-                    if (!QualityUnityCallbacks.Check()) throw new InvalidDataException("private texture callback may have borrowed output");
+                    if (!QualityUnityCallbacks.Check()) throw CompatibilityFailure("private texture callback may have borrowed output", "texture-callback");
                 }
                 var currentRoles = PreparedTextureRoles.Capture();
                 foreach (var member in members)
                 {
                     if (!currentRoles.TryGet(member.Logical, out var currentRole) || currentRole.Identity != role.Identity)
-                        throw new InvalidDataException("resolved consumer metadata changed during private construction");
+                        throw CompatibilityFailure("resolved consumer metadata changed during private construction", "consumer-changed");
                     var lease = member.File.Open(FileMode.Open, FileAccess.Read, FileShare.Read); leases.Add(lease);
                     if (PreparationContract.Hash(PreparedTextureRuntime.ReadSourceSnapshot(lease))
                         != records.Single(r => r.Provider == member.Selection && r.Logical == member.Logical).SourceDigest)
@@ -293,6 +300,12 @@ internal static class PreparedQualityRuntime
                 "\"source\":\"" + JsonLineLog.Escape(file.FullName) + "\",\"reason\":\"" + JsonLineLog.Escape(e.Message) + "\"");
             return;
         }
+    }
+    private static Exception CompatibilityFailure(string reason, string code)
+    {
+        CompatibilityStatus.Registry?.Set("quality", OperationState.PartiallyAvailable,
+            "Some explicit groups retain native output: " + reason, code);
+        return new InvalidDataException(reason);
     }
     internal static void Finish()
     {

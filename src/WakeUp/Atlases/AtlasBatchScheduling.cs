@@ -84,7 +84,8 @@ internal static class AtlasBatchScheduling
     internal static bool EnableDisplayScheduling()
     {
         displayScheduling = true;
-        if (!Install()) { displayScheduling = false; return false; }
+        if (!Install()) { displayScheduling = false; CompatibilityStatus.Refuse("display-scheduling", Status); return false; }
+        CompatibilityStatus.Available("display-scheduling");
         Status = "Loading callbacks, supported static constructors and native atlases yield between completed units.";
         return true;
     }
@@ -118,6 +119,7 @@ internal static class AtlasBatchScheduling
         foreach (var guard in guards)
         {
             if (guard.AllowsOriginalContract()) continue;
+            CompatibilityStatus.Guard("display-scheduling", false);
             AtlasRuntime.ReportOverlap(guard.Target, "Adaptive atlas batching");
             return false;
         }

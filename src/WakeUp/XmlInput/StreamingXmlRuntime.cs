@@ -33,6 +33,13 @@ public static class StreamingXmlRuntime
         if (StartupLaunchSelector.Parse(arguments).Selection != StartupSelection.Candidate
             || arguments.Count(a => a?.StartsWith("--wake-up-streaming-xml=", StringComparison.Ordinal) == true) != 1
             || !arguments.Contains("--wake-up-streaming-xml=on")) return;
+        if (LoaderSupplierPolicy.YieldXml) { LoaderSupplierPolicy.RefuseXml("streaming-xml"); Status = LoaderSupplierPolicy.Reason(true); return; }
+        if (LoaderSupplierPolicy.InsideXmlFallback)
+        {
+            Status = "Streaming XML needs its pre-load boundary; the current XML call has already entered without that bridge.";
+            CompatibilityStatus.Refuse("streaming-xml", Status, "missing-preload-boundary");
+            return;
+        }
         try
         {
             if (PlayDataLoader.Loaded) throw new InvalidOperationException("startup XML loading already ended");
@@ -49,13 +56,13 @@ public static class StreamingXmlRuntime
             harmony.Patch(AccessTools.Method(typeof(Root_Entry), "Update"),
                 postfix: new HarmonyMethod(typeof(StreamingXmlRuntime), nameof(MenuUpdate)));
             enabled = true;
-            Status = "Streaming XML input selected; awaiting supported native XML reads.";
+            Status = "Streaming XML input selected; awaiting supported native XML reads."; CompatibilityStatus.Available("streaming-xml");
         }
         catch (Exception exception)
         {
             enabled = false;
             new Harmony(Owner).UnpatchAll(Owner);
-            Status = "Streaming XML input refused: " + exception.Message + ". Ordinary loading is in use.";
+            Status = "Streaming XML input refused: " + exception.Message + ". Ordinary loading is in use."; CompatibilityStatus.Refuse("streaming-xml", Status);
         }
         Log.Message("[Wake-Up] " + Status);
     }
@@ -107,7 +114,7 @@ public static class StreamingXmlRuntime
         if (OrderedInputRuntime.TryRead(file, settings, out document)) return true;
         document = null!;
         if (!enabled || finished || Volatile.Read(ref scopes) == 0) return false;
-        if (guards.Length == 0 || guards.Any(g => !g.AllowsOriginalContract())) { Interlocked.Increment(ref refused); return false; }
+        if (!CompatibilityStatus.Guard("streaming-xml", guards.Length != 0 && guards.All(g => g.AllowsOriginalContract()))) { Interlocked.Increment(ref refused); return false; }
         if (Interlocked.Increment(ref reading) > MaxConcurrentReads)
         {
             Interlocked.Decrement(ref reading);

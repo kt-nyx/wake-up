@@ -109,7 +109,13 @@ internal static partial class PngRuntime
     private static long nativeReloads, loadingProgressReloads, reloadFallbacks;
     private static bool CacheMode => mode == "cache" || mode == "verify-cache";
     private static bool Active => installed && !finished && !verifying && UnityData.IsInMainThread;
-    private static bool Compatible() => Guards.All(g => g.AllowsOriginalContract()) && (loadingProgress?.Compatible() ?? true);
+    private static bool Compatible()
+    {
+        bool allowed = Guards.All(g => g.AllowsOriginalContract()) && (loadingProgress?.Compatible() ?? true)
+            && ImageSupplierPolicy.FastLoaderCompatible();
+        if (!allowed) CompatibilityStatus.TextureLoader(false, "The native texture loading hook chain changed.");
+        return allowed;
+    }
     // Atlas capture replaces only the native compression copy operation. Its
     // exact coordinated patch may arrive after these guards are installed.
     // Other patches, including other methods under that owner, still refuse.
@@ -127,6 +133,12 @@ internal static partial class PngRuntime
         if (!new[] { "control", "cache", "verify-cache", "prepare" }.Contains(mode))
             return;
         cacheRequested = CacheMode;
+        if (LoaderSupplierPolicy.YieldContent)
+        {
+            cacheRefusal = LoaderSupplierPolicy.Reason(false);
+            foreach (string id in new[] { "texture-loader", "texture-cache", "prepared", "psd", "quality" }) LoaderSupplierPolicy.RefuseContent(id);
+            return;
+        }
         logPath = Path.Combine(launch.SaveDataRoot!, "WakeUp", "png-processing.jsonl");
         long start = Stopwatch.GetTimestamp();
         var harmony = new Harmony(Owner);
@@ -146,7 +158,7 @@ internal static partial class PngRuntime
                     || !BodySupported(GameBuildContract.Current, target.Name, hash))
                     throw new InvalidOperationException("body-" + target.Name);
                 Func<Patch, bool>? allowed = target == Reload ? p => LoadingObservationRuntime.AllowsHook(target, p)
-                    || loadingProgress?.AllowsReloadPatch(p) == true : null;
+                    || loadingProgress?.AllowsReloadPatch(p) == true || ImageSupplierPolicy.AllowsFastLoaderReload(target, p) : null;
                 if (target == Compression) allowed = AllowsAtlasCompressionPatch;
                 if (!PublishedPatchGuard.TryCreate(target, Owner, out var guard, true, allowed) || !guard!.AllowsOriginalContract())
                     throw new InvalidOperationException("hook-" + target.Name);
@@ -167,10 +179,15 @@ internal static partial class PngRuntime
             PreparedQualityRuntime.Initialize(harmony);
             InitializeFirstBuild(args);
             installed = true;
+            CompatibilityStatus.TextureLoader(true);
+            if (cache != null) CompatibilityStatus.Available("texture-cache");
+            else CompatibilityStatus.Registry?.Set("texture-cache", OperationState.NotApplicable, "Cache use bypassed by selected maintenance.");
+            if (PreparedTextureRuntime.UseAtStartup) CompatibilityStatus.Available("prepared", "Loader admitted; each prepared entry still needs matching source, platform and native output contracts.");
+            if (PreparedTextureRuntime.PsdSupport) CompatibilityStatus.Available("psd", "Bundled composite decoder available for supported individual PSD files.");
             Write("installed", "\"mode\":\"" + mode + "\",\"loadingProgressBridge\":" + (loadingProgress != null ? "true" : "false")
                 + ",\"ms\":" + Ms(Stopwatch.GetTimestamp() - start));
         }
-        catch (Exception e) { cacheRefusal = e.Message; cache?.Dispose(); cache = null; harmony.UnpatchAll(Owner);
+        catch (Exception e) { ImageSupplierPolicy.RefuseNativeLoader(e.Message); cacheRefusal = e.Message; cache?.Dispose(); cache = null; harmony.UnpatchAll(Owner);
             if (PreparedTextureRuntime.UseAtStartup) PreparedTextureRuntime.Status = "Prepared texture loader refused: " + e.Message;
             Write("refused", "\"reason\":\"" + Escape(e.ToString()) + "\""); }
     }
@@ -200,7 +217,7 @@ internal static partial class PngRuntime
             }
             else
             {
-                PreparedQualityRuntime.UnsafeBoundary("native reload has foreign callbacks");
+                PreparedQualityRuntime.UnsafeBoundary("native reload has foreign callbacks", reportCompatibility: Active);
                 reloadFallbacks++;
                 holder.ReloadAll(hotReload);
             }

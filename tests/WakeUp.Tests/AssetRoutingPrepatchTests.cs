@@ -92,7 +92,7 @@ public sealed class AssetRoutingPrepatchTests
         var method = AssetRoutingPrepatch.FindGet(module)!;
         method.Body.Instructions.Insert(0, Instruction.Create(OpCodes.Nop));
         string changed = AssetRoutingPrepatch.Fingerprint(method);
-        Assert.That(AssetRoutingPrepatch.RewriteAssembly(module), Is.False);
+        Assert.That(AssetRoutingPrepatch.RewriteAssembly(module), Is.True, "The unchanged bundle method has independent admission.");
         Assert.That(AssetRoutingPrepatch.Fingerprint(method), Is.EqualTo(changed));
         method.Body.Instructions.RemoveAt(0);
         Assert.That(AssetRoutingPrepatch.RewriteAssembly(module), Is.True);

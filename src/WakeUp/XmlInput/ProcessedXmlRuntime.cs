@@ -53,14 +53,17 @@ public static class ProcessedXmlRuntime
             && args.Contains("--wake-up-processed-xml=on");
         var policy = CacheLaunchPolicy.Current;
         if (!selected && policy.Action != CacheAction.Clear) return;
+        if (selected && policy.Action != CacheAction.Clear && (policy.AllowRead || policy.AllowWrite) && LoaderSupplierPolicy.YieldXml)
+        { LoaderSupplierPolicy.RefuseXml("processed-xml"); Status = LoaderSupplierPolicy.Reason(true); return; }
         try
         {
             string root = Path.Combine(saveRoot, "WakeUp", "ProcessedXml", "v1");
             store = new OwnedCacheStore(root, ProcessedXmlSnapshot.MaximumBytes,
                 SharedCacheBudget.ForRoot(root)?.MaximumBytes ?? 1024L * 1024 * 1024, policy);
             if (policy.Action == CacheAction.Clear || !policy.AllowRead && !policy.AllowWrite)
-            { store.Dispose(); store = null; Status = policy.Action == CacheAction.Clear ? "Processed XML cache cleared." : "Processed XML cache bypassed."; return; }
-            if (!selected || !RuntimeIdentity.ValidateBinaryIdentity(out _)) return;
+            { store.Dispose(); store = null; CompatibilityStatus.Registry?.Set("processed-xml", OperationState.NotApplicable, "Cache use bypassed by selected maintenance."); Status = policy.Action == CacheAction.Clear ? "Processed XML cache cleared." : "Processed XML cache bypassed."; return; }
+            if (!selected) return;
+            if (!RuntimeIdentity.ValidateBinaryIdentity(out string identityReason)) { CompatibilityStatus.Refuse("processed-xml", identityReason); return; }
             var harmony = new Harmony(Owner);
             harmony.Patch(AccessTools.Method(typeof(PatchOperation), "Apply"),
                 prefix: new HarmonyMethod(typeof(ProcessedXmlRuntime), nameof(BeforeOperation)),
@@ -71,9 +74,9 @@ public static class ProcessedXmlRuntime
             foreach (string name in new[] { "Error", "Warning", "Message" })
                 harmony.Patch(AccessTools.Method(typeof(Log), name, new[] { typeof(string) }),
                     prefix: new HarmonyMethod(typeof(ProcessedXmlRuntime), nameof(ObserveLog)));
-            enabled = true; Status = "Processed XML reuse selected; waiting for supported patch work.";
+            enabled = true; CompatibilityStatus.Available("processed-xml", "Stage hook installed; final XML contract is checked when native patch work runs."); Status = "Processed XML reuse selected; waiting for supported patch work.";
         }
-        catch (Exception e) { store?.Dispose(); store = null; Status = "Processed XML refused: " + e.Message; }
+        catch (Exception e) { CompatibilityStatus.Refuse("processed-xml", e.Message); store?.Dispose(); store = null; Status = "Processed XML refused: " + e.Message; }
     }
     public static void Apply(ref XmlDocument document, ref Dictionary<XmlNode, LoadableXmlAsset> map, bool hotReload)
     {
@@ -131,8 +134,8 @@ public static class ProcessedXmlRuntime
         try
         {
             if (store == null) throw new InvalidOperationException("processed-store-unavailable");
-            if (!ProcessedXmlContract.Allows(out string reason)) throw new InvalidDataException(reason);
-            if (ResolvedInheritanceRuntime.HasForeignXmlObservers(document, DefLookupRuntime.OwnsXmlObserver)) throw new InvalidDataException("foreign-xml-observer");
+            if (!ProcessedXmlContract.Allows(out string reason)) { CompatibilityStatus.Refuse("processed-xml", reason); throw new InvalidDataException(reason); }
+            if (ResolvedInheritanceRuntime.HasForeignXmlObservers(document, DefLookupRuntime.OwnsXmlObserver)) { CompatibilityStatus.Refuse("processed-xml", "Another owner observes XML document mutations."); throw new InvalidDataException("foreign-xml-observer"); }
             var mods = LoadedModManager.RunningModsListForReading;
             var patchField = AccessTools.Field(typeof(ModContentPack), "patches");
             if (mods.Any(m => patchField.GetValue(m)?.GetType() != typeof(List<PatchOperation>))) throw new InvalidDataException("patch-lists-not-materialized");

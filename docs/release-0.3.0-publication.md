@@ -37,6 +37,7 @@ verification, before/after Workshop metadata, submission/result and GitHub recei
 The source-inclusive package is under
 `artifacts/releases/0.3.0-12e616dcb2ec7ff3c94de63ea6a97da7d9612262-texture-helper-win-x64/`.
 
-The old campaign timer stays paused. The [next steward prompt](ecosystem-replacement/aggressive-loading-steward-prompt.md)
-prepares early whole-stage XML reuse, direct image decoding and overlap of independent
-work. On-demand loading is explicitly excluded. No successor task has been created.
+The successor campaign was subsequently stopped after measured regressions.
+See [history](history.md). Its code has been reverted and no campaign or publication
+authorization remains active. Original raw receipt paths above describe their
+publication-time locations; they are generated local data subject to cleanup.

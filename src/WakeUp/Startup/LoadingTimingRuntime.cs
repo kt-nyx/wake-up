@@ -36,15 +36,32 @@ internal static class LoadingTimingRuntime
         LoadingObservationRuntime.Attach(args);
         if (!Selected(args) && !LoadingDisplayRuntime.Selected(args)) return;
         var harmony = new Harmony(Owner);
-        try { Install(harmony); }
-        catch { harmony.UnpatchAll(Owner); }
+        if (!LoadingObservationRuntime.IsRecording)
+        {
+            CompatibilityStatus.Refuse("early-observation", "Shared loading observation is unavailable.");
+            CompatibilityStatus.Refuse("xml-timings", "Shared loading observation is unavailable.");
+            CompatibilityStatus.Refuse("report-storage", "Shared loading observation is unavailable.");
+            return;
+        }
+        if (EarlyLoadingObservation.CoverageStarted) CompatibilityStatus.Available("early-observation");
+        else CompatibilityStatus.Refuse("early-observation", "The early constructor boundary was not reached; later observation remains separate.");
+        try { Install(harmony); CompatibilityStatus.Registry?.SummarizeChildren("xml-timings"); }
+        catch (Exception error) { CompatibilityStatus.Refuse("xml-timings", error.Message); harmony.UnpatchAll(Owner); }
     }
     internal static void Install(Harmony harmony)
     {
-        harmony.Patch(Targets[0], prefix: new HarmonyMethod(typeof(LoadingTimingRuntime), nameof(BeforeFiles)),
-            finalizer: new HarmonyMethod(typeof(LoadingTimingRuntime), nameof(After)));
+        CompatibilityStatus.Declare("xml-timings/files", "XML file-read observation");
+        CompatibilityStatus.Declare("xml-timings/patches", "Patch-object construction observation");
+        if (LoaderSupplierPolicy.YieldXml) LoaderSupplierPolicy.RefuseXml("xml-timings/files");
+        else
+        {
+            harmony.Patch(Targets[0], prefix: new HarmonyMethod(typeof(LoadingTimingRuntime), nameof(BeforeFiles)),
+                finalizer: new HarmonyMethod(typeof(LoadingTimingRuntime), nameof(After)));
+            CompatibilityStatus.Available("xml-timings/files");
+        }
         harmony.Patch(Targets[1], prefix: new HarmonyMethod(typeof(LoadingTimingRuntime), nameof(BeforePatches)),
             finalizer: new HarmonyMethod(typeof(LoadingTimingRuntime), nameof(After)));
+        CompatibilityStatus.Available("xml-timings/patches");
     }
     internal static void BeforeFiles(ModContentPack mod, string folderPath, out LoadingSession.Token? __state)
     {

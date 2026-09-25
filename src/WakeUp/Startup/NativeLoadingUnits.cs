@@ -63,6 +63,7 @@ internal static class NativeLoadingUnits
     {
         if (!OrdinaryBody(CallAll, CallAllBody))
         {
+            CompatibilityStatus.Registry?.Set("display-scheduling", OperationState.PartiallyAvailable, "Static constructor batching is unavailable; native CallAll executes once.", "constructors-unavailable");
             Status = "Static constructor scheduling is unsupported with the current method or hooks; the ordinary CallAll executes once.";
             LoadingObservationRuntime.Progress("Static constructors", Status, 0, null);
             StaticConstructorOnStartupUtility.CallAll();
@@ -103,6 +104,7 @@ internal static class NativeLoadingUnits
             && guard!.AllowsOriginalContract();
         if (!admitted)
         {
+            CompatibilityStatus.Registry?.Set("display-scheduling", OperationState.PartiallyAvailable, "Atlas grouping changed; native atlas baking executes as one operation.", "atlas-unavailable");
             Status = "Native atlas grouping changed; ordinary atlas baking executes as one indivisible operation.";
             LoadingObservationRuntime.Progress("Atlas baking", Status, 0, null);
             GlobalTextureAtlasManager.BakeStaticAtlases();

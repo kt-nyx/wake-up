@@ -33,16 +33,20 @@ internal sealed class AssetRouteCache<T> where T : class
     internal int Count => routes.Count;
     internal string[] ExternalPaths => routes.Where(r => r.Value < 0).Select(r => r.Key).ToArray();
     internal void Forget(string path) => routes.Remove(path);
-    internal static bool CanRoute(List<ModContentPack> current)
+    internal static bool CanRoute(List<ModContentPack> current) => CanRoute(current, out _);
+    internal static bool CanRoute(List<ModContentPack> current, out bool incompatibleComparer)
     {
+        incompatibleComparer = false;
         if (current == null || current.Count > MaximumProviders) return false;
         try
         {
             foreach (var mod in current)
             {
                 var values = mod.GetContentHolder<T>().contentList;
-                if (values == null || !ReferenceEquals(values.Comparer, EqualityComparer<string>.Default)
-                    && !ReferenceEquals(values.Comparer, StringComparer.Ordinal)) return false;
+                if (values == null) return false; // Provider not ready: ordinary fallback.
+                if (!ReferenceEquals(values.Comparer, EqualityComparer<string>.Default)
+                    && !ReferenceEquals(values.Comparer, StringComparer.Ordinal))
+                { incompatibleComparer = true; return false; }
             }
             return true;
         }
