@@ -1,13 +1,17 @@
 # Current state — 25 September 2026
 
-**0.4.1 is ready for the authorized internal publication review.** It adds specific
-FGL Continued Preview + Image Opt + current ImageOptCompat support. The exact
-`82b8293e` runtime passed three normal-exit Windows runs: supplier-only, explicit
-Wake-Up verification and ordinary user activation. All 33 sampled image records
-matched, all 392 Giddy-Up reads succeeded, and acknowledged notices stayed closed.
-The fixture is restored and fully audited. Packaging reuses that DLL; no rebuild,
-new launch or performance test is assigned. See [0.4.1 notes](release-notes-0.4.1.md).
-Publication is pending; the latest published version remains 0.4.0 below.
+**0.4.1 is published on GitHub and Steam Workshop.** It adds specific FGL
+Continued Preview + Image Opt + current ImageOptCompat support. The Windows test
+collection included a supplier-only baseline, explicit Wake-Up verification and
+ordinary user activation, all with normal exit. The two Wake-Up runs used the
+exact `82b8293e` runtime. All 33 sampled image records matched, all 392 Giddy-Up
+reads succeeded, and acknowledged notices stayed closed. The fixture is restored
+and fully audited. The package reuses that DLL unchanged, with matching source.
+Both uploads completed and the live Workshop description and other listing fields
+were preserved. See the [0.4.1 publication receipt](release-0.4.1-publication.md)
+and [release notes](release-notes-0.4.1.md). No further work is assigned.
+
+## Historical 0.4.0 release and corrected-build evidence
 
 Corrected **0.4.0 is published on GitHub and Steam Workshop**. The exact reviewed
 package, matching source and public tag are available. Both uploads completed;

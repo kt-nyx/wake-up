@@ -1,7 +1,7 @@
 # Using Wake-Up
 
-Wake-Up avoids selected repeated loading work. This guide describes 0.4.1, prepared
-for Windows publication with specific support for FGL Continued Preview, Image Opt
+Wake-Up avoids selected repeated loading work. This guide describes 0.4.1, tested
+and published for Windows with specific support for FGL Continued Preview, Image Opt
 and the current ImageOptCompat repository distribution. It retains the 0.4.0 YaOpt
 and Adaptive Storage Framework fixes. Linux/Deck remains outside the tested scope.
 See [current state](current-state.md) for publication status and

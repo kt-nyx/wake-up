@@ -1,10 +1,12 @@
 # Wake-Up: Loading Optimizations
 
-Wake-Up avoids selected repeated loading work in RimWorld. **0.4.1** is prepared
-for Windows publication with specific support for FGL Continued Preview + Image Opt
-+ the current ImageOptCompat repository distribution. It retains the 0.4.0 YaOpt
-worker and Adaptive Storage Framework inheritance fixes. See
-[current state](docs/current-state.md) for publication status.
+Wake-Up avoids selected repeated loading work in RimWorld. **0.4.1** is available
+on [GitHub](https://github.com/kt-nyx/wake-up/releases/tag/v0.4.1) and
+[Steam Workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=3798073152),
+with specific support for FGL Continued Preview + Image Opt + the current
+ImageOptCompat repository distribution. It retains the 0.4.0 YaOpt worker and
+Adaptive Storage Framework inheritance fixes. See the
+[publication receipt](docs/release-0.4.1-publication.md).
 
 The exact release DLL passed startup, 392 Giddy-Up texture reads and sampled-artwork
 checks with the supported combination. Linux/Deck remains outside the tested scope.

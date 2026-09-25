@@ -5,8 +5,8 @@ Read [current state](docs/current-state.md) before project work and
 
 ## Baseline and ownership
 
-The latest actual release is 0.4.0 on GitHub and Steam Workshop.
-See docs/release-0.4.0-publication.md for the verified state. The owner stopped the aggressive campaign,
+The latest actual release is 0.4.1 on GitHub and Steam Workshop.
+See docs/release-0.4.1-publication.md for the verified state. The owner stopped the aggressive campaign,
 then requested release restoration, generated-file cleanup, consolidated docs,
 main checkout and deletion of other local branches. Compatibility Phases 1 and 2
 are complete and accepted for their recorded bounded GOG correctness scope.
@@ -27,7 +27,9 @@ The subsequent 0.4.1 assignment authorizes specific compatibility work for FGL
 Continued Preview + Image Opt + the current DegradingAnt/ImageOptCompat repository
 distribution, functional fixture checks and content-only publication after internal
 review. Keep the accepted checkout and all 0.4.0 fixes. No performance tests or
-normal-game/profile/Deck changes. Preserve the latest live Workshop description.
+normal-game/profile/Deck changes. This assignment is complete: 0.4.1 is published,
+the latest live Workshop description is preserved, and the fixture is restored.
+No further launch, rebuild or publication is assigned.
 
 Use the existing checkout; do not create worktrees unless requested. Keep one
 editing/build/fixture owner at a time. Preserve unrelated user edits.
