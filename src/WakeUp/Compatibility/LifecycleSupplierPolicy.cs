@@ -59,10 +59,12 @@ internal static class LifecycleSupplierPolicy
             : "RimThemes provides the custom loading screen. To use Wake-Up's display, disable RimThemes' custom loader and restart.";
     internal static SupplierConflictException ThemeDisplayConflict() => new(DisplayReason(),
         Active(LoadingProgressCompatibility.PackageId) ? "RimThemes + Loading Progress" : "RimThemes", "supplier-display");
-    internal static void Refuse(string id, string reason, Exception error)
+    internal static void Refuse(string id, string reason, Exception error, bool preserveLegacyKey = false)
     {
         var supplier = error as SupplierConflictException;
-        CompatibilityStatus.Refuse(id, reason, supplier?.Code ?? "required-contract", supplier?.Provider ?? "Wake-Up");
+        if (preserveLegacyKey)
+            CompatibilityStatus.Refuse(id, reason, displayProvider: supplier?.Provider ?? "", displayCode: supplier?.Code ?? "");
+        else CompatibilityStatus.Refuse(id, reason, supplier?.Code ?? "required-contract", supplier?.Provider ?? "Wake-Up");
     }
     internal static bool PreserveDlcPanel(bool explicitHide)
         => !explicitHide && Active("ferny.nomodlistonloading");

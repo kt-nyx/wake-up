@@ -80,6 +80,21 @@ internal static class LoaderSupplierPolicy
         catch { return false; }
     }
 
+    // Presentation only. Never feed display labels back into semantic decisions
+    // or acknowledgement keys. Use actual loaded patch assemblies, not guesses
+    // based on whichever mods happen to be installed.
+    internal static string DisplayProviderFor(params MethodBase[] methods)
+    {
+        try
+        {
+            var assemblies = methods.SelectMany(Patches).Where(p => p.PatchMethod.Module.Assembly != typeof(LoaderSupplierPolicy).Assembly)
+                .Select(p => p.PatchMethod.Module.Assembly).Distinct().ToArray();
+            return string.Join(" + ", LoadedModManager.RunningModsListForReading
+                .Where(m => m.assemblies.loadedAssemblies.Any(assemblies.Contains)).Select(m => m.Name).Distinct());
+        }
+        catch { return ""; }
+    }
+
     // Read an already-loaded supplier's on-disk identity, never load/execute a
     // second copy. MVID ties the inspected image to the loaded module.
     internal static bool MatchesImage(Assembly assembly, string expected)

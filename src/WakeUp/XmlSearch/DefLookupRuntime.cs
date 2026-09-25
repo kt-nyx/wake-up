@@ -279,7 +279,7 @@ internal static class DefLookupRuntime
         if (!YieldedWorkers.Add(worker)) return;
         CompatibilityStatus.Refuse("definitions/" + worker.DeclaringType!.Name,
             "This worker changed while loading patches were being rebuilt. Wake-Up leaves its incoming implementation unchanged for this launch.",
-            "worker-rewritten", "Other loading mod");
+            "worker-rewritten", "Other loading mod", displayProvider: LoaderSupplierPolicy.DisplayProviderFor(worker));
     }
 
     internal static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, MethodBase __originalMethod)

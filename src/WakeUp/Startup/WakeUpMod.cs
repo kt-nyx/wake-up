@@ -115,7 +115,7 @@ public sealed class WakeUpMod : Mod
         list.Begin(contentRect);
         list.Label("Changes take effect after restarting RimWorld.");
         list.Label(launchStatus);
-        if (list.ButtonText("Current compatibility status...")) Find.WindowStack.Add(new CompatibilityDetailsWindow());
+        if (list.ButtonText("Technical compatibility details...")) Find.WindowStack.Add(new CompatibilityDetailsWindow());
         if (linuxSupport)
             list.Label("Linux OpenGL support: PNG caching and the Giddy-Up texture improvement use feature compatibility checks. No extra launch flag is required.");
         list.Gap();

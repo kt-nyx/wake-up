@@ -85,7 +85,8 @@ internal static class LoadingReflectionRuntime
                 CompatibilityStatus.Declare(operation, "Member lookup: " + methods[i].DeclaringType!.Name + "." + methods[i].Name);
                 if (!SemanticMethodIdentity.TryHash(methods[i], out string body, out _) || body != ExpectedBodies[i])
                 {
-                    CompatibilityStatus.Refuse(operation, "The required member-lookup consumer changed or has another patch owner.");
+                    CompatibilityStatus.Refuse(operation, "The required member-lookup consumer changed or has another patch owner.",
+                        displayProvider: LoaderSupplierPolicy.DisplayProviderFor(methods[i]));
                     TypeLookupRuntime.LeafReceipt("reflection-consumer-refused", "changed-native-" + methods[i].DeclaringType!.Name + "." + methods[i].Name);
                     continue;
                 }
@@ -93,7 +94,8 @@ internal static class LoadingReflectionRuntime
                         allowedForeignPatch: IsKnownTranslationPatch)
                     || !check!.AllowsOriginalContract())
                 {
-                    CompatibilityStatus.Refuse(operation, "The required member-lookup consumer changed or has another patch owner.");
+                    CompatibilityStatus.Refuse(operation, "The required member-lookup consumer changed or has another patch owner.",
+                        displayProvider: LoaderSupplierPolicy.DisplayProviderFor(methods[i]));
                     TypeLookupRuntime.LeafReceipt("reflection-consumer-refused", "foreign-contract-" + methods[i].DeclaringType!.Name + "." + methods[i].Name);
                     continue;
                 }

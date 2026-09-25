@@ -78,8 +78,10 @@ public sealed class CompatibilityProbe : MonoBehaviour
                     var rendered = (HashSet<string>)AccessTools.Field(window.GetType(), "rendered").GetValue(window);
                     var snapshot = (Array)AccessTools.Field(window.GetType(), "notices").GetValue(window);
                     if (window != previous) { windows++; notices += snapshot.Length; previous = window; }
-                    // A just-opened window may not have painted until the next frame.
-                    if (rendered.Count == 0) continue;
+                    // Wait for a real paint, including when the first card is
+                    // taller than the viewport and no complete card is read yet.
+                    float viewport = (float)AccessTools.Field(window.GetType(), "observedViewportHeight").GetValue(window);
+                    if (viewport <= 0) continue;
                     int before = seen.Count;
                     foreach (string key in rendered) seen.Add(key);
                     if (seen.Count != before) Capture("notice-" + pages.Count);
@@ -93,17 +95,13 @@ public sealed class CompatibilityProbe : MonoBehaviour
                     }
                     else
                     {
-                        // Read the real layout; position the next unseen entry for the next native frame.
-                        var style = (GUIStyle)AccessTools.Field(window.GetType(), "style").GetValue(window);
-                        float y = 0, width = window.windowRect.width - 36 - 22;
-                        foreach (object notice in snapshot)
-                        {
-                            string key = (string)AccessTools.Field(notice.GetType(), "Key").GetValue(notice);
-                            if (!rendered.Contains(key)) break;
-                            string text = (string)AccessTools.Field(notice.GetType(), "Text").GetValue(notice);
-                            y += style.CalcHeight(new GUIContent(text), width) + 15;
-                        }
-                        AccessTools.Field(window.GetType(), "scroll").SetValue(window, new Vector2(0, y));
+                        // Overlapping viewport steps expose every fragment of
+                        // grouped/tall cards. Only the window's Repaint handler
+                        // marks original keys as read; the observer never does.
+                        var field = AccessTools.Field(window.GetType(), "scroll");
+                        var position = (Vector2)field.GetValue(window);
+                        float maximum = (float)AccessTools.Field(window.GetType(), "observedMaxScroll").GetValue(window);
+                        field.SetValue(window, new Vector2(0, Math.Min(maximum, position.y + viewport * 0.8f)));
                     }
                 }
             }

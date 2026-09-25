@@ -25,8 +25,8 @@ internal static class CompatibilityStatus
     internal static void Declare(string id, string name, bool requested = true) => Registry?.Request(id, name, requested);
     internal static void Available(string id, string reason = "Available when the native path runs; use and speed are not implied.")
         => Registry?.Set(id, OperationState.Available, reason);
-    internal static void Refuse(string id, string reason, string code = "required-contract", string provider = "Wake-Up")
-        => Registry?.Set(id, OperationState.Unavailable, reason, code, provider);
+    internal static void Refuse(string id, string reason, string code = "required-contract", string provider = "Wake-Up", string displayProvider = "", string displayCode = "")
+        => Registry?.Set(id, OperationState.Unavailable, reason, code, provider, displayProvider, displayCode);
     internal static void Absent(string id) => Registry?.Set(id, OperationState.NotApplicable, "Optional provider is not active.");
     internal static bool Guard(string id, bool allowed)
     { if (!allowed) Refuse(id, "A required method or callback changed after admission.", "required-contract"); return allowed; }
@@ -139,51 +139,79 @@ internal static class CompatibilityStatus
     }
 }
 
-// Snapshot at opening; late decisions cannot inherit acknowledgement. Scrolling
-// records only fully rendered entries. One acknowledgement covers that aggregate.
+// Snapshot at opening; late decisions cannot inherit acknowledgement.
 internal sealed class CompatibilityWindow : Window
 {
     private readonly OperationRegistry registry;
     private readonly CompatibilityNotice[] notices;
+    private readonly CompatibilityCard[] cards;
+    private readonly NoticeReadProgress[] progress;
     private readonly Action closed;
     private readonly HashSet<string> rendered = new(StringComparer.Ordinal);
     private Vector2 scroll;
-    private GUIStyle? style;
+    private GUIStyle? style, headingStyle;
+    private bool saveFailed;
+    // Private observer reads the layout actually painted, never estimates it
+    // from individual notices (several notices can now share one card).
+    private float observedViewportHeight, observedMaxScroll;
     internal CompatibilityWindow(OperationRegistry registry, CompatibilityNotice[] notices, Action closed)
-    { this.registry = registry; this.notices = notices; this.closed = closed; absorbInputAroundWindow = true; closeOnAccept = false; closeOnCancel = true; doCloseX = true; }
+    {
+        this.registry = registry; this.notices = notices; this.closed = closed;
+        cards = CompatibilityNoticePresentation.Group(notices);
+        progress = cards.Select(_ => new NoticeReadProgress()).ToArray();
+        absorbInputAroundWindow = true; closeOnAccept = false; closeOnCancel = true; doCloseX = true;
+    }
     public override Vector2 InitialSize => new(850, 680);
     public override void DoWindowContents(Rect inRect)
     {
         style ??= new GUIStyle(Text.CurFontStyle) { wordWrap = true, richText = false };
-        GUI.Label(new Rect(0, 0, inRect.width, 115), "These notices describe unavailable Wake-Up improvements or conflicts in other mods' settings. Compatible improvements can still run. Your saved choices and other mods' behavior are unchanged. Notices may be from an earlier launch; current Wake-Up status and technical details are in settings. Close X to defer without acknowledgement.", style);
-        var area = new Rect(0, 120, inRect.width, inRect.height - 180);
-        float width = area.width - 22;
-        float[] heights = notices.Select(n => style.CalcHeight(new GUIContent(n.Text), width) + 15).ToArray();
+        headingStyle ??= new GUIStyle(style) { fontStyle = FontStyle.Bold };
+        const string intro = "Wake-Up compatibility\nA few notes about Wake-Up and your mod setup. Each notice explains what changed and whether you need to do anything. Your saved settings have not been changed. Close X to read these later.";
+        float top = style.CalcHeight(new GUIContent(intro), inRect.width) + 14;
+        GUI.Label(new Rect(0, 0, inRect.width, top), intro, style);
+        var area = new Rect(0, top, inRect.width, Math.Max(60, inRect.height - top - 100));
+        float width = area.width - 22, textWidth = width - 24;
+        string[] bodies = cards.Select(c => c.Status + "\n\nWhat changed: " + c.Change + "\n\nWhat still works: " + c.Continues + "\n\nWhat to do: " + c.Action).ToArray();
+        float[] headings = cards.Select(c => headingStyle.CalcHeight(new GUIContent(c.Heading), textWidth)).ToArray();
+        float[] heights = cards.Select((_, i) => headings[i] + style.CalcHeight(new GUIContent(bodies[i]), textWidth) + 32).ToArray();
         var view = new Rect(0, 0, width, Math.Max(area.height, heights.Sum()));
+        if (Event.current.type == EventType.Repaint)
+        { observedViewportHeight = area.height; observedMaxScroll = Math.Max(0, view.height - area.height); }
         scroll = GUI.BeginScrollView(area, scroll, view);
         try
         {
             float y = 0;
-            for (int i = 0; i < notices.Length; i++)
+            for (int i = 0; i < cards.Length; i++)
             {
-                GUI.Label(new Rect(0, y, width, heights[i]), notices[i].Text, style);
-                if (Event.current.type == EventType.Repaint && y >= scroll.y - 1 && y + heights[i] <= scroll.y + area.height + 1)
-                    rendered.Add(notices[i].Key);
+                GUI.Box(new Rect(0, y, width, heights[i] - 8), GUIContent.none);
+                GUI.Label(new Rect(12, y + 10, textWidth, headings[i]), cards[i].Heading, headingStyle);
+                GUI.Label(new Rect(12, y + 16 + headings[i], textWidth, heights[i] - headings[i] - 24), bodies[i], style);
+                if (Event.current.type == EventType.Repaint && progress[i].Observe(scroll.y - y, scroll.y + area.height - y, heights[i] - 8))
+                    foreach (string key in cards[i].Keys) rendered.Add(key);
                 y += heights[i];
             }
         }
         finally { GUI.EndScrollView(); }
         bool allRead = rendered.Count == notices.Length;
-        string label = allRead ? "Acknowledge these compatibility notices" : "Scroll to read remaining notices (" + rendered.Count + "/" + notices.Length + ")";
-        if (Widgets.ButtonText(new Rect(0, inRect.height - 45, inRect.width, 40), label)) AcknowledgeRendered();
+        int readCards = cards.Count(c => c.Keys.All(rendered.Contains));
+        string footer = saveFailed ? "Could not save your acknowledgement. You can try again, or close X to read these later."
+            : allRead ? "Acknowledging only dismisses these notices; it does not change any setting." : "Scroll through the remaining notices (" + readCards + "/" + cards.Length + ").";
+        GUI.Label(new Rect(0, inRect.height - 88, inRect.width, 40), footer, style);
+        bool previous = GUI.enabled;
+        try
+        {
+            GUI.enabled = previous && allRead;
+            if (Widgets.ButtonText(new Rect(0, inRect.height - 43, inRect.width, 38), "Got it — don't show these again")) AcknowledgeRendered();
+        }
+        finally { GUI.enabled = previous; }
     }
-    // Shared with the private functional observer after genuine native rendering.
-    // The handler retains the same all-rendered and durable-write requirements.
+    // Shared with the private observer after actual native rendering. Every key
+    // represented by a card is acknowledged, only after all its fragments were shown.
     internal bool AcknowledgeRendered()
     {
-        if (rendered.Count != notices.Length || !registry.Acknowledge(rendered)) return false;
-        Close();
-        return true;
+        if (rendered.Count != notices.Length) return false;
+        if (!registry.Acknowledge(rendered)) { saveFailed = true; return false; }
+        Close(); return true;
     }
     public override void PostClose() { base.PostClose(); closed(); }
 }

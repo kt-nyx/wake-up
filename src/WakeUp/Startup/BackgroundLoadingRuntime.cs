@@ -150,7 +150,7 @@ internal static partial class BackgroundLoadingRuntime
         {
             colonyInstalled = false;
             try { harmony.UnpatchAll(ColonyOwner); } catch { }
-            ColonyStatus = "Background new-colony loading is unavailable: " + e.Message; CompatibilityStatus.Refuse("background-colony", ColonyStatus);
+            ColonyStatus = "Background new-colony loading is unavailable: " + e.Message; LifecycleSupplierPolicy.Refuse("background-colony", ColonyStatus, e, preserveLegacyKey: true);
         }
     }
 
@@ -180,7 +180,7 @@ internal static partial class BackgroundLoadingRuntime
         {
             worldInstalled = false;
             try { harmony.UnpatchAll(WorldOwner); } catch { }
-            WorldStatus = "Background world generation is unavailable: " + e.Message; CompatibilityStatus.Refuse("background-world", WorldStatus);
+            WorldStatus = "Background world generation is unavailable: " + e.Message; LifecycleSupplierPolicy.Refuse("background-world", WorldStatus, e, preserveLegacyKey: true);
         }
     }
     private static bool AllowsOwnEntryPostfix(MethodBase target, Patch patch, Patches? record)

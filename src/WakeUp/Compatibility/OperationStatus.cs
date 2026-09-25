@@ -20,12 +20,6 @@ internal sealed class OperationStatus
     { Id = id; Name = name; Requested = requested; State = requested ? OperationState.AwaitingStage : OperationState.Off; Reason = requested ? "Awaiting compatibility checks" : "Not selected"; }
     internal string Describe() => Name + ": " + State + " (requested: " + Requested + "; provider: " + Provider + "). " + Reason;
 }
-internal sealed class CompatibilityNotice
-{
-    internal readonly string Key, Text;
-    internal CompatibilityNotice(string key, string text) { Key = key; Text = text; }
-}
-
 // No game APIs: can be initialized before the first Mod constructor. A receipt
 // records a semantic decision, never a binary hash or arbitrary exception text.
 internal sealed class OperationRegistry
@@ -52,7 +46,8 @@ internal sealed class OperationRegistry
             foreach (XElement item in root.Elements("pending").Take(HistoryLimit))
             {
                 string key = (string)item.Attribute("key")!;
-                if (!acknowledged.Contains(key)) pending[key] = new CompatibilityNotice(key, item.Value);
+                if (!acknowledged.Contains(key)) pending[key] = new CompatibilityNotice(key, item.Value,
+                    displayProvider: (string?)item.Attribute("mod") ?? "", displayCode: (string?)item.Attribute("noticeCode") ?? "");
             }
         }
         catch (Exception error) { log("Compatibility history could not be read: " + error.GetType().Name); }
@@ -70,20 +65,22 @@ internal sealed class OperationRegistry
             operations.Add(id, new OperationStatus(id, name, requested));
         }
     }
-    internal void Set(string id, OperationState state, string reason, string code = "required-contract", string provider = "Wake-Up")
+    internal void Set(string id, OperationState state, string reason, string code = "required-contract", string provider = "Wake-Up", string displayProvider = "", string displayCode = "")
     {
         lock (gate)
         {
             if (!operations.TryGetValue(id, out var operation) || !operation.Requested) return;
-            if (operation.State == state && operation.Reason == reason && operation.Provider == provider && operation.ReasonCode == code) return;
+            bool same = operation.State == state && operation.Reason == reason && operation.Provider == provider && operation.ReasonCode == code;
+            string key = id + "|" + code + "|" + provider;
+            if (same && (!pending.TryGetValue(key, out var prior) || prior.Current && prior.DisplayProvider == displayProvider && prior.DisplayCode == displayCode)) return;
             operation.State = state; operation.Reason = reason; operation.Provider = provider; operation.ReasonCode = code;
-            log(operation.Describe());
+            if (!same) log(operation.Describe());
             int separator = id.IndexOf('/');
             if (separator > 0) SummarizeChildren(id.Substring(0, separator));
+            foreach (var old in pending.Values.Where(n => n.Id == id && n.Current).ToArray()) pending[old.Key] = old.Historical();
             if (state != OperationState.Unavailable && state != OperationState.PartiallyAvailable) return;
-            string key = id + "|" + code + "|" + provider;
-            if (acknowledged.Contains(key) || pending.ContainsKey(key)) return;
-            pending.Add(key, new CompatibilityNotice(key, NoticeText(operation, reason, provider)));
+            if (acknowledged.Contains(key)) return;
+            pending[key] = new CompatibilityNotice(key, reason, true, displayProvider, displayCode);
             Save(acknowledged, pending); // Persist before any UI opportunity, including worker-thread failures.
         }
     }
@@ -95,70 +92,10 @@ internal sealed class OperationRegistry
         {
             string key = "advisory|" + code + "|" + provider;
             log(text);
-            if (acknowledged.Contains(key) || pending.ContainsKey(key)) return;
-            pending.Add(key, new CompatibilityNotice(key, text));
+            if (acknowledged.Contains(key)) return;
+            pending[key] = new CompatibilityNotice(key, text, true);
             Save(acknowledged, pending);
         }
-    }
-    private static string NoticeText(OperationStatus operation, string reason, string provider)
-    {
-        string workName = operation.Id.StartsWith("definitions/", StringComparison.Ordinal)
-            ? operation.Id.Substring("definitions/".Length) switch {
-                "PatchOperationAdd" => "adding XML entries", "PatchOperationAddModExtension" => "adding mod extensions to XML entries",
-                "PatchOperationInsert" => "inserting XML entries", "PatchOperationRemove" => "removing XML entries",
-                "PatchOperationReplace" => "replacing XML entries", "PatchOperationSetName" => "renaming XML entries",
-                "PatchOperationAttributeAdd" => "adding XML attributes", "PatchOperationAttributeRemove" => "removing XML attributes",
-                "PatchOperationAttributeSet" => "changing XML attributes", "PatchOperationTest" => "checking whether an XML entry exists",
-                "PatchOperationConditional" => "choosing an XML patch action based on a condition", _ => "XML patch work" }
-            : operation.Id.StartsWith("reflection/", StringComparison.Ordinal) ? "finding code fields and methods during loading"
-            : operation.Id == "type-name" ? "finding code types by name"
-            : operation.Id == "translations" ? "applying translated text"
-            : operation.Id.StartsWith("asset-routing", StringComparison.Ordinal) ? "finding images and other game resources"
-            : operation.Name.ToLowerInvariant();
-        if (provider == "WOWGAG")
-        {
-            workName = operation.Id switch {
-                "observation/content" => "recording content reload calls", "texture-loader" => "its image loading improvement",
-                "texture-cache" => "caching loaded images", "streaming-xml" => "reading XML in smaller portions",
-                "processed-xml" => "reusing completed XML patches", "definitions" => "its XML patch searches",
-                "single-query" => "reusing individual XML search results", "query-plans" => "reusing XML search expressions",
-                "xml-timings/files" => "recording XML file-reading times", _ => workName };
-            if (operation.ReasonCode.Contains("unqualified"))
-                return "Wake-Up has disabled " + workName + " because it could not verify this part of WOWGAG.";
-            if (operation.ReasonCode.Contains("action-required"))
-                return "To use Wake-Up for " + workName + ", turn off WOWGAG's "
-                    + (operation.ReasonCode.StartsWith("supplier-xml", StringComparison.Ordinal) ? "XML reuse" : "content preload") + " option and restart.";
-            return "Wake-Up has disabled " + workName + " while WOWGAG handles "
-                + (operation.ReasonCode.StartsWith("supplier-xml", StringComparison.Ordinal) ? "XML loading" : "content preloading") + ".";
-        }
-        if (operation.Id == "processed-xml" && reason.Contains("WakeUp.StreamingXmlRuntime"))
-            return "Completed XML patch reuse cannot run together with Wake-Up's streaming XML input in this setup. Streaming input stays enabled; XML patches follow their existing loading path. This is a limit between two Wake-Up options.";
-        if (provider == "Image Opt" || provider == "Graphics Settings+")
-            return Bound(reason.Split(new[] { " Technical detail:" }, StringSplitOptions.None)[0]);
-        if ((operation.Id == "texture-loader" || operation.Id == "texture-cache") && reason.Contains("hook-"))
-            return (operation.Id == "texture-loader" ? "Wake-Up's image loading improvement" : "Wake-Up's saved image cache")
-                + " is disabled because another loading callback changes the image-loading path. Images keep loading through the existing path.";
-        if (operation.Id == "processed-xml" && reason.Contains("foreign-xml-hook"))
-            return "Wake-Up cannot reuse completed XML patches because the patch-loading path has callbacks that this cache does not support. Mod patches still run through the existing loading path.";
-        if (operation.Id == "single-query" && reason.Contains("Required XML query"))
-            return "Wake-Up cannot reuse individual XML search results with the current search methods. Existing XML searches remain in use.";
-        if (operation.Id == "display-scheduling" && operation.State == OperationState.PartiallyAvailable)
-            return "Some startup work must run in its existing order. Wake-Up's loading display still runs, but it cannot split that work into smaller steps.";
-        if (provider == "Faster Game Loading")
-        {
-            string work = operation.Id == "type-name" ? "searches for code types by name"
-                : operation.Id == "leaf" ? "searches for the most specific code subtypes"
-                : operation.Id == "definitions/PatchOperationTest" ? "checks for whether an XML entry exists"
-                : operation.Id == "definitions/PatchOperationConditional" ? "XML patches that choose an action based on a condition"
-                : operation.Id == "single-query" ? "individual XML searches" : operation.Name.ToLowerInvariant();
-            return "Wake-Up leaves " + work + " with Faster Game Loading because it changes this loading path.";
-        }
-        if (provider == "YaOpt")
-            return "Wake-Up leaves " + workName + " with YaOpt because it changes this loading path.";
-        if (reason.Contains("foreign-") || reason.Contains("changed-") || reason.Contains("hook-") || reason.Contains("consumer changed"))
-            return "Wake-Up leaves " + workName + " on the existing loading path because a required method has changed or another mod controls it. Technical details are available in Wake-Up settings.";
-        // Keep exact diagnostics in status details/logs, while the popup explains the decision.
-        return operation.Name + ": " + Bound(reason.Replace("Ordinary behavior retained. ", "")) + " Provider: " + provider + ".";
     }
     internal void RefuseChildren(string parent, string reason)
     {
@@ -192,7 +129,11 @@ internal sealed class OperationRegistry
         lock (gate) foreach (OperationStatus operation in operations.Values) log(operation.Describe());
     }
     internal string[] Snapshot() { lock (gate) return operations.Values.Select(o => o.Describe()).ToArray(); }
-    internal CompatibilityNotice[] Pending() { lock (gate) return pending.Values.ToArray(); }
+    internal CompatibilityNotice[] Pending()
+    {
+        lock (gate) return pending.Values.Select(n => !n.Current && operations.TryGetValue(n.Id, out var operation)
+            ? n.Historical(operation.State) : n).ToArray();
+    }
     internal bool Acknowledge(IEnumerable<string> displayedKeys)
     {
         lock (gate)
@@ -208,7 +149,6 @@ internal sealed class OperationRegistry
             return true;
         }
     }
-    private static string Bound(string text) => text.Length <= 600 ? text : text.Substring(0, 600) + " (full detail in log)";
     private bool Save(HashSet<string> acknowledgements, Dictionary<string, CompatibilityNotice> notices)
     {
         try
@@ -217,7 +157,8 @@ internal sealed class OperationRegistry
             string temporary = file + ".tmp";
             var root = new XElement("compatibility", new XAttribute("version", "1"),
                 acknowledgements.Select(k => new XElement("ack", new XAttribute("key", k))),
-                notices.Values.Select(n => new XElement("pending", new XAttribute("key", n.Key), n.Text)));
+                notices.Values.Select(n => new XElement("pending", new XAttribute("key", n.Key),
+                    new XAttribute("mod", n.DisplayProvider), new XAttribute("noticeCode", n.DisplayCode), n.Details)));
             using (var stream = new FileStream(temporary, FileMode.Create, FileAccess.Write, FileShare.None))
             { root.Save(stream); stream.Flush(true); }
             if (File.Exists(file)) File.Replace(temporary, file, null); else File.Move(temporary, file);
