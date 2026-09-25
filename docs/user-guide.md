@@ -1,7 +1,7 @@
 # Using Wake-Up
 
 Wake-Up avoids selected repeated loading work. This guide describes corrected
-0.4.0, authorized for publication after a targeted Windows menu check with
+0.4.0, available on GitHub and Steam Workshop after a targeted Windows menu check with
 YaOpt, Image Opt and Adaptive Storage Framework. Linux/Deck remains outside the tested scope. See [current state](current-state.md) for
 publication status and [release notes](release-notes-0.4.0.md) for evidence limits.
 

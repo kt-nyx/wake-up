@@ -5,7 +5,8 @@ Read [current state](docs/current-state.md) before project work and
 
 ## Baseline and ownership
 
-The latest actual release is 0.3.0. The owner stopped the aggressive campaign,
+The latest actual release is 0.4.0 on GitHub and Steam Workshop.
+See docs/release-0.4.0-publication.md for the verified state. The owner stopped the aggressive campaign,
 then requested release restoration, generated-file cleanup, consolidated docs,
 main checkout and deletion of other local branches. Compatibility Phases 1 and 2
 are complete and accepted for their recorded bounded GOG correctness scope.

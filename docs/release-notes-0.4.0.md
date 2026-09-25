@@ -2,8 +2,8 @@
 
 Corrected 0.4.0 improves cooperation with other loaders and fixes two compatibility
 defects also present in 0.3.0. The owner authorized Workshop/GitHub publication
-after a targeted check of the exact release DLL on isolated Windows. Linux/Deck remains outside the tested scope. See [current state](current-state.md) for
-publication completion. The older `c36e9a7d` archive contains the defects and is
+after a targeted check of the exact release DLL on isolated Windows. Linux/Deck remains outside the tested scope. See the [publication receipt](release-0.4.0-publication.md) for
+GitHub and Workshop completion. The older `c36e9a7d` archive contains the defects and is
 not this corrected release.
 
 ## Corrected compatibility defects

@@ -2,8 +2,10 @@
 
 Wake-Up avoids selected repeated loading work in RimWorld. Corrected **0.4.0**
 improves cooperation with other loaders and fixes YaOpt worker rebuilding and
-Adaptive Storage Framework inheritance conflicts. The owner has authorized its
-publication; see [current state](docs/current-state.md) for completion status.
+Adaptive Storage Framework inheritance conflicts. It is available on
+[GitHub](https://github.com/kt-nyx/wake-up/releases/tag/v0.4.0) and
+[Steam Workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=3798073152).
+See the [publication receipt](docs/release-0.4.0-publication.md).
 
 The exact release DLL passed a targeted Windows menu check with YaOpt, Image
 Opt and ASF. Linux/Deck remains outside the tested scope.

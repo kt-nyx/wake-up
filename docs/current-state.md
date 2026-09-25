@@ -1,10 +1,10 @@
 # Current state — 25 September 2026
 
-The owner has authorized publication of corrected **0.4.0** to Workshop and
-GitHub, with matching source and updated developer documentation. Publication is
-being prepared; the latest confirmed published release remains **0.3.0** until
-the publication receipt records completion. The live Workshop description and
-unrelated listing fields must remain unchanged; change notes are separate.
+Corrected **0.4.0 is published on GitHub and Steam Workshop**. The exact reviewed
+package, matching source and public tag are available. Both uploads completed;
+the live Workshop description and unrelated listing fields are unchanged. See
+the [publication receipt](release-0.4.0-publication.md) for verified identities,
+successful source checks and the preserved first failed Steam attempt.
 
 Two compatibility defects also present in 0.3.0 are corrected: a late supplier
 rewrite could make Wake-Up throw while Harmony rebuilt an XML worker, and retired
@@ -15,7 +15,7 @@ interval; the targeted Windows menu check below verifies the corrected build wit
 YaOpt, Image Opt and ASF together. This does not establish a black-texture fix,
 universal gameplay compatibility, measured speed, or Linux/Deck qualification.
 
-Packaging reuses the exact tested `3ac8973a` DLL without rebuilding. Its later
+The published package reuses the exact tested `3ac8973a` DLL without rebuilding. Its later
 documentation/source archive revision is recorded separately. The older
 `c36e9a7dfa702d50d47f21f4fe426c60e0338b67` archive contains the confirmed
 defects and must not be published as the corrected build. Earlier performance

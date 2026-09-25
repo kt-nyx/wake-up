@@ -8,6 +8,7 @@
 - [Release procedure](release.md): packaging and public history.
 - [0.4.0 release notes](release-notes-0.4.0.md): changes, measured costs and Windows evidence.
 - [Compatibility guide](compatibility.md): audited mods/tools, setting choices and evidence limits.
+- [0.4.0 publication receipt](release-0.4.0-publication.md): publication status and verified identities.
 - [0.3.0 release notes](release-notes-0.3.0.md): changes and qualification.
 - [0.3.0 publication receipt](release-0.3.0-publication.md): publication evidence.
 - [Results and history](history.md): useful findings and stopped approaches.
