@@ -7,10 +7,10 @@ The owner authorized publishing the current 1.7 development source on the public
 publication does not publish a runtime package or qualify Linux execution.
 See [development branch status](development-1.7-branch.md). The current product
 source is 0.5.0-preview.2 with exact 1.7.4982/Harmony rc.3 admission on Windows
-or Linux x64 under .NET 10. The Linux references are byte-identical; live Linux
-qualification remains pending.
-The dedicated cloud environment, current Linux target and fresh-chat acceptance
-are pending. The existing general cloud task's successful base-game/DLC smoke
+or Linux x64 under .NET 10. The Linux references are byte-identical; the dedicated
+environment's bounded live Wake-Up test passed and its private snapshot is published.
+Fresh-chat acceptance is pending; see [cloud development](cloud-development.md).
+The existing general cloud task's successful base-game/DLC smoke
 test does not establish Wake-Up compatibility or speed. Final Windows candidate
 verification and release publication remain local and owner-controlled.
 

@@ -9,7 +9,9 @@ reviewed 1.7.4982 rev1280 game and Harmony rc.3 on Windows or Linux x64 with
 the .NET 10 runtime. The latest Linux unstable build 26031547, depot 294103,
 manifest 4415223985052641865 has byte-identical Assembly-CSharp, UnityStubs and
 Waylith references to the Windows review. Exact identity and method checks remain
-unchanged. Linux live qualification is pending; admission alone is insufficient.
+unchanged. A bounded Linux functional test passed with real Wake-Up work,
+600+ ticks, save/reload and normal exit. See [cloud development](cloud-development.md)
+for evidence, startup instructions and the remaining fresh-chat acceptance step.
 See [the compatibility review](compatibility-1.7.4982.md).
 The staged candidate has offline checks; those do not establish current-game
 performance, graphics or gameplay compatibility.
@@ -19,7 +21,7 @@ remains there, then the main release track when it becomes the intended 1.7
 stream. A new build requires refreshed static review and exact contracts; never
 remove the admission checks to accept an unreviewed build.
 
-Cloud environment setup and fresh-task verification are pending. The intended
+The private environment is published; fresh-task verification is pending. The
 workflow uses a project environment, the exact SDK in `global.json`, matching
 private game references and chosen full or partial snapshots of the owner's
 active mod collection. Game files, third-party mod files, saves, private paths,

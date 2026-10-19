@@ -6,8 +6,10 @@ On the public `1.7` branch, read [development branch status](docs/development-1.
 first. This branch shares source between local Windows and cloud development.
 Derive new public work from this history; never push the private local development
 ancestry. The dated authorizations below are historical context, not current tasks.
-Use the current user's task for scope. Cloud environment setup and a qualified
-Linux target are pending; do not claim they work from a successful compilation.
+Use the current user's task for scope. Read [cloud development](docs/cloud-development.md)
+for the private environment and [shared RimWorld workflow](cloud/rimworld/README.md)
+for baseline creation and full/subset/delegated mod snapshots. The setup's bounded
+Linux functional test passed; fresh-chat restoration is the remaining acceptance step.
 Final Windows verification and release publication remain local and owner-controlled.
 Source commits on this branch are separate from a runtime or Workshop release.
 
