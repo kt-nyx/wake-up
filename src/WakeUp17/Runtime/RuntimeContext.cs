@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text.Json;
 using HarmonyLib;
@@ -118,8 +119,9 @@ internal static class RuntimeContract
 
     internal static void RequireRuntime(Assembly game)
     {
-        if (!OperatingSystem.IsWindows() || Environment.Version.Major != 10)
-            throw new InvalidOperationException("This testing candidate requires Windows and the .NET 10 game runtime.");
+        if (!(OperatingSystem.IsWindows() || OperatingSystem.IsLinux()) ||
+            RuntimeInformation.ProcessArchitecture != Architecture.X64 || Environment.Version.Major != 10)
+            throw new InvalidOperationException("This testing candidate requires Windows or Linux x64 and the .NET 10 game runtime.");
         Verify(game, "gameMvid", "gameSha256");
         Verify(typeof(Harmony).Assembly, "harmonyMvid", "harmonySha256");
         if (AppDomain.CurrentDomain.GetAssemblies().Any(a => a.GetName().Name == "PrepatcherImpl"))

@@ -313,6 +313,12 @@ public sealed class RuntimeTests
         busy = false; Synthetic.Update(); Synthetic.Update(); Assert.That(completed, Is.EqualTo(1));
     }
     [Test]
+    public void SupportedHostStillRejectsAnUnreviewedGameAssembly()
+    {
+        var error = Assert.Throws<InvalidOperationException>((Action)(() => RuntimeContract.RequireRuntime(typeof(RuntimeTests).Assembly)));
+        Assert.That(error!.Message, Does.Contain("Unreviewed"));
+    }
+    [Test]
     public void TestsDoNotLoadGameOrEngineAssemblies()
     {
         Assert.That(AppDomain.CurrentDomain.GetAssemblies().Select(a => a.GetName().Name),
