@@ -1,0 +1,15 @@
+{
+  "schema": "rimworld-cloud-test-request.v1",
+  "requestId": "project-compatibility-001",
+  "purpose": "compatibility",
+  "selection": {
+    "mode": "subset",
+    "packageIds": ["brrainz.harmony", "your.mod.packageid"],
+    "reason": "Reproduce the named interaction with the project candidate and its required dependencies."
+  },
+  "candidateSourceRevision": "replace-with-the-public-source-commit",
+  "expectedGameTrack": "latest-1.7-unstable-until-main-becomes-the-1.7-stream",
+  "checks": ["startup", "targeted-behavior", "save-reload", "normal-exit"],
+  "limits": {"wallSeconds": 600, "minimumFreeGiB": 4},
+  "resultDestination": "private results directory chosen by the parent agent"
+}

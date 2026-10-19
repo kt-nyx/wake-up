@@ -1,0 +1,8 @@
+{
+  "schema": "rimworld-local-source.v1",
+  "gameDir": "C:/your-steam-library/steamapps/common/RimWorld",
+  "workshopDir": "C:/your-steam-library/steamapps/workshop/content/294100",
+  "profileDir": "C:/Users/your-user/AppData/LocalLow/Ludeon Studios/RimWorld by Ludeon Studios",
+  "packageOverrides": {},
+  "extraSettings": []
+}
