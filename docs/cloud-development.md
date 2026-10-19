@@ -2,8 +2,9 @@
 
 Wake-Up now has a dedicated private environment, `wake-up-dev-1.7`, for building
 and functional testing away from the owner's PC. The published baseline was
-restored into a fresh setup workspace on 19 October 2026 and passed a current-source build and a new live Linux functional check.
-The refreshed draft remains unpublished until owner review.
+restored into a fresh setup workspace on 19 October 2026 and passed a current-source
+build and a new live Linux functional check. The smaller refreshed baseline is
+published, with current startup instructions and the reviewed public source pin.
 
 ## Start work
 
@@ -13,9 +14,13 @@ published image. A generic `create_thread` WorkCloud creation request does not
 select a named environment; naming the environment in a prompt is insufficient.
 Normal desktop environment selection can be used when available, but that selector
 was not tested in this check. Give the new chat the Wake-Up task and ask it to
-read this document and AGENTS.md before working. Each chat uses its own prepared
-machine; local Windows remains available for other work. Keep a single owner for
-a shared build or fixture inside one chat.
+read this document and AGENTS.md before working. **Edit opens an environment-edit
+draft.** It can serve as the cloud workspace, but ordinary source commits require
+no Save/Publish. Coordinate one editor per active draft; repeated Edit clicks are
+not proof of independent concurrent machines. Use explicit desktop environment
+selection for ordinary chats when available and verify their retained inputs.
+Local Windows remains available for other work. Keep a single owner for a shared
+build or fixture inside one chat.
 
 In the cloud, the source checkout is `/workspace/wake-up`. Each shell uses:
 
@@ -133,6 +138,14 @@ field was rejected by the connector's owner/repository schema pattern; readback
 confirmed no repository configuration change. This UI mapping issue is separate
 from successful managed Git access to the public repository. No alternate keys,
 permissions or APIs were introduced.
+
+Managed cloud source writing also passed: the fresh cloud agent committed and
+pushed documentation-only branch `codex/cloud-workflow-validation` at
+`6b10be8fdc4670ad40e3c7c27d41508ed488cdbe`. The local agent fetched and reviewed
+that exact commit, checked its public ancestry and limited scope, and advanced
+public `1.7` to it. This verifies the cloud-to-Git-to-local path without a local
+build or copied credentials. Later documentation closeout does not change the
+qualified runtime source or binary above.
 
 On 19 October, source `1c1e48ed` built with zero warnings/errors and passed 67
 synthetic C# tests. The real Linux test admitted Wake-Up, performed 29 indexed

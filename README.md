@@ -1,6 +1,6 @@
 # Wake-Up: Loading Optimizations
 
-> **1.7 development branch:** current preview source is public here. This is not a binary release. Cloud setup is in progress; final Windows verification and release publication remain local. See [development branch status](docs/development-1.7-branch.md).
+> **1.7 development branch:** current preview source is public here. This is not a binary release. Private cloud building, bounded live testing and source synchronization are verified; final Windows verification and release publication remain local. See [cloud instructions](docs/cloud-development.md) and [development branch status](docs/development-1.7-branch.md).
 
 Wake-Up avoids selected repeated loading work in RimWorld. **0.4.2** is available
 on [GitHub](https://github.com/kt-nyx/wake-up/releases/tag/v0.4.2) and

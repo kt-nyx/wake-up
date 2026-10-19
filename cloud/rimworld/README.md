@@ -13,6 +13,16 @@ owner for any shared build or game process. A separate named environment is usef
 for another project or a materially different test collection, not for every
 ordinary chat in the same project.
 
+Choose the prepared environment explicitly before starting ordinary cloud work;
+a generic cloud-chat creation API call or an environment name in a prompt does
+not select it. Verify the expected private paths and source before running tests.
+Wake-Up's tested browser fallback is Settings > Codex Cloud > Actions > Edit.
+That opens an environment-edit draft usable as a cloud workspace. Coordinate one
+editor per draft; repeated Edit clicks can resume a draft rather than create
+independent concurrent workers. Save/Publish updates the baseline and is separate
+from ordinary Git commits. The normal desktop environment selector remains an
+available UI route when shown, but was not tested by this implementation.
+
 ## Create a project environment
 
 1. Read the project's current instructions and source history rules. Put its

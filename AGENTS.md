@@ -8,8 +8,11 @@ Derive new public work from this history; never push the private local developme
 ancestry. The dated authorizations below are historical context, not current tasks.
 Use the current user's task for scope. Read [cloud development](docs/cloud-development.md)
 for the private environment and [shared RimWorld workflow](cloud/rimworld/README.md)
-for baseline creation and full/subset/delegated mod snapshots. The setup's bounded
-Linux functional test passed; fresh-chat restoration is the remaining acceptance step.
+for baseline creation and full/subset/delegated mod snapshots. A fresh published-image
+copy passed build, live functional and managed Git push checks. The verified browser
+entry point opens an environment-edit draft; coordinate one editor and keep baseline
+publication separate from ordinary source commits. The normal desktop selector was
+not tested. A generic cloud-chat creation request does not select this environment.
 Final Windows verification and release publication remain local and owner-controlled.
 Source commits on this branch are separate from a runtime or Workshop release.
 

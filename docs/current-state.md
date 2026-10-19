@@ -9,7 +9,10 @@ See [development branch status](development-1.7-branch.md). The current product
 source is 0.5.0-preview.2 with exact 1.7.4982/Harmony rc.3 admission on Windows
 or Linux x64 under .NET 10. The Linux references are byte-identical; the dedicated
 environment's bounded live Wake-Up test passed and its private snapshot is published.
-Fresh-chat acceptance is pending; see [cloud development](cloud-development.md).
+A fresh published-image copy retained the private inputs, passed a new build and
+functional save/reload/normal-exit test, and pushed a documentation branch through
+managed Git. Local fetch/review and public `1.7` synchronization also passed.
+See [cloud development](cloud-development.md) for the tested browser route and limits.
 The existing general cloud task's successful base-game/DLC smoke
 test does not establish Wake-Up compatibility or speed. Final Windows candidate
 verification and release publication remain local and owner-controlled.

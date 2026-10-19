@@ -11,7 +11,7 @@ manifest 4415223985052641865 has byte-identical Assembly-CSharp, UnityStubs and
 Waylith references to the Windows review. Exact identity and method checks remain
 unchanged. A bounded Linux functional test passed with real Wake-Up work,
 600+ ticks, save/reload and normal exit. See [cloud development](cloud-development.md)
-for evidence, startup instructions and the remaining fresh-chat acceptance step.
+for evidence, startup instructions and the verified fresh-image access route.
 See [the compatibility review](compatibility-1.7.4982.md).
 The staged candidate has offline checks; those do not establish current-game
 performance, graphics or gameplay compatibility.
@@ -21,7 +21,8 @@ remains there, then the main release track when it becomes the intended 1.7
 stream. A new build requires refreshed static review and exact contracts; never
 remove the admission checks to accept an unreviewed build.
 
-The private environment is published; fresh-task verification is pending. The
+The private environment is published; fresh-image retention, a new live functional
+run and cloud-to-Git-to-local source synchronization are verified. The
 workflow uses a project environment, the exact SDK in `global.json`, matching
 private game references and chosen full or partial snapshots of the owner's
 active mod collection. Game files, third-party mod files, saves, private paths,
