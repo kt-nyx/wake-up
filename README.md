@@ -1,20 +1,26 @@
 # Wake-Up: Loading Optimizations
 
-Wake-Up avoids selected repeated loading work in RimWorld. **0.4.1** is available
-on [GitHub](https://github.com/kt-nyx/wake-up/releases/tag/v0.4.1) and
+> **1.7 development branch:** current preview source is public here. This is not a binary release. Cloud setup is in progress; final Windows verification and release publication remain local. See [development branch status](docs/development-1.7-branch.md).
+
+Wake-Up avoids selected repeated loading work in RimWorld. **0.4.2** is available
+on [GitHub](https://github.com/kt-nyx/wake-up/releases/tag/v0.4.2) and
 [Steam Workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=3798073152),
-with specific support for FGL Continued Preview + Image Opt + the current
-ImageOptCompat repository distribution. It retains the 0.4.0 YaOpt worker and
-Adaptive Storage Framework inheritance fixes. See the
-[publication receipt](docs/release-0.4.1-publication.md).
+with clearer compatibility notices on the existing 1.6 feature set. It retains
+the 0.4.1 supplier support and 0.4.0 compatibility fixes. See the
+[current state](docs/current-state.md) for verified release identities.
 
-The exact release DLL passed startup, 392 Giddy-Up texture reads and sampled-artwork
-checks with the supported combination. Linux/Deck remains outside the tested scope.
-Earlier gameplay and performance results retain their original build identities;
-they are not new measurements of this corrected DLL.
+0.4.2's notice changes received offline validation. Earlier 0.4.1 startup,
+392 Giddy-Up readbacks and sampled-artwork checks belong to their original DLL,
+as do older gameplay/performance results. Linux/Deck remains outside the tested scope.
 
-Prepatcher is required; supported supplier mods remain optional. Benefits depend
+The published 1.6 version requires Prepatcher; supported supplier mods remain optional. Benefits depend
 on the workload. Enabling every optional feature is not a performance preset.
+
+A separate **unpublished 1.7 preview** removes Prepatcher and retains only selected
+search improvements. It is prepared for later authorized game tests and is not
+gameplay- or performance-qualified. See the [implementation plan](docs/implementation-1.7.md)
+and [testing handoff](docs/testing-1.7.md). No official Workshop update is assigned
+before 1.7 reaches the main game branch and final validation/owner approval.
 
 - [User guide](docs/user-guide.md): installation, settings and limitations.
 - [Current state](docs/current-state.md): exact release and repository status.

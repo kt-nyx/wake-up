@@ -1,12 +1,24 @@
 # Repository guidance
 
+## Public 1.7 development lane
+
+On the public `1.7` branch, read [development branch status](docs/development-1.7-branch.md)
+first. This branch shares source between local Windows and cloud development.
+Derive new public work from this history; never push the private local development
+ancestry. The dated authorizations below are historical context, not current tasks.
+Use the current user's task for scope. Cloud environment setup and a qualified
+Linux target are pending; do not claim they work from a successful compilation.
+Final Windows verification and release publication remain local and owner-controlled.
+Source commits on this branch are separate from a runtime or Workshop release.
+
 Read [current state](docs/current-state.md) before project work and
 [development](docs/development.md) before building or operating a fixture.
 
 ## Baseline and ownership
 
-The latest actual release is 0.4.1 on GitHub and Steam Workshop.
-See docs/release-0.4.1-publication.md for the verified state. The owner stopped the aggressive campaign,
+The latest actual release is 0.4.2 on GitHub and Steam Workshop. Its installed
+package and preserved publication receipt were verified during the 1.7 research.
+See docs/current-state.md for the current assignment. The owner stopped the aggressive campaign,
 then requested release restoration, generated-file cleanup, consolidated docs,
 main checkout and deletion of other local branches. Compatibility Phases 1 and 2
 are complete and accepted for their recorded bounded GOG correctness scope.
@@ -30,6 +42,19 @@ review. Keep the accepted checkout and all 0.4.0 fixes. No performance tests or
 normal-game/profile/Deck changes. This assignment is complete: 0.4.1 is published,
 the latest live Workshop description is preserved, and the fixture is restored.
 No further launch, rebuild or publication is assigned.
+
+The notice-clarity assignment completed as 0.4.2. Its changed UI received offline
+validation only; older game evidence remains tied to its original binaries.
+
+The owner now authorizes overnight 1.7 correctness and performance testing,
+supplier combinations and evidence-led fixes until approximately 10:30–11:00 AM
+Toronto time on 14 October. Use the installed 1.7 game and current Host collection
+as sources for the separate .rlo-test-instance/1.7 lane. Do not replace the existing
+1.6 fixture game. Preserve the released 1.6 payload and the owner's fixture.py path
+correction. Use fixture.py modern for the 1.7 lane. Keep one editor/build/run owner;
+do not stop normal games, Steam, ASTER or Apollo. Restore the played setup and
+preserve failed evidence. Work on codex/rimworld-1.7-core. Publication remains
+unassigned. See docs/overnight-1.7-plan.md and docs/implementation-1.7.md.
 
 Use the existing checkout; do not create worktrees unless requested. Keep one
 editing/build/fixture owner at a time. Preserve unrelated user edits.

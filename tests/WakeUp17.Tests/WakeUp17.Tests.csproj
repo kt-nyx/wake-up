@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><TargetFramework>net10.0</TargetFramework><IsTestProject>true</IsTestProject></PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="NUnit" />
+    <PackageReference Include="NUnit3TestAdapter" />
+    <Reference Include="0Harmony"><HintPath>$(WAKE_UP_17_HARMONY_DIR)/0Harmony.dll</HintPath><Private>true</Private></Reference>
+    <!-- Compile the actual adapters with synthetic targets. No game assembly
+         or Unity/Waylith dependency can be loaded by this test project. -->
+    <Compile Include="../../src/WakeUp17/Runtime/*.cs" Link="Runtime/%(Filename)%(Extension)" />
+    <Compile Include="../../src/WakeUp17/Shared/*.cs" Link="Shared/%(Filename)%(Extension)" />
+    <Compile Include="../../src/WakeUp/TypeSearch/LeafSubclassIndex.cs" Link="Shared/LeafSubclassIndex.cs" />
+    <Compile Include="../../src/WakeUp/TypeSearch/LoadingReflectionIndex.cs" Link="Shared/LoadingReflectionIndex.cs" />
+    <Compile Include="../../src/WakeUp/Compatibility/InstructionComparison.cs" Link="Shared/InstructionComparison.cs" />
+    <Compile Include="../../src/WakeUp/XmlSearch/XPathQueryContract.cs" Link="Shared/XPathQueryContract.cs" />
+    <EmbeddedResource Include="../../src/WakeUp17/Contracts.json" LogicalName="WakeUp17.Contracts.json" />
+  </ItemGroup>
+</Project>

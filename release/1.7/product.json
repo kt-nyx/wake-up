@@ -1,0 +1,11 @@
+{
+  "version": "0.5.0-preview.2",
+  "status": "private-offline-testing-candidate",
+  "publicationAuthorized": false,
+  "gameplayQualified": false,
+  "performanceQualified": false,
+  "preserved16Version": "0.4.2",
+  "preserved16DllSha256": "53d93c72ead60e5acb07a6537719f71270082acb1b709f373a5c71cee12a64a3",
+  "preserved16ManifestSha256": "79f1a10ea92571d359b28c5b9c4c0f29c96b964a56691745dd4f8a795ddbb754",
+  "scope": "Prepatcher-free .NET 10 search core reviewed offline for Windows RimWorld 1.7.4982 rev1280 and Harmony 3.0.0-rc.3. No live tests or installation of this candidate."
+}

@@ -1,6 +1,77 @@
-# Current state — 25 September 2026
+# Current state — 19 October 2026
 
-**0.4.1 is published on GitHub and Steam Workshop.** It adds specific FGL
+## Public development and cloud setup
+
+The owner authorized publishing the current 1.7 development source on the public
+`1.7` branch and implementing a dedicated Wake-Up cloud workflow. This source
+publication does not publish a runtime package or qualify Linux execution.
+See [development branch status](development-1.7-branch.md). The current product
+source is 0.5.0-preview.2 with exact Windows 1.7.4982/Harmony rc.3 admission.
+The dedicated cloud environment, current Linux target and fresh-chat acceptance
+are pending. The existing general cloud task's successful base-game/DLC smoke
+test does not establish Wake-Up compatibility or speed. Final Windows candidate
+verification and release publication remain local and owner-controlled.
+
+The records below preserve earlier assignments and evidence with their original
+scope; their dates are not renewed launch, installation or release authorization.
+
+## Current compatibility update
+
+The 18 October handoff authorizes an offline compatibility refresh for the running
+1.7.4982 rev1280 game and installed Harmony rc.3. Preview 2 retains exact build
+guards after static comparison and offline patch tests. Build and stage only;
+do not alter the running installation or profiles, or launch/stop a game.
+See [the compatibility review](compatibility-1.7.4982.md). The installed candidate
+remains `c56e89ab`; publication and current-game performance qualification remain
+unassigned. The 14 October records below refer to the older game and candidate.
+
+**0.4.2 is the latest published runtime.** The installed package matches all 26
+manifest entries, including DLL SHA-256
+`53d93c72ead60e5acb07a6537719f71270082acb1b709f373a5c71cee12a64a3`
+and public source `4ac8605fc1b5d1b62efbe1c281c7e22722705b46`. Its notice changes
+passed offline validation; no new game/UI or performance qualification accompanied
+that release. The listing and documentation were deliberately preserved, which
+left the old 0.4.1 descriptions below stale. Publication evidence remains privately
+under `artifacts/release-0.4.2/publication-receipt.json`.
+
+## Current 1.7 assignment
+
+The owner authorized overnight correctness/performance tests, supplier combinations
+and evidence-led improvements on 14 October, until approximately 10:30–11:00 AM
+Toronto time. The installed 1.7 game and current Host collection are copied into a
+separate `.rlo-test-instance/1.7` lane; the old 1.6 fixture game and played profiles
+are preserved. Use `scripts/fixture.py modern`. Publication remains unassigned.
+The pre-existing `scripts/fixture.py` path correction is preserved. Follow the
+[overnight plan](overnight-1.7-plan.md).
+
+At the owner's real-play handoff, the exact `c56e89ab` DLL was installed into
+`RimWorld/Mods/Wake-Up-1.7-Preview`, replacing the original private preview.
+It passed bounded colony, simulation, save/reload and French-language checks;
+consistent loading improvement remains unqualified. The test observer is excluded,
+Host mod order/settings are preserved, and no game was launched during installation.
+The previous preview and installation receipt are retained privately under
+`artifacts/implementation-1.7/candidate-c56e89ab-playtest-20261014/`.
+Normal logs rotated by the fixture have been restored, with test logs preserved.
+See the [qualification record](qualification-1.7-20261014.md). Automated testing
+is stopped for the owner's real play; publication remains unassigned.
+
+The initial private `0.5.0-preview.1` candidate was built and packaged from `f09ca848`.
+Release compilation has zero warnings/errors; 59 C# synthetic checks and 14 Python
+release/package checks pass. The package audit verified 33 manifest entries,
+version-specific dependency/code selection and unchanged released 1.6 payload.
+The 1.7 DLL is Prepatcher-free by static assembly inspection. Full identities and
+the retained offline evidence are recorded in the implementation plan. No live
+compatibility or speed claim follows from these checks.
+
+Read the [implementation plan](implementation-1.7.md) and
+[testing handoff](testing-1.7.md). The private candidate targets the recorded
+1.7.4977 rev1248 game and Harmony 3.0.0-rc.2; an update requires refreshed static
+review and reference identities. Official Workshop publication is planned after
+1.7 reaches the main branch and final qualification, with owner approval.
+
+## Historical 0.4.1 publication
+
+0.4.1 adds specific FGL
 Continued Preview + Image Opt + current ImageOptCompat support. The Windows test
 collection included a supplier-only baseline, explicit Wake-Up verification and
 ordinary user activation, all with normal exit. The two Wake-Up runs used the
@@ -10,6 +81,14 @@ and fully audited. The package reuses that DLL unchanged, with matching source.
 Both uploads completed and the live Workshop description and other listing fields
 were preserved. See the [0.4.1 publication receipt](release-0.4.1-publication.md)
 and [release notes](release-notes-0.4.1.md). No further work is assigned.
+
+## Published 0.4.2 notice work
+
+The notice changes were published in 0.4.2 from `codex/clear-compatibility-notices`.
+Presentation, grouping, saved-notice migration and known-mod attribution changed;
+optimizer decisions did not. A Release build and 77 focused offline tests passed.
+See the [notice policy](compatibility-notices.md). Those checks do not establish
+1.7 compatibility or live visual correctness.
 
 ## Historical 0.4.0 release and corrected-build evidence
 
@@ -122,7 +201,8 @@ See its [publication receipt](release-0.3.0-publication.md) and
 [release notes](release-notes-0.3.0.md). Those Windows Steam/GOG claims belong to
 that binary, not automatically to 0.4.0. The live Workshop description is unchanged.
 
-Keep the accepted `codex/compatibility-phase-1` checkout. Local main retains private
+The historical fixture work used `codex/compatibility-phase-1`; current 1.7 work
+uses `codex/rimworld-1.7-core`. Local main retains private
 history; origin/main and published tags retain separate public history. Never
 push private main, merge unrelated histories as cleanup, or infer publication
 permission from a prepared package. Follow the [release procedure](release.md).

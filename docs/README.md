@@ -1,6 +1,8 @@
 # Project documentation
 
 - [Current state](current-state.md): release identities and repository status.
+- [1.7 implementation](implementation-1.7.md): authorized standalone search core and scope.
+- [1.7 testing handoff](testing-1.7.md): offline commands and later game-test boundaries.
 - [User guide](user-guide.md): settings and limitations.
 - [Source build](source-build.md): references, SDK and commands.
 - [Architecture](architecture.md): released mechanisms and inactive research.
@@ -9,6 +11,7 @@
 - [0.4.1 publication receipt](release-0.4.1-publication.md): verified uploads and source identities.
 - [0.4.1 release notes](release-notes-0.4.1.md): Preview/Image Opt compatibility and exact validation scope.
 - [0.4.0 release notes](release-notes-0.4.0.md): changes, measured costs and Windows evidence.
+- [Compatibility notices](compatibility-notices.md): plain-language presentation and stable acknowledgement policy.
 - [Compatibility guide](compatibility.md): audited mods/tools, setting choices and evidence limits.
 - [0.4.0 publication receipt](release-0.4.0-publication.md): publication status and verified identities.
 - [0.3.0 release notes](release-notes-0.3.0.md): changes and qualification.

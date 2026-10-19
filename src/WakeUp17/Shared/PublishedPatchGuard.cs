@@ -1,0 +1,162 @@
+// Copyright (c) 2026 kt-nyx and contributors.
+// Licensed under GPL-3.0-or-later with LICENSE-EXCEPTION.md.
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Threading;
+using HarmonyLib;
+
+namespace WakeUp;
+
+// The reviewed Harmony 3.0.0-rc.2 and rc.3 implementations
+// serializes into a NEW byte[] for every publication and never changes those
+// bytes in place. Their reference is a cheap version stamp; GetPatchInfo itself
+// deserializes the entire record and must not run on every lookup.
+internal sealed class PublishedPatchGuard
+{
+    private readonly Dictionary<MethodBase, byte[]> state;
+    private readonly MethodBase target;
+    private readonly string owner;
+    private readonly bool allPatchKinds;
+    private readonly Func<Patch, bool>? allowedForeignPatch;
+    private PublishedDecision? decision;
+    private int patchInfoReads;
+    internal MethodBase Target => target;
+    internal int PatchInfoReads => Volatile.Read(ref patchInfoReads);
+    // Pinned Harmony replaces this immutable publication on every patch/unpatch.
+    // Keeping its identity detects a callback that removes itself before return.
+    internal object? Publication => ReadStamp();
+    internal bool PublicationUnchanged(object? publication) => ReferenceEquals(publication, ReadStamp());
+
+    // An immutable group of already validated publications. Validation performs
+    // deserialization and optional contract callbacks only while capturing it.
+    // A repeated check compares every exact stamp under one Harmony state lock.
+    internal sealed class PublicationSet
+    {
+        private readonly Dictionary<MethodBase, byte[]> state;
+        private readonly MethodBase[] targets;
+        private readonly byte[]?[] stamps;
+
+        internal PublicationSet(Dictionary<MethodBase, byte[]> state, MethodBase[] targets, byte[]?[] stamps)
+        { this.state = state; this.targets = targets; this.stamps = stamps; }
+
+        internal bool Unchanged
+        {
+            get
+            {
+                lock (state)
+                {
+                    for (int i = 0; i < targets.Length; i++)
+                    {
+                        state.TryGetValue(targets[i], out byte[]? current);
+                        if (!ReferenceEquals(stamps[i], current)) return false;
+                    }
+                    return true;
+                }
+            }
+        }
+    }
+
+    internal static bool TryCapturePublications(IReadOnlyList<PublishedPatchGuard> guards, out PublicationSet? publications)
+    {
+        publications = null;
+        try
+        {
+            if (guards == null || guards.Count == 0) return false;
+            var shared = guards[0].state;
+            var targets = new MethodBase[guards.Count];
+            var stamps = new byte[]?[guards.Count];
+            for (int i = 0; i < guards.Count; i++)
+            {
+                var guard = guards[i];
+                if (!ReferenceEquals(shared, guard.state)) return false;
+                targets[i] = guard.target;
+                stamps[i] = guard.ReadStamp();
+                // Never hold the shared state lock across GetPatchInfo or a
+                // supplied foreign-patch predicate. Recheck all stamps below,
+                // including earlier targets changed during later validation.
+                if (!guard.AllowsOriginalContract()) return false;
+            }
+            var captured = new PublicationSet(shared, targets, stamps);
+            if (!captured.Unchanged) return false;
+            publications = captured;
+            return true;
+        }
+        catch { return false; }
+    }
+
+    private sealed class PublishedDecision
+    {
+        internal readonly byte[]? Stamp;
+        internal readonly bool Allowed;
+        internal PublishedDecision(byte[]? stamp, bool allowed)
+        {
+            Stamp = stamp;
+            Allowed = allowed;
+        }
+    }
+
+    private PublishedPatchGuard(Dictionary<MethodBase, byte[]> state, MethodBase target, string owner, bool allPatchKinds, Func<Patch, bool>? allowedForeignPatch)
+    {
+        this.state = state;
+        this.target = target;
+        this.owner = owner;
+        this.allPatchKinds = allPatchKinds;
+        this.allowedForeignPatch = allowedForeignPatch;
+    }
+
+    // Production calls this only after the existing pinned Harmony binary gate.
+    internal static bool TryCreate(MethodBase target, string owner, out PublishedPatchGuard? guard, bool allPatchKinds = false, Func<Patch, bool>? allowedForeignPatch = null)
+    {
+        guard = null;
+        try
+        {
+            Type? shared = typeof(Harmony).Assembly.GetType("HarmonyLib.HarmonySharedState");
+            FieldInfo? field = shared?.GetField("state", BindingFlags.NonPublic | BindingFlags.Static);
+            if (field == null || !field.IsInitOnly || field.FieldType != typeof(Dictionary<MethodBase, byte[]>))
+                return false;
+            if (!(field.GetValue(null) is Dictionary<MethodBase, byte[]> state))
+                return false;
+            guard = new PublishedPatchGuard(state, target, owner, allPatchKinds, allowedForeignPatch);
+            return true;
+        }
+        catch { return false; }
+    }
+
+    internal bool AllowsOriginalContract()
+    {
+        try
+        {
+            byte[]? stamp = ReadStamp();
+            PublishedDecision? cached = Volatile.Read(ref decision);
+            if (cached != null && ReferenceEquals(stamp, cached.Stamp))
+                return cached.Allowed;
+            Interlocked.Increment(ref patchInfoReads);
+            // Do not hold state here: public GetPatchInfo first takes Harmony's
+            // patch-processor lock, then state, and protects its deserializer.
+            Patches? patches = Harmony.GetPatchInfo(target);
+            bool compatible = allPatchKinds ? patches == null || !patches.Prefixes.Concat(patches.Postfixes).Concat(patches.Transpilers).Concat(patches.Finalizers)
+                    .Concat(patches.InnerPrefixes).Concat(patches.InnerPostfixes)
+                    .Any(p => p.owner != owner && allowedForeignPatch?.Invoke(p) != true)
+                : patches?.Transpilers.Any(p => p.owner != owner && allowedForeignPatch?.Invoke(p) != true) != true;
+            if (!ReferenceEquals(stamp, ReadStamp()))
+                return false;
+            // A single immutable publication also supports lookup callers
+            // on multiple threads. Never hold our own lock across GetPatchInfo:
+            // Harmony may itself invoke a patched lookup while holding its lock.
+            Volatile.Write(ref decision, new PublishedDecision(stamp, compatible));
+            return compatible;
+        }
+        catch { return false; }
+    }
+
+    private byte[]? ReadStamp()
+    {
+        // Use the same lock as Harmony's publication; Dictionary does not allow
+        // a concurrent unlocked reader while another thread replaces an entry.
+        lock (state)
+            return state.TryGetValue(target, out byte[]? value) ? value : null;
+    }
+}

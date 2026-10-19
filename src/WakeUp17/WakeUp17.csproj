@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>WakeUp17</AssemblyName>
+    <Version>0.5.0-preview.2</Version>
+    <AssemblyTitle>Wake-Up 1.7 testing candidate</AssemblyTitle>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Assembly-CSharp"><HintPath>$(WAKE_UP_17_GAME_DIR)/Assembly-CSharp.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityStubs"><HintPath>$(WAKE_UP_17_GAME_DIR)/UnityStubs.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Waylith"><HintPath>$(WAKE_UP_17_GAME_DIR)/Waylith.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="0Harmony"><HintPath>$(WAKE_UP_17_HARMONY_DIR)/0Harmony.dll</HintPath><Private>false</Private></Reference>
+    <Compile Include="../WakeUp/TypeSearch/LeafSubclassIndex.cs" Link="Shared/LeafSubclassIndex.cs" />
+    <Compile Include="../WakeUp/TypeSearch/LoadingReflectionIndex.cs" Link="Shared/LoadingReflectionIndex.cs" />
+    <Compile Include="../WakeUp/Compatibility/InstructionComparison.cs" Link="Shared/InstructionComparison.cs" />
+    <Compile Include="../WakeUp/XmlSearch/XPathQueryContract.cs" Link="Shared/XPathQueryContract.cs" />
+    <EmbeddedResource Include="Contracts.json" LogicalName="WakeUp17.Contracts.json" />
+  </ItemGroup>
+  <Target Name="Verify17References" BeforeTargets="ResolveAssemblyReferences">
+    <Exec Command="pwsh -NoProfile -File &quot;$(MSBuildThisFileDirectory)../../build/Verify-17References.ps1&quot; -GameDir &quot;$(WAKE_UP_17_GAME_DIR)&quot; -HarmonyDir &quot;$(WAKE_UP_17_HARMONY_DIR)&quot;" />
+  </Target>
+</Project>

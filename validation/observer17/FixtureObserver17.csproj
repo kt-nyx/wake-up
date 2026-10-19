@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>FixtureObserver17</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Assembly-CSharp" HintPath="$(WAKE_UP_17_GAME_DIR)/Assembly-CSharp.dll" Private="false" />
+    <Reference Include="UnityStubs" HintPath="$(WAKE_UP_17_GAME_DIR)/UnityStubs.dll" Private="false" />
+    <Reference Include="0Harmony" HintPath="$(WAKE_UP_17_HARMONY_DIR)/0Harmony.dll" Private="false" />
+  </ItemGroup>
+</Project>

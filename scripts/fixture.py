@@ -37,7 +37,7 @@ except ModuleNotFoundError:
 
 # Private fixture paths, package ID and v1 record schemas retain their original
 # spelling. Existing inventories and captures are immutable; they are not branding.
-CANONICAL = Path(r"Z:\Development\Large Projects\RimWorld Loading Optimizer\.rlo-test-instance")
+CANONICAL = Path(r"Z:\Development\Games\RimWorld\RimWorld Loading Optimizer\.rlo-test-instance")
 REPO = Path(__file__).resolve().parents[1]
 PACKAGE_ID = "local.rimworldloadingoptimizer.op7validation"
 PACKAGE_LEAF = "RimWorldLoadingOptimizer-OP7-LocalValidation"
@@ -3096,6 +3096,10 @@ def launch(root, label, authorized, window_style="normal"):
 
 
 def main():
+    if len(sys.argv) > 1 and sys.argv[1] == "modern":
+        import fixture17
+        fixture17.main(sys.argv[2:])
+        return
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("action", choices=["stage-gog", "stage-steam", "bind-comparison-package", "discover", "initialize", "refresh", "audit", "full-audit", "test", "build", "deploy", "deploy-helper", "build-menu-observer", "deploy-menu-observer", "build-audio-bootstrap", "deploy-audio-bootstrap", "prepare", "external-prepare", "verify-prepared", "restore-profile", "restore-runtime-file", "exclude-mod", "restore-mod", "launch", "capture", "recover", "rollback"])
     parser.add_argument("--steam-source", type=Path)

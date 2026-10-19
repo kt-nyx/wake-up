@@ -1,0 +1,859 @@
+{
+  "gameLabel": "1.7.4982 rev1280",
+  "gameMvid": "a46e6f45-b616-4261-bb63-a9471bf7402a",
+  "gameSha256": "69cf35594dcc55d1d77cae482887e880ec2d7c043e139d54d5c59b2dd2b940d4",
+  "unityStubsSha256": "207a76f55695d859691aef49818156725e2e6e94937cc6867b2e568b4be77ac6",
+  "waylithSha256": "30e52fca5f3d62d900fa5a8ac6848bd578dda7b8cdabf4961629b0fa56524b4c",
+  "harmonyMvid": "f89a6d42-3950-4658-a805-68a32790beea",
+  "harmonySha256": "c8ef7856b2be3cf24b345c9b5c2f197f68fcf92649635064fce7b3ccc8f77cb0",
+  "methods": {
+    "100664602": {
+      "signature": "System.Reflection.MethodInfo Verse.GenGeneric::MethodOnGenericType(System.Type,System.Type,System.String)",
+      "ilSha256": "d8f787ede9dae9948b06756b7b8e8f59684cd833a606bfda8b42d341981583d7"
+    },
+    "100664603": {
+      "signature": "System.Void Verse.GenGeneric::InvokeGenericMethod(System.Object,System.Type,System.String,System.Object[])",
+      "ilSha256": "59df650814e8e5bdc44a72a971c2a2a7714793a80474c07a0bbe436974dae91b"
+    },
+    "100664604": {
+      "signature": "System.Object Verse.GenGeneric::InvokeStaticMethodOnGenericType(System.Type,System.Type,System.String,System.Object[])",
+      "ilSha256": "b9b25a4ad9ada215d4e11ed2dcc7677f1b84dfb7a037ca60ade2494991edbe6f"
+    },
+    "100664605": {
+      "signature": "System.Object Verse.GenGeneric::InvokeStaticMethodOnGenericType(System.Type,System.Type,System.String)",
+      "ilSha256": "cbd53fb8c51e31feddd479c4c572bedbee7d8538c53227a7b5a62366e1ed7f62"
+    },
+    "100664606": {
+      "signature": "System.Object Verse.GenGeneric::InvokeStaticGenericMethod(System.Type,System.Type,System.String)",
+      "ilSha256": "b53cc4896004293727b89529e877887e3f3e935f550eefa58dc2bd78a96b9f1e"
+    },
+    "100664607": {
+      "signature": "System.Object Verse.GenGeneric::InvokeStaticGenericMethod(System.Type,System.Type,System.String,System.Object[])",
+      "ilSha256": "fb1b8373dd2b0da0ee0dfbf982273d0596c6d8b64be7a29594f47b8d6fbf057b"
+    },
+    "100664608": {
+      "signature": "System.Reflection.PropertyInfo Verse.GenGeneric::PropertyOnGenericType(System.Type,System.Type,System.String)",
+      "ilSha256": "58f80656051507271135b8b2f50f059e3d3e70198390835bcadde8bd7c4d4cec"
+    },
+    "100664609": {
+      "signature": "System.Object Verse.GenGeneric::GetStaticPropertyOnGenericType(System.Type,System.Type,System.String)",
+      "ilSha256": "e18293d291b5c6b3f7b807ff20d4d6a1ec0ada30b82ece656f7782080e0a0a23"
+    },
+    "100664610": {
+      "signature": "System.Boolean Verse.GenGeneric::HasGenericDefinition(System.Type,System.Type)",
+      "ilSha256": "179f2b8c5f478d867c8859253c0b950c7f469a2b8879d5b801d0980cbeabe50e"
+    },
+    "100664611": {
+      "signature": "System.Type Verse.GenGeneric::GetTypeWithGenericDefinition(System.Type,System.Type)",
+      "ilSha256": "e39e159561525bae13bb88a73d112aecc7abcffdacdee76d5dd94f01d4ce6051"
+    },
+    "100664719": {
+      "signature": "System.Collections.Generic.IEnumerable`1<System.Reflection.Assembly> Verse.GenTypes::get_AllActiveAssemblies()",
+      "ilSha256": "2339f3c5fcf2089b97729ed01c5cbcb0bee70e8bffefb7788c57bce16caeb81c"
+    },
+    "100664720": {
+      "signature": "System.Collections.Generic.List`1<System.Type> Verse.GenTypes::get_AllTypes()",
+      "ilSha256": "56993bbfc443b76a77ac436297dee7c2dd9e65dcfbdaa4adea2c5c963e70ed7a"
+    },
+    "100664721": {
+      "signature": "System.Collections.Generic.List`1<System.Type> Verse.GenTypes::AllTypesWithAttribute()",
+      "ilSha256": "94f1d33f934e5b8ad574bd2c5113988292cb0d35ba1cadd31042bd7e3b4487bb"
+    },
+    "100664722": {
+      "signature": "System.Collections.Generic.List`1<System.Type> Verse.GenTypes::AllSubclasses(System.Type)",
+      "ilSha256": "e3c7482793c9eb5dfc2a13517d92cf8e4bb26243d8993e858401b577644d375d"
+    },
+    "100664723": {
+      "signature": "System.Boolean Verse.GenTypes::SameOrSubclassOf(System.Type)",
+      "ilSha256": "ccc69989542c2f90acd14d4e6ad97056e073ac552f602421de06e760a241b699"
+    },
+    "100664724": {
+      "signature": "System.Boolean Verse.GenTypes::SameOrSubclassOf(System.Type,System.Type)",
+      "ilSha256": "97ee88330280ab1eba68d7bb94582a958331cabeafc0c8d46562f12e2bc396d1"
+    },
+    "100664725": {
+      "signature": "System.Collections.Generic.List`1<System.Type> Verse.GenTypes::AllSubclassesNonAbstract(System.Type)",
+      "ilSha256": "327e49f240c008706116ab7b6eb0dd44a0cf361fe3cab6c2f48576f2ede202e1"
+    },
+    "100664726": {
+      "signature": "System.Collections.Generic.List`1<System.Type> Verse.GenTypes::AllAssignableOfNonAbstract(System.Type)",
+      "ilSha256": "01e8d8d72abdc099b3a0301573105bb3bcfd01dd439fa044784488fd90e74b21"
+    },
+    "100664727": {
+      "signature": "System.Void Verse.GenTypes::ClearCache()",
+      "ilSha256": "560b1c7dbc90fe1f8ec15a650a606be98431fd1a4abd9f6578a7361793869fcb"
+    },
+    "100664728": {
+      "signature": "System.Collections.Generic.IEnumerable`1<System.Type> Verse.GenTypes::AllLeafSubclasses(System.Type)",
+      "ilSha256": "18a5482ad252802564a39267ef23665cb5623751468862fa44c4c4d7f65bb6ac"
+    },
+    "100664729": {
+      "signature": "System.Collections.Generic.IEnumerable`1<System.Type> Verse.GenTypes::InstantiableDescendantsAndSelf(System.Type)",
+      "ilSha256": "f11da823cb6f0c0b6263dde0aa38f6ec2520147e1091d7b8c06a6fe47f64d048"
+    },
+    "100664730": {
+      "signature": "System.Type Verse.GenTypes::TryGetTypeInIgnoredNamespace(System.String)",
+      "ilSha256": "449f2dbf11715bdc0edb84365c4e5a0e6564ff0804e359610ae3b72a911e3767"
+    },
+    "100664731": {
+      "signature": "System.Type Verse.GenTypes::GetTypeInAnyAssembly(System.String,System.String)",
+      "ilSha256": "fd48ed85f31b06656f376c42102549b39fd77af9f1e14c8261b224f508465b99"
+    },
+    "100664732": {
+      "signature": "System.Boolean Verse.GenTypes::HasFlagsAttribute(System.Type)",
+      "ilSha256": "61c100a14f3fa08f426bde39303f22db38de6e98c39eb56ecac74db8c478eb06"
+    },
+    "100664733": {
+      "signature": "System.Boolean Verse.GenTypes::IsList(System.Type)",
+      "ilSha256": "d5d3a4ee21230ab82ab7ab03582c77bce1e945c14cf7fb094630df8d242921d2"
+    },
+    "100664734": {
+      "signature": "System.Boolean Verse.GenTypes::IsDictionary(System.Type)",
+      "ilSha256": "37713fa5d0fb13d6ea13a272c0364fb9a965ed4d8466579549cf525c12983235"
+    },
+    "100664735": {
+      "signature": "System.Boolean Verse.GenTypes::IsSlateRef(System.Type)",
+      "ilSha256": "af65979f3b2f1dc0ab4c107271065c311a5b4451cf32f0cf69130de6387b5fcc"
+    },
+    "100664736": {
+      "signature": "System.Boolean Verse.GenTypes::IsListHashSetOrDictionary(System.Type)",
+      "ilSha256": "57737bc3e238193001baaa8903f013f77cd46ad933c374b54cecac390d9661a8"
+    },
+    "100664737": {
+      "signature": "System.Boolean Verse.GenTypes::IsDef(System.Type)",
+      "ilSha256": "11b2fe6931894755a111ea60c819db7ad558ee84f75bbb85d9bf3d4357b7aef9"
+    },
+    "100664738": {
+      "signature": "System.Boolean Verse.GenTypes::IsDefThreaded(System.Type)",
+      "ilSha256": "b505488ce67f9b6064c6bdb98ab9aae857294490b450eacef638ee5b8ee89d9c"
+    },
+    "100664739": {
+      "signature": "System.Type Verse.GenTypes::GetTypeInAnyAssemblyInt(System.String,System.String)",
+      "ilSha256": "e872ef87bf6e1ca2e8266db931b5e185f893454d176bd2c567e8e02585821c69"
+    },
+    "100664740": {
+      "signature": "System.Boolean Verse.GenTypes::TryGetMixedAssemblyGenericType(System.String,System.Type&)",
+      "ilSha256": "4ca8db1f2b4de1e8598d2cdbe66acb0f303649e977b38b7d92a63d146025bd96"
+    },
+    "100664741": {
+      "signature": "System.Type Verse.GenTypes::GetTypeInAnyAssemblyRaw(System.String)",
+      "ilSha256": "df5196a5baffacfad517ba32cf77065c085fe89f3fec73cff01b908d57479b45"
+    },
+    "100664742": {
+      "signature": "System.String Verse.GenTypes::GetTypeNameWithoutIgnoredNamespaces(System.Type)",
+      "ilSha256": "3328a701d9d88e902cd701575ef8ed544f7e0ac709fa84e90d9c0d650c28c336"
+    },
+    "100664743": {
+      "signature": "System.Boolean Verse.GenTypes::IsCustomType(System.Type)",
+      "ilSha256": "2624333b65b4f0932f753a6be8a9c86be19c609607c035ab90301d3870d7df32"
+    },
+    "100664744": {
+      "signature": "System.Boolean Verse.GenTypes::Isnt(System.Object)",
+      "ilSha256": "ba126e5227268904e35637a7903cc2fce643cfa8c5a5a3144c16b409d3acc2df"
+    },
+    "100664745": {
+      "signature": "System.Boolean Verse.GenTypes::Isnt(System.Object,T&)",
+      "ilSha256": "dcae8bde380307d487924233cd0339c13483c5e406e2aa5227bf8581b20894f2"
+    },
+    "100664746": {
+      "signature": "System.Boolean Verse.GenTypes::IsSealedWithCache(System.Type)",
+      "ilSha256": "b50b4de4156438f2ac5794c7a46c9036faec6a805436934e75fa11f736b6a63c"
+    },
+    "100664747": {
+      "signature": "System.Boolean Verse.GenTypes::IsMethodOverriden(System.Type,System.String)",
+      "ilSha256": "3d0d7910fc9ae39633800ce54f95c516d9e1efce8de75c2e18d6ab0a347ae74e"
+    },
+    "100664748": {
+      "signature": "System.Boolean Verse.GenTypes::IsOverriden(System.Reflection.MethodInfo)",
+      "ilSha256": "75bc2c6771e806b9467a2be4afa9dbd136610a5770653e95ca6597794ae4fa56"
+    },
+    "100664749": {
+      "signature": "System.Void Verse.GenTypes::.cctor()",
+      "ilSha256": "18a469121e7d3c4965bbff6e2e3c91db7592addab91a2983113e28246fa886ab"
+    },
+    "100723542": {
+      "signature": "System.Int32 Verse.GenTypes/TypeCacheKey::GetHashCode()",
+      "ilSha256": "f0940ae9e17e628b93e44770a57f361a0acf2e3e2f15b2668d185c273202fa67"
+    },
+    "100723543": {
+      "signature": "System.Boolean Verse.GenTypes/TypeCacheKey::Equals(Verse.GenTypes/TypeCacheKey)",
+      "ilSha256": "ad8a229a07fd7ab30cc07c3eeb3eada8d3cd94adced9ce9b610903c6cd3b0d63"
+    },
+    "100723544": {
+      "signature": "System.Boolean Verse.GenTypes/TypeCacheKey::Equals(System.Object)",
+      "ilSha256": "f627ae4615e134acddfd580c02d394ae6862ca64c3c2123286485ac6ee7fb1cf"
+    },
+    "100723545": {
+      "signature": "System.Void Verse.GenTypes/TypeCacheKey::.ctor(System.String,System.String)",
+      "ilSha256": "345db00d6aa3f1c25020d8e5255f05cedc4cd479acb58212a484cf8fa23d7d10"
+    },
+    "100723546": {
+      "signature": "System.Void Verse.GenTypes/<>c::.cctor()",
+      "ilSha256": "cff1693cc6f2ac24708e2a002adef34505a69279888fdae4824a27a49bb36043"
+    },
+    "100723547": {
+      "signature": "System.Void Verse.GenTypes/<>c::.ctor()",
+      "ilSha256": "57f4a31dfaee635be3627c4d67fc332a9d5f38eb0bd54e3ef35662118ceec413"
+    },
+    "100723548": {
+      "signature": "System.Boolean Verse.GenTypes/<>c::<get_AllTypes>b__6_0(System.Type)",
+      "ilSha256": "47cd7ea556d32cff7c2066141b1ad8d233f2b76d17da254e1234371d85512ad6"
+    },
+    "100723549": {
+      "signature": "System.Boolean Verse.GenTypes/<>c::<AllLeafSubclasses>b__18_0(System.Type)",
+      "ilSha256": "f1f34576aed6d77a4f3d10b931b71a27ee1b028ac02ac309ca266296e653dd63"
+    },
+    "100723550": {
+      "signature": "System.Void Verse.GenTypes/<>c__8`1::.cctor()",
+      "ilSha256": "0ccfb7c4dcbefc622909914f3021b5e22b847fa8d6ecd1d4540bbb6a0d668e22"
+    },
+    "100723551": {
+      "signature": "System.Void Verse.GenTypes/<>c__8`1::.ctor()",
+      "ilSha256": "57f4a31dfaee635be3627c4d67fc332a9d5f38eb0bd54e3ef35662118ceec413"
+    },
+    "100723552": {
+      "signature": "System.Boolean Verse.GenTypes/<>c__8`1::<AllTypesWithAttribute>b__8_0(System.Type)",
+      "ilSha256": "4a32690cc70617ba684d8129dd4dfdcc5c246ee33b8f79a86426bee82e27a9de"
+    },
+    "100723553": {
+      "signature": "System.Void Verse.GenTypes/<>c__DisplayClass10_0::.ctor()",
+      "ilSha256": "57f4a31dfaee635be3627c4d67fc332a9d5f38eb0bd54e3ef35662118ceec413"
+    },
+    "100723554": {
+      "signature": "System.Boolean Verse.GenTypes/<>c__DisplayClass10_0::<AllSubclasses>b__0(System.Type)",
+      "ilSha256": "d6629a5fda0c4ff0e57e7bd875ae77d0b77c980437742295f90e66f8f127ca9a"
+    },
+    "100723555": {
+      "signature": "System.Void Verse.GenTypes/<>c__DisplayClass14_0::.ctor()",
+      "ilSha256": "57f4a31dfaee635be3627c4d67fc332a9d5f38eb0bd54e3ef35662118ceec413"
+    },
+    "100723556": {
+      "signature": "System.Boolean Verse.GenTypes/<>c__DisplayClass14_0::<AllSubclassesNonAbstract>b__0(System.Type)",
+      "ilSha256": "3727e3dc30b82c8d6d84b20c1cb4943c2d2e985cf051a0ec62aad1e376a0fb23"
+    },
+    "100723557": {
+      "signature": "System.Void Verse.GenTypes/<>c__DisplayClass16_0::.ctor()",
+      "ilSha256": "57f4a31dfaee635be3627c4d67fc332a9d5f38eb0bd54e3ef35662118ceec413"
+    },
+    "100723558": {
+      "signature": "System.Boolean Verse.GenTypes/<>c__DisplayClass16_0::<AllAssignableOfNonAbstract>b__0(System.Type)",
+      "ilSha256": "0b8a8e073b18e72de71abef968cefd9a05a25be7408a77b4feed00e02989bb28"
+    },
+    "100723559": {
+      "signature": "System.Void Verse.GenTypes/<InstantiableDescendantsAndSelf>d__19::.ctor(System.Int32)",
+      "ilSha256": "2d7b5d1b9fc91ee0e02fa41643870153ffa5daec06ebc9ffd820627b5bdfad3b"
+    },
+    "100723560": {
+      "signature": "System.Void Verse.GenTypes/<InstantiableDescendantsAndSelf>d__19::System.IDisposable.Dispose()",
+      "ilSha256": "64ddfcba05120d5145849be923c6f430a93fa2c26b1db374cb878c97993dcb2a"
+    },
+    "100723561": {
+      "signature": "System.Boolean Verse.GenTypes/<InstantiableDescendantsAndSelf>d__19::MoveNext()",
+      "ilSha256": "1ad9bc78376ec5c2cd5db7c197c21574cc082a116983e06651236720c90ad240"
+    },
+    "100723562": {
+      "signature": "System.Void Verse.GenTypes/<InstantiableDescendantsAndSelf>d__19::<>m__Finally1()",
+      "ilSha256": "23096a5952eb3fdf553ee9875b5aa4a158a353c9f41db27b3a42692ea8f4b89f"
+    },
+    "100723563": {
+      "signature": "System.Type Verse.GenTypes/<InstantiableDescendantsAndSelf>d__19::System.Collections.Generic.IEnumerator<System.Type>.get_Current()",
+      "ilSha256": "10cedc3751f3046149889472d593226f255903374529bf8a622e9da47b0dea11"
+    },
+    "100723564": {
+      "signature": "System.Void Verse.GenTypes/<InstantiableDescendantsAndSelf>d__19::System.Collections.IEnumerator.Reset()",
+      "ilSha256": "f3a0eec952fbcdc20c356ca40a08010e697387b7563f4ca19b2c6963ca8e3c7c"
+    },
+    "100723565": {
+      "signature": "System.Object Verse.GenTypes/<InstantiableDescendantsAndSelf>d__19::System.Collections.IEnumerator.get_Current()",
+      "ilSha256": "10cedc3751f3046149889472d593226f255903374529bf8a622e9da47b0dea11"
+    },
+    "100723566": {
+      "signature": "System.Collections.Generic.IEnumerator`1<System.Type> Verse.GenTypes/<InstantiableDescendantsAndSelf>d__19::System.Collections.Generic.IEnumerable<System.Type>.GetEnumerator()",
+      "ilSha256": "c9ecbabdb89d6e090e4ba81c79c40c0be9676e47631ad3c74611cbebfe555b31"
+    },
+    "100723567": {
+      "signature": "System.Collections.IEnumerator Verse.GenTypes/<InstantiableDescendantsAndSelf>d__19::System.Collections.IEnumerable.GetEnumerator()",
+      "ilSha256": "8ff8247c652192720845f78e2b75562262aa32a7faf60277b548b6916022738d"
+    },
+    "100723568": {
+      "signature": "System.Void Verse.GenTypes/<get_AllActiveAssemblies>d__2::.ctor(System.Int32)",
+      "ilSha256": "9053a54fe8520aa894f74b50104492e4f257736b47e3d319160c7cfb447c4099"
+    },
+    "100723569": {
+      "signature": "System.Void Verse.GenTypes/<get_AllActiveAssemblies>d__2::System.IDisposable.Dispose()",
+      "ilSha256": "7afc0c624dbb829a96862e70f479c5dd3d7acfd45149286d0dfeedb5cb1f97a6"
+    },
+    "100723570": {
+      "signature": "System.Boolean Verse.GenTypes/<get_AllActiveAssemblies>d__2::MoveNext()",
+      "ilSha256": "5da16a145e3b638a453c4d8c093892542e7525556667b0b7acb9752a02d0bc83"
+    },
+    "100723571": {
+      "signature": "System.Void Verse.GenTypes/<get_AllActiveAssemblies>d__2::<>m__Finally1()",
+      "ilSha256": "70aceb099034a9b971a7ffdade389818a218cfbf589fae82428edb191cdba29f"
+    },
+    "100723572": {
+      "signature": "System.Reflection.Assembly Verse.GenTypes/<get_AllActiveAssemblies>d__2::System.Collections.Generic.IEnumerator<System.Reflection.Assembly>.get_Current()",
+      "ilSha256": "3d97eb6470bcb4b42797062cf4d93252eecaf6ecc42ad4d001daa88a6e1abd19"
+    },
+    "100723573": {
+      "signature": "System.Void Verse.GenTypes/<get_AllActiveAssemblies>d__2::System.Collections.IEnumerator.Reset()",
+      "ilSha256": "f3a0eec952fbcdc20c356ca40a08010e697387b7563f4ca19b2c6963ca8e3c7c"
+    },
+    "100723574": {
+      "signature": "System.Object Verse.GenTypes/<get_AllActiveAssemblies>d__2::System.Collections.IEnumerator.get_Current()",
+      "ilSha256": "3d97eb6470bcb4b42797062cf4d93252eecaf6ecc42ad4d001daa88a6e1abd19"
+    },
+    "100723575": {
+      "signature": "System.Collections.Generic.IEnumerator`1<System.Reflection.Assembly> Verse.GenTypes/<get_AllActiveAssemblies>d__2::System.Collections.Generic.IEnumerable<System.Reflection.Assembly>.GetEnumerator()",
+      "ilSha256": "e6497521d9cbd9485df6dfcef7b5075c8f7ec597c4c2da8a9a46b82ac74e8f83"
+    },
+    "100723576": {
+      "signature": "System.Collections.IEnumerator Verse.GenTypes/<get_AllActiveAssemblies>d__2::System.Collections.IEnumerable.GetEnumerator()",
+      "ilSha256": "ae81fb1ef9a596353cb8bb768ce64d39c65204743c14043a4809ebc31a82151c"
+    },
+    "100664892": {
+      "signature": "System.Boolean Verse.XmlHelper::TryParseSingleDefault(System.Object,System.Xml.XmlNode,System.String)",
+      "ilSha256": "39fafaa45dc0fde11dc4661e44187cb9112fb797c726e81010d639ad6b80fcb2"
+    },
+    "100664893": {
+      "signature": "System.Void Verse.XmlHelper::ParseElements(System.Object,System.Xml.XmlNode,System.String,System.String)",
+      "ilSha256": "f82ea8ec7f7e049ec9462605b12abcaf5683b3eedd25a814b77678a4f2106e12"
+    },
+    "100667085": {
+      "signature": "System.Void Verse.Root_Entry::Start()",
+      "ilSha256": "b5b408f9f2be3bf967c0c207dc3c0d80de03dd2a5db432782e406670005137cc"
+    },
+    "100667086": {
+      "signature": "System.Void Verse.Root_Entry::Update()",
+      "ilSha256": "6110f2f1cd652972647e03d068ad64990a013d495f3b58c0c75c1ec2834caf1b"
+    },
+    "100667087": {
+      "signature": "System.Void Verse.Root_Entry::.ctor()",
+      "ilSha256": "03955b996dd382a1b27aaba6e74be8ad6c0df4838c5e86d4b3ad1d472ec8655c"
+    },
+    "100667192": {
+      "signature": "System.Void Verse.DefInjectionPackage::.ctor(System.Type)",
+      "ilSha256": "4da567408c1c7b881be0dec6f8f32e695489eb614114d243ec40d97f17c0f6da"
+    },
+    "100667193": {
+      "signature": "System.String Verse.DefInjectionPackage::ProcessedPath(System.String)",
+      "ilSha256": "3797dc698848d5b55c728a2549a7e937f15ebf02a0809bf427b25a9a8d3c4109"
+    },
+    "100667194": {
+      "signature": "System.String Verse.DefInjectionPackage::ProcessedTranslation(System.String)",
+      "ilSha256": "7b124a651888cc64bf2c6e2856158ca95cf6314ace28ba1f57e19e6dd181f5d6"
+    },
+    "100667195": {
+      "signature": "System.Void Verse.DefInjectionPackage::AddDataFromFile(RimWorld.IO.VirtualFile,System.Boolean&,System.String)",
+      "ilSha256": "e4a416ec5edd1ae22aa0eb3dcd717208059e2e55f91d6267df3fbbde8d01d6c7"
+    },
+    "100667196": {
+      "signature": "System.Void Verse.DefInjectionPackage::TryAddInjection(RimWorld.IO.VirtualFile,System.String,System.String)",
+      "ilSha256": "4f79a3c85c8c815e9ecf8460ca7024509ff4eff73c0165b6b0d1a27e07fab9ab"
+    },
+    "100667197": {
+      "signature": "System.Void Verse.DefInjectionPackage::TryAddFullListInjection(RimWorld.IO.VirtualFile,System.String,System.Collections.Generic.List`1<System.String>,System.Collections.Generic.List`1<Verse.Pair`2<System.Int32,System.String>>)",
+      "ilSha256": "a3737a938548c5187003081bc0e59bf67979c71a21d9ecce1cf2ba80b04a843f"
+    },
+    "100667198": {
+      "signature": "System.String Verse.DefInjectionPackage::BackCompatibleKey(System.String)",
+      "ilSha256": "3f600348c7b36adee3e8ba11df2bc9e5048823f6dffaa00abc23bdd6335d9cf7"
+    },
+    "100667199": {
+      "signature": "System.Boolean Verse.DefInjectionPackage::CheckErrors(RimWorld.IO.VirtualFile,System.String,System.String,System.Boolean)",
+      "ilSha256": "6a145d5dd12e75c73f145387da148d4221650922902f9031fdc61e9b48744811"
+    },
+    "100667200": {
+      "signature": "System.Void Verse.DefInjectionPackage::InjectIntoDefs(System.Boolean)",
+      "ilSha256": "1ce194f9ffc2b2f3b36be3cc28f5489a6ea147c4883f5a1bd1fedbddf22ce0bb"
+    },
+    "100667201": {
+      "signature": "System.Boolean Verse.DefInjectionPackage::SetDefFieldAtPath(System.Type,System.String,System.Object,System.Type,System.Boolean,System.String,System.Boolean,System.String&,System.String&,System.String&,System.Collections.Generic.IEnumerable`1<System.String>&)",
+      "ilSha256": "c9c84728e2f1558d1ccaecd293be17b99a8dd942890ead87668ab6d842dfbbf7"
+    },
+    "100667202": {
+      "signature": "System.Reflection.FieldInfo Verse.DefInjectionPackage::GetFieldNamed(System.Type,System.String)",
+      "ilSha256": "84a75fd0d51c28ec6347bd92f4ff0aa3f61b5b98685402e3280ee5bc4be45119"
+    },
+    "100667203": {
+      "signature": "System.Collections.Generic.List`1<System.String> Verse.DefInjectionPackage::MissingInjections(System.Collections.Generic.List`1<System.String>)",
+      "ilSha256": "0b7f2676289f59f27fee4c5c2207be2035f9b4e46a898a95c18204a0a38113c9"
+    },
+    "100724751": {
+      "signature": "System.Boolean Verse.DefInjectionPackage/DefInjection::get_IsFullListInjection()",
+      "ilSha256": "b4abe435428fbf9eb8b1ce925e2bdd6ab4f383ba34bed6d3a0c779d5642475c4"
+    },
+    "100724752": {
+      "signature": "System.String Verse.DefInjectionPackage/DefInjection::get_DefName()",
+      "ilSha256": "18142145222caf464d2814164951d6e857d5ee8eefa35b7cc31d30c75d1dad25"
+    },
+    "100724753": {
+      "signature": "System.Boolean Verse.DefInjectionPackage/DefInjection::ModifiesDefFromModOrNullCore(Verse.ModMetaData,System.Type)",
+      "ilSha256": "1cf356b1bbbe707e8c921233fe32aefe854ba9dc56e473a06745c2ae4781143c"
+    },
+    "100724754": {
+      "signature": "System.Void Verse.DefInjectionPackage/DefInjection::.ctor()",
+      "ilSha256": "57f4a31dfaee635be3627c4d67fc332a9d5f38eb0bd54e3ef35662118ceec413"
+    },
+    "100724755": {
+      "signature": "System.Void Verse.DefInjectionPackage/<>c__DisplayClass15_0::.ctor()",
+      "ilSha256": "57f4a31dfaee635be3627c4d67fc332a9d5f38eb0bd54e3ef35662118ceec413"
+    },
+    "100724756": {
+      "signature": "System.Boolean Verse.DefInjectionPackage/<>c__DisplayClass15_0::<CheckErrors>b__0(System.Collections.Generic.KeyValuePair`2<System.String,Verse.DefInjectionPackage/DefInjection>)",
+      "ilSha256": "2c7869948be3598e669863ed81ee2e85944e0fbee275ddcfdefeef3dbe0bee94"
+    },
+    "100724757": {
+      "signature": "System.Void Verse.DefInjectionPackage/<>c__DisplayClass19_0::.ctor()",
+      "ilSha256": "57f4a31dfaee635be3627c4d67fc332a9d5f38eb0bd54e3ef35662118ceec413"
+    },
+    "100724758": {
+      "signature": "System.Void Verse.DefInjectionPackage/<>c__DisplayClass19_0::<MissingInjections>b__0(System.String,System.String,System.Boolean,System.String,System.Collections.Generic.IEnumerable`1<System.String>,System.Boolean,System.Boolean,System.Reflection.FieldInfo,Verse.Def)",
+      "ilSha256": "b1bfd47d43c4d53ef01b0d12b6b4319bc3177b47740bf765d48d57753294f590"
+    },
+    "100669718": {
+      "signature": "System.Collections.Generic.List`1<Verse.ModContentPack> Verse.LoadedModManager::get_RunningModsListForReading()",
+      "ilSha256": "300157e05401dc8112a9a44c3062a93c774255f865122883ab7db4687e89e629"
+    },
+    "100669719": {
+      "signature": "System.Collections.Generic.IEnumerable`1<Verse.ModContentPack> Verse.LoadedModManager::get_RunningMods()",
+      "ilSha256": "300157e05401dc8112a9a44c3062a93c774255f865122883ab7db4687e89e629"
+    },
+    "100669720": {
+      "signature": "System.Collections.Generic.List`1<Verse.Def> Verse.LoadedModManager::get_PatchedDefsForReading()",
+      "ilSha256": "7bf031d106f3d14e7728ef572ce72e1d078c0daf575cac3a487323cc18ca1f15"
+    },
+    "100669721": {
+      "signature": "System.Collections.Generic.IEnumerable`1<Verse.Mod> Verse.LoadedModManager::get_ModHandles()",
+      "ilSha256": "961b7be05ce8bfbe7115c96f0ee7ff3b875fe1adafbf351faecd7668a8fa38f0"
+    },
+    "100669722": {
+      "signature": "System.Void Verse.LoadedModManager::LoadAllActiveMods(System.Boolean)",
+      "ilSha256": "a941ae4a9e7e719cc67216047a7f0a768f26559a5f9a656e229fdf2b535870ce"
+    },
+    "100669723": {
+      "signature": "System.Void Verse.LoadedModManager::InitializeMods()",
+      "ilSha256": "d8f46dff6a8f8da01822461df847fa06097cf7cca49be137d6843438f1143fc6"
+    },
+    "100669724": {
+      "signature": "System.Void Verse.LoadedModManager::LoadModContent(System.Boolean)",
+      "ilSha256": "e653472bf3c20c70fc858719cb0637026f4c11ec55805f0696619499e13beaad"
+    },
+    "100669725": {
+      "signature": "System.Void Verse.LoadedModManager::CreateModClasses()",
+      "ilSha256": "c4c058ff3cead39971d000bbf65beaf7ee54bbe0a7d78c87b4b84f7a75eba626"
+    },
+    "100669726": {
+      "signature": "System.Collections.Generic.List`1<Verse.LoadableXmlAsset> Verse.LoadedModManager::LoadModXML(System.Boolean)",
+      "ilSha256": "5b8c00a0a0a8fdfb3adf5f6e199afd8224746ce3e722ca2edfc27f5147728995"
+    },
+    "100669727": {
+      "signature": "System.Void Verse.LoadedModManager::ErrorCheckPatches()",
+      "ilSha256": "f66ca48b0c8e15da3a8ba2d867ea354717d82138c728c28d514ed18c5d2c2c22"
+    },
+    "100669728": {
+      "signature": "System.Void Verse.LoadedModManager::ApplyPatches(System.Xml.XmlDocument,System.Collections.Generic.Dictionary`2<System.Xml.XmlNode,Verse.LoadableXmlAsset>)",
+      "ilSha256": "be86e1271afc86e4b8f5b7b0d90b759e6216e3f076ca2ea28b0fe0eabd6c6bde"
+    },
+    "100669729": {
+      "signature": "System.Xml.XmlDocument Verse.LoadedModManager::CombineIntoUnifiedXML(System.Collections.Generic.List`1<Verse.LoadableXmlAsset>,System.Collections.Generic.Dictionary`2<System.Xml.XmlNode,Verse.LoadableXmlAsset>)",
+      "ilSha256": "a200ce4679c69c46764f0ffa08b40c632387bd270df0cd83aebd1216b876e4ef"
+    },
+    "100669730": {
+      "signature": "System.Void Verse.LoadedModManager::ParseAndProcessXML(System.Xml.XmlDocument,System.Collections.Generic.Dictionary`2<System.Xml.XmlNode,Verse.LoadableXmlAsset>,System.Boolean)",
+      "ilSha256": "37eda3d22ea762eb0445cdbb3ee9bfb4aa5b4b706a1bd828c2a169cc4e476c7f"
+    },
+    "100669731": {
+      "signature": "System.Void Verse.LoadedModManager::ClearCachedPatches()",
+      "ilSha256": "ed848ec58e4a37c043a5ae12ef2e3f56871c641c6a395cdc3cb45e07811449e2"
+    },
+    "100669732": {
+      "signature": "System.Void Verse.LoadedModManager::ClearDestroy()",
+      "ilSha256": "a3f8ebe94f387258c90be2da6ba4e085143941dd10a0577820509f0910a942d4"
+    },
+    "100669733": {
+      "signature": "T Verse.LoadedModManager::GetMod()",
+      "ilSha256": "140c15cca6c46cf40540894fc0929ddbee50c230d42dd0e502f5d4ccfc83c4db"
+    },
+    "100669734": {
+      "signature": "Verse.Mod Verse.LoadedModManager::GetMod(System.Type)",
+      "ilSha256": "9cdd9f19b912c68d6b3b4261a7da76b7edf1a49042a15fb69e57eb5759d44376"
+    },
+    "100669735": {
+      "signature": "System.String Verse.LoadedModManager::GetSettingsFilename(System.String,System.String)",
+      "ilSha256": "d2e987ca35b818b2660d1f39e77fab81bdc44f3dcea50f42097308c1002ae775"
+    },
+    "100669736": {
+      "signature": "T Verse.LoadedModManager::ReadModSettings(System.String,System.String)",
+      "ilSha256": "9a95dd940ba6c09b62dfb15533308893b676c6e5e215dfbbf6780feae88fbf71"
+    },
+    "100669737": {
+      "signature": "System.Void Verse.LoadedModManager::WriteModSettings(System.String,System.String,Verse.ModSettings)",
+      "ilSha256": "837082e3e913fc02504c52a0f7eb5f199e512994f5ebe0f40b3b7a431cb13644"
+    },
+    "100669738": {
+      "signature": "System.Void Verse.LoadedModManager::.cctor()",
+      "ilSha256": "2413ed4564270f5809369274d6c9a2949639e28fa2a8bdfc75ae9b93876f7732"
+    },
+    "100725606": {
+      "signature": "System.Void Verse.LoadedModManager/<>c::.cctor()",
+      "ilSha256": "1259a52df7081871b4a2e7f9f9604c4bf807d85aee882c2362b75aa96147de55"
+    },
+    "100725607": {
+      "signature": "System.Void Verse.LoadedModManager/<>c::.ctor()",
+      "ilSha256": "57f4a31dfaee635be3627c4d67fc332a9d5f38eb0bd54e3ef35662118ceec413"
+    },
+    "100725608": {
+      "signature": "System.Void Verse.LoadedModManager/<>c::<LoadModContent>b__13_0()",
+      "ilSha256": "0a9d632b1c901ae5f3ee1fcb6a7ee12ab9ed97833ea4ae2e40a0812ffb93c5d4"
+    },
+    "100725609": {
+      "signature": "System.Void Verse.LoadedModManager/<>c::<LoadModContent>b__13_1()",
+      "ilSha256": "a389aa7260c3b8aecb90833c632f636aa9ba3551b5ac8dd82b14e3eeeaf94b5c"
+    },
+    "100725610": {
+      "signature": "System.Collections.Generic.IEnumerable`1<Verse.PatchOperation> Verse.LoadedModManager/<>c::<ApplyPatches>b__17_0(Verse.ModContentPack)",
+      "ilSha256": "d2f465ff31d589efa4d65a82faeaa0d4e13852dea9a0fb4a0b2be8001a3c7bf4"
+    },
+    "100725611": {
+      "signature": "System.Void Verse.LoadedModManager/<>c::<ParseAndProcessXML>b__19_1(System.ValueTuple`2<Verse.Def,Verse.Def>)",
+      "ilSha256": "e76e2b5b6c6349534d7be8a318b99f6ffa9e1d2bf87040ee84ffb4426eb59192"
+    },
+    "100725612": {
+      "signature": "System.Void Verse.LoadedModManager/<>c__DisplayClass14_0::.ctor()",
+      "ilSha256": "57f4a31dfaee635be3627c4d67fc332a9d5f38eb0bd54e3ef35662118ceec413"
+    },
+    "100725613": {
+      "signature": "System.Boolean Verse.LoadedModManager/<>c__DisplayClass14_0::<CreateModClasses>b__0(Verse.ModContentPack)",
+      "ilSha256": "a4a15c0ab6993f75a1495cab5fd661ff0adab80ceaa30006d76670c54068f57d"
+    },
+    "100725614": {
+      "signature": "System.Void Verse.LoadedModManager/<>c__DisplayClass19_0::.ctor()",
+      "ilSha256": "57f4a31dfaee635be3627c4d67fc332a9d5f38eb0bd54e3ef35662118ceec413"
+    },
+    "100725615": {
+      "signature": "System.Void Verse.LoadedModManager/<>c__DisplayClass19_0::<ParseAndProcessXML>b__0()",
+      "ilSha256": "0ffcb1552662655fff5e26b63097a09552deffc6e8318b761e21fe47102ad1a6"
+    },
+    "100725616": {
+      "signature": "System.Void Verse.LoadedModManager/<>c__DisplayClass23_0::.ctor()",
+      "ilSha256": "57f4a31dfaee635be3627c4d67fc332a9d5f38eb0bd54e3ef35662118ceec413"
+    },
+    "100725617": {
+      "signature": "System.Boolean Verse.LoadedModManager/<>c__DisplayClass23_0::<GetMod>b__0(System.Collections.Generic.KeyValuePair`2<System.Type,Verse.Mod>)",
+      "ilSha256": "ca183ae15ffa4ff541962381f842739cc13fdbb9abed15966bc9c840f0c11750"
+    },
+    "100669998": {
+      "signature": "System.Boolean Verse.PatchOperation::Apply(System.Xml.XmlDocument)",
+      "ilSha256": "a93aeeef4150100a78e26cd6847bf7abd4da9ab7c502dbffbeabaf1b097676e0"
+    },
+    "100669999": {
+      "signature": "System.Boolean Verse.PatchOperation::ApplyWorker(System.Xml.XmlDocument)",
+      "ilSha256": "4c941f4acef2f444b84791abd9729cf1737d1d57e3b307c1f9b964f449842e7d"
+    },
+    "100670000": {
+      "signature": "System.Void Verse.PatchOperation::Complete(System.String)",
+      "ilSha256": "02ec092967186630567765adc769031eabdc594209dbc3947f78ca583c3acf76"
+    },
+    "100670001": {
+      "signature": "System.Collections.Generic.IEnumerable`1<System.String> Verse.PatchOperation::ConfigErrors()",
+      "ilSha256": "3c111fcb69b07fceb229e55db3a3d6438ce24f3a179174f11d5a325c5879ca5c"
+    },
+    "100670002": {
+      "signature": "System.Void Verse.PatchOperation::.ctor()",
+      "ilSha256": "a2d03a1dd27ae626abfe7c87530e3864995f97ac04ac066207b98e7bd18d39af"
+    },
+    "100670003": {
+      "signature": "System.String Verse.PatchOperationPathed::ToString()",
+      "ilSha256": "4b26c2a8a81a327dcd30fa573a4248b1610717ede548a9a75515f88c5950f596"
+    },
+    "100670004": {
+      "signature": "System.Void Verse.PatchOperationPathed::.ctor()",
+      "ilSha256": "65fe1f360f33f71f344354d7a5563a77f2fc74b38be45bac027565505127e445"
+    },
+    "100670005": {
+      "signature": "System.Boolean Verse.PatchOperationAdd::ApplyWorker(System.Xml.XmlDocument)",
+      "ilSha256": "e3b9de01bc8429fd077e89d996b91ffc88ef14fcfe4c977769fa1f8ff2e7fd7c"
+    },
+    "100670006": {
+      "signature": "System.Void Verse.PatchOperationAdd::.ctor()",
+      "ilSha256": "7b335bbf242714f35bdc67cf044b7fb7e9657ee2761fe209a355898773bfb275"
+    },
+    "100670007": {
+      "signature": "System.Boolean Verse.PatchOperationAddModExtension::ApplyWorker(System.Xml.XmlDocument)",
+      "ilSha256": "d33b1980e636f4596d0e06ca7fd71f75a7efeb008f9f8bfcc68d6ef71974d972"
+    },
+    "100670008": {
+      "signature": "System.Void Verse.PatchOperationAddModExtension::.ctor()",
+      "ilSha256": "7b335bbf242714f35bdc67cf044b7fb7e9657ee2761fe209a355898773bfb275"
+    },
+    "100670009": {
+      "signature": "System.Boolean Verse.PatchOperationInsert::ApplyWorker(System.Xml.XmlDocument)",
+      "ilSha256": "5a00cbf09bedc03800a6006f0dc17ed69a06b7b0889a7f0ccd73ad6a4a5a4586"
+    },
+    "100670010": {
+      "signature": "System.Void Verse.PatchOperationInsert::.ctor()",
+      "ilSha256": "7059773294830212d5e3145c281cc476f4aa3250d2a88c4852006802000e9eb1"
+    },
+    "100670011": {
+      "signature": "System.Boolean Verse.PatchOperationRemove::ApplyWorker(System.Xml.XmlDocument)",
+      "ilSha256": "89fd0f4f6129d288ee20807c4336ed4babc74ec979c3505ef86e64cd76f000c9"
+    },
+    "100670012": {
+      "signature": "System.Void Verse.PatchOperationRemove::.ctor()",
+      "ilSha256": "7b335bbf242714f35bdc67cf044b7fb7e9657ee2761fe209a355898773bfb275"
+    },
+    "100670013": {
+      "signature": "System.Boolean Verse.PatchOperationReplace::ApplyWorker(System.Xml.XmlDocument)",
+      "ilSha256": "e54df0bc952644460da93e9408aa1fba813a1a5895fcb49183711803a7bc11f0"
+    },
+    "100670014": {
+      "signature": "System.Void Verse.PatchOperationReplace::.ctor()",
+      "ilSha256": "7b335bbf242714f35bdc67cf044b7fb7e9657ee2761fe209a355898773bfb275"
+    },
+    "100670015": {
+      "signature": "System.Boolean Verse.PatchOperationSetName::ApplyWorker(System.Xml.XmlDocument)",
+      "ilSha256": "9cad59cbf62d86984fa5e853816b33a7e711a350b175e75188cd491b9d53ba41"
+    },
+    "100670016": {
+      "signature": "System.Void Verse.PatchOperationSetName::.ctor()",
+      "ilSha256": "7b335bbf242714f35bdc67cf044b7fb7e9657ee2761fe209a355898773bfb275"
+    },
+    "100670017": {
+      "signature": "System.String Verse.PatchOperationAttribute::ToString()",
+      "ilSha256": "83d6030ecab697241983dd6b3a910b308dfd3f5cadc4e075482bbc70a26c94d8"
+    },
+    "100670018": {
+      "signature": "System.Void Verse.PatchOperationAttribute::.ctor()",
+      "ilSha256": "7b335bbf242714f35bdc67cf044b7fb7e9657ee2761fe209a355898773bfb275"
+    },
+    "100670019": {
+      "signature": "System.Boolean Verse.PatchOperationAttributeAdd::ApplyWorker(System.Xml.XmlDocument)",
+      "ilSha256": "59fa2a8b9399d72a695b5db863a2e44524c29594293762932088856ef2f9bb41"
+    },
+    "100670020": {
+      "signature": "System.Void Verse.PatchOperationAttributeAdd::.ctor()",
+      "ilSha256": "0ea610762cf986fd2f758f6a6450d1436dffd7cad7cd16cf263b4602e09fa8e8"
+    },
+    "100670021": {
+      "signature": "System.Boolean Verse.PatchOperationAttributeRemove::ApplyWorker(System.Xml.XmlDocument)",
+      "ilSha256": "9a1e125b95e325b9830ee61419d8aada7d76a41c4c3d9094274540ba2d3b39ee"
+    },
+    "100670022": {
+      "signature": "System.Void Verse.PatchOperationAttributeRemove::.ctor()",
+      "ilSha256": "0ea610762cf986fd2f758f6a6450d1436dffd7cad7cd16cf263b4602e09fa8e8"
+    },
+    "100670023": {
+      "signature": "System.Boolean Verse.PatchOperationAttributeSet::ApplyWorker(System.Xml.XmlDocument)",
+      "ilSha256": "6e7572e7498f35c1ed5ddfaffd3ca0bb8627e06c37ab2ede13036fb19178829f"
+    },
+    "100670024": {
+      "signature": "System.Void Verse.PatchOperationAttributeSet::.ctor()",
+      "ilSha256": "0ea610762cf986fd2f758f6a6450d1436dffd7cad7cd16cf263b4602e09fa8e8"
+    },
+    "100670025": {
+      "signature": "System.Boolean Verse.PatchOperationSequence::ApplyWorker(System.Xml.XmlDocument)",
+      "ilSha256": "2daa01a124b77be0688aacd9f5537d389aaeec894b6071408d8129cc0195d09c"
+    },
+    "100670026": {
+      "signature": "System.Void Verse.PatchOperationSequence::Complete(System.String)",
+      "ilSha256": "233bd7f72a0d7ad40a5263e67b6465c846d69261d956de2e991e6a16db2143d8"
+    },
+    "100670027": {
+      "signature": "System.String Verse.PatchOperationSequence::ToString()",
+      "ilSha256": "85f45c44483d547a3c304e7b38c8e8005778a9bdc52d4f098480984c5244bac6"
+    },
+    "100670028": {
+      "signature": "System.Void Verse.PatchOperationSequence::.ctor()",
+      "ilSha256": "65fe1f360f33f71f344354d7a5563a77f2fc74b38be45bac027565505127e445"
+    },
+    "100670029": {
+      "signature": "System.Boolean Verse.PatchOperationTest::ApplyWorker(System.Xml.XmlDocument)",
+      "ilSha256": "85d91cba243f07fe8b6ec444d843dc97a9fa2c7bfab1a166f42e46268ef7272b"
+    },
+    "100670030": {
+      "signature": "System.Void Verse.PatchOperationTest::.ctor()",
+      "ilSha256": "7b335bbf242714f35bdc67cf044b7fb7e9657ee2761fe209a355898773bfb275"
+    },
+    "100670031": {
+      "signature": "System.Boolean Verse.PatchOperationConditional::ApplyWorker(System.Xml.XmlDocument)",
+      "ilSha256": "bf0163b166292dcc2b931acb8cfa5c3215bc636c2e227eaeab57e9b98aaf603f"
+    },
+    "100670032": {
+      "signature": "System.Void Verse.PatchOperationConditional::.ctor()",
+      "ilSha256": "7b335bbf242714f35bdc67cf044b7fb7e9657ee2761fe209a355898773bfb275"
+    },
+    "100670033": {
+      "signature": "System.Boolean Verse.PatchOperationFindMod::ApplyWorker(System.Xml.XmlDocument)",
+      "ilSha256": "708abd0fee362f764834c81ee3d44dd51d9b62178a7054fe09be57cc9e0bb3e5"
+    },
+    "100670034": {
+      "signature": "System.String Verse.PatchOperationFindMod::ToString()",
+      "ilSha256": "84720b4c5870e25f5834925a721cc3d63879b7382c4ec290a9782e597ab8755a"
+    },
+    "100670035": {
+      "signature": "System.Void Verse.PatchOperationFindMod::.ctor()",
+      "ilSha256": "65fe1f360f33f71f344354d7a5563a77f2fc74b38be45bac027565505127e445"
+    },
+    "100673072": {
+      "signature": "System.Boolean Verse.DirectXmlCrossRefLoader::MistypedMayRequire(System.String)",
+      "ilSha256": "84a0936ff1fba6d2811d094757231685673447aed2170738872305076026a316"
+    },
+    "100673073": {
+      "signature": "System.Boolean Verse.DirectXmlCrossRefLoader::get_LoadingInProgress()",
+      "ilSha256": "51821d82c4491b072d6957dc0230c4cdfb4fcdae2cdf554f1bf363410648ff66"
+    },
+    "100673074": {
+      "signature": "System.Void Verse.DirectXmlCrossRefLoader::RegisterObjectWantsCrossRef(System.Object,System.Reflection.FieldInfo,System.String,System.String,System.String,System.Type)",
+      "ilSha256": "1067aec89f5c1e2184299d21b403474f7cd2820c801faf20701b63d9a80d188d"
+    },
+    "100673075": {
+      "signature": "System.Void Verse.DirectXmlCrossRefLoader::RegisterObjectWantsCrossRef(System.Object,System.String,System.String,System.String,System.String,System.Type)",
+      "ilSha256": "9742eeeddc92aa9dc74c069495973eb27ee21626a1f23d74c1a6f8d74a7b049e"
+    },
+    "100673076": {
+      "signature": "System.Void Verse.DirectXmlCrossRefLoader::RegisterObjectWantsCrossRef(System.Object,System.String,System.Xml.XmlNode,System.String,System.String,System.Type)",
+      "ilSha256": "f5d8b1bc9e3d904b21b6f7d29d05bb239c671d49b772773844a897788d6d4561"
+    },
+    "100673077": {
+      "signature": "System.Void Verse.DirectXmlCrossRefLoader::RegisterListWantsCrossRef(System.Collections.Generic.List`1<T>,System.String,System.Object,System.String,System.String)",
+      "ilSha256": "9798bc4b9f37364ae789912f95fe13f607adf7d6d2df259c6c5eb694fcc8683a"
+    },
+    "100673078": {
+      "signature": "System.Void Verse.DirectXmlCrossRefLoader::RegisterDictionaryWantsCrossRef(System.Collections.Generic.Dictionary`2<K,V>,System.Xml.XmlNode,System.Object)",
+      "ilSha256": "96d71addf3b23326a553593f0374bc9946e15bfb02f28945f0acee7d94d2a6c5"
+    },
+    "100673079": {
+      "signature": "T Verse.DirectXmlCrossRefLoader::TryResolveDef(System.String,Verse.FailMode,System.Object)",
+      "ilSha256": "3a22c17048237a04e58010a405e7edc58ff96cf0a4133533cd4f35a912e0c2ac"
+    },
+    "100673080": {
+      "signature": "System.Void Verse.DirectXmlCrossRefLoader::Clear()",
+      "ilSha256": "9596740d068bd65628c3727d8e57a23ca79013ad19af2fd8eca2173b76622ea1"
+    },
+    "100673081": {
+      "signature": "System.Void Verse.DirectXmlCrossRefLoader::ResolveAllWantedCrossReferences(Verse.FailMode)",
+      "ilSha256": "19a1155c1c64537357482775922c60804163c4d67c828956b26d75596213689d"
+    },
+    "100673082": {
+      "signature": "System.Void Verse.DirectXmlCrossRefLoader::.cctor()",
+      "ilSha256": "1045e3e9f411d1d927073ae3cf0148bb60960a243a4070e70fabe70de219a924"
+    },
+    "100726708": {
+      "signature": "System.Void Verse.DirectXmlCrossRefLoader/WantedRef::Apply()",
+      "ilSha256": "684888c0ebb17f374298b65ee2807526c066094c701bcc7ebbe1c1095f494fc1"
+    },
+    "100726709": {
+      "signature": "System.Void Verse.DirectXmlCrossRefLoader/WantedRef::.ctor()",
+      "ilSha256": "57f4a31dfaee635be3627c4d67fc332a9d5f38eb0bd54e3ef35662118ceec413"
+    },
+    "100726710": {
+      "signature": "System.Boolean Verse.DirectXmlCrossRefLoader/WantedRefForObject::get_BadCrossRefAllowed()",
+      "ilSha256": "9bdab410042ac8b39885584eacd0902a362627a287e00fe03560a2d0cc148f90"
+    },
+    "100726711": {
+      "signature": "System.Void Verse.DirectXmlCrossRefLoader/WantedRefForObject::.ctor(System.Object,System.Reflection.FieldInfo,System.String,System.String,System.String,System.Type)",
+      "ilSha256": "274ab33f4d394c2c6f2f11452d3ce771cd335dda91283c4321837fd53319af88"
+    },
+    "100726712": {
+      "signature": "System.Boolean Verse.DirectXmlCrossRefLoader/WantedRefForObject::TryResolve(Verse.FailMode)",
+      "ilSha256": "0e5d0f51dca4db93b520ad53a3427e58675389d4f85b8646531ab30d1d86a555"
+    },
+    "100726713": {
+      "signature": "System.Void Verse.DirectXmlCrossRefLoader/WantedRefForList`1::.ctor(System.Object,System.Object)",
+      "ilSha256": "5a8db5ba06028bab863930be45b95b268037dd53ebe35d53f94f9621a59eba8f"
+    },
+    "100726714": {
+      "signature": "System.Void Verse.DirectXmlCrossRefLoader/WantedRefForList`1::AddWantedListEntry(System.String,System.String,System.String)",
+      "ilSha256": "5ffa30f418606f6aa392db5e616c67ce4c8d5baa6b8422359dfc98e3571d106b"
+    },
+    "100726715": {
+      "signature": "System.Boolean Verse.DirectXmlCrossRefLoader/WantedRefForList`1::TryResolve(Verse.FailMode)",
+      "ilSha256": "c837ef46d8566fd00fde510eea5964ffb63de4d6a958c975f2248cc67cc51f81"
+    },
+    "100726716": {
+      "signature": "System.Void Verse.DirectXmlCrossRefLoader/WantedRefForDictionary`2::.ctor(System.Object,System.Object)",
+      "ilSha256": "65e35859bc986213029ce4cbff757368aaed2a0045d41f922de7959df1eab1fd"
+    },
+    "100726717": {
+      "signature": "System.Void Verse.DirectXmlCrossRefLoader/WantedRefForDictionary`2::AddWantedDictEntry(System.Xml.XmlNode)",
+      "ilSha256": "f9927f9c8a08ff17d1551acfa6d268d3420bd5795fed0c8104efaa2f70d56ce7"
+    },
+    "100726718": {
+      "signature": "System.Boolean Verse.DirectXmlCrossRefLoader/WantedRefForDictionary`2::TryResolve(Verse.FailMode)",
+      "ilSha256": "03a892b297aec98c6f66afba2db8381c62c4ca29fc4e5d7551140662154a5433"
+    },
+    "100726719": {
+      "signature": "System.Void Verse.DirectXmlCrossRefLoader/WantedRefForDictionary`2::Apply()",
+      "ilSha256": "65d0f5fe98e744881f60dc04b03f99a852189c6f0f8162e3eb02bad7e111356e"
+    },
+    "100726720": {
+      "signature": "System.Void Verse.DirectXmlCrossRefLoader/<>c__DisplayClass16_0::.ctor()",
+      "ilSha256": "57f4a31dfaee635be3627c4d67fc332a9d5f38eb0bd54e3ef35662118ceec413"
+    },
+    "100726721": {
+      "signature": "System.Void Verse.DirectXmlCrossRefLoader/<>c__DisplayClass16_0::<ResolveAllWantedCrossReferences>b__0(Verse.DirectXmlCrossRefLoader/WantedRef)",
+      "ilSha256": "1d5ef1115c41df21904d625bc20e8c9c81d34694029d783f1bc7f6262d443aec"
+    },
+    "100726722": {
+      "signature": "System.Boolean Verse.DirectXmlCrossRefLoader/<>c__DisplayClass16_0::<ResolveAllWantedCrossReferences>b__1(Verse.DirectXmlCrossRefLoader/WantedRef)",
+      "ilSha256": "92d6a207f02137f4db483ff9373543fcd16d7051ea77b62eb4eb956cfcb32082"
+    },
+    "100673179": {
+      "signature": "System.Reflection.FieldInfo Verse.XmlToObjectUtils::DoFieldSearch(System.Type,System.Xml.XmlNode,System.Xml.XmlNode)",
+      "ilSha256": "824774ad7dec28534f014dbb711f295359f693c60c39c8a984b1f96fc87c54ef"
+    },
+    "100673180": {
+      "signature": "System.Reflection.FieldInfo Verse.XmlToObjectUtils::DirectGetFieldByName(System.Type,System.String,System.Xml.XmlNode)",
+      "ilSha256": "b519097d79f485b814d5a145d91ffab57ca28dbb8b4b7da7b80d74e1fce3d357"
+    },
+    "100673181": {
+      "signature": "System.Reflection.FieldInfo Verse.XmlToObjectUtils::SearchTypeHierarchy(System.Type,System.String,System.Boolean)",
+      "ilSha256": "85f01cdea425ee7940f6e222a0571a617beb9902149ffd30376873045f56f46b"
+    },
+    "100673182": {
+      "signature": "System.Reflection.MethodInfo Verse.XmlToObjectUtils::CustomDataLoadMethodOf(System.Type)",
+      "ilSha256": "35dc5df207ecb77355b844223cbe22f918001f557b4c0c8a4d3d8437677b9a5b"
+    },
+    "100673183": {
+      "signature": "System.Reflection.MethodInfo Verse.XmlToObjectUtils::PostLoadMethodOf(System.Type)",
+      "ilSha256": "558400b93fc5afacfd77cfbadb7b82eb3b6c6e327c9b691b8c5cc9364acf5a75"
+    },
+    "100673184": {
+      "signature": "System.Void Verse.XmlToObjectUtils::.cctor()",
+      "ilSha256": "5f03ddb2aeac6bbf3ce232168a54df264800c6d447316b5fff3da3f408da60b8"
+    },
+    "100726782": {
+      "signature": "System.Void Verse.XmlToObjectUtils/FieldAliasCache::.ctor(System.Type,System.String)",
+      "ilSha256": "33b7ae8d01cca964e1b3499917da490159fa5dc017e524880e7cbe64537c1d66"
+    },
+    "100726783": {
+      "signature": "System.Boolean Verse.XmlToObjectUtils/FieldAliasCache::Equals(Verse.XmlToObjectUtils/FieldAliasCache)",
+      "ilSha256": "0804f5bccf07f65c9f441d2c2ad2af543495d5f9caddabce78681b2dd3d7a8e7"
+    },
+    "100726784": {
+      "signature": "System.Int32 Verse.XmlToObjectUtils/FieldAliasCache::GetHashCode()",
+      "ilSha256": "239912c11d57f44a1fd4ddf69a5c1d871e3e979ca55f46fae95445c6511b20cc"
+    },
+    "100709768": {
+      "signature": "System.Single RimWorld.AlertsReadout::get_AlertsHeight()",
+      "ilSha256": "3b48a00e021180403c3fba0ac8c17e43735c78a3eac501e6b8b837ccda365ff6"
+    },
+    "100709769": {
+      "signature": "System.Void RimWorld.AlertsReadout::.ctor()",
+      "ilSha256": "50f4b04e55ef51932ef2829eb7e0ffcd5539faf5c51cbfade010eca9c006b25b"
+    },
+    "100709770": {
+      "signature": "System.Void RimWorld.AlertsReadout::AlertsReadoutUpdate()",
+      "ilSha256": "4d5d52b17eb6b5106a8d5141cba10e1b487d55a92fdd2178c6230c78025b49c6"
+    },
+    "100709771": {
+      "signature": "System.Void RimWorld.AlertsReadout::CheckAddOrRemoveAlert(RimWorld.Alert,System.Boolean)",
+      "ilSha256": "1d940e9b192af4b028dd93566d2554f6bcc9fa35aeb1f5062465049d4b1ba4af"
+    },
+    "100709772": {
+      "signature": "System.Void RimWorld.AlertsReadout::AlertsReadoutOnGUI()",
+      "ilSha256": "a6e84c9ada85c37c6ff75a896c0668d2abdd5a1dcea544cd775af75c1f23192f"
+    }
+  }
+}

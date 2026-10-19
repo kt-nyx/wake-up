@@ -1,11 +1,27 @@
 # Development and validation
 
+For public `1.7` development, follow [the branch status](development-1.7-branch.md)
+and the current user's task. The owner authorized a dedicated cloud development
+workflow on 19 October. Its setup and Linux qualification are pending; final
+Windows candidate verification and release publication remain local. The dated
+overnight instructions below are retained evidence, not a renewed assignment.
+
 Use the [current release baseline](current-state.md) and existing checkout.
+The current assignment is overnight qualification and improvement of the separate
+Prepatcher-free 1.7 candidate on `codex/rimworld-1.7-core`. Follow the
+[overnight plan](overnight-1.7-plan.md) and [implementation plan](implementation-1.7.md).
+The new `scripts/fixture.py modern` lane uses copied installed 1.7 content and the
+current Host collection. It never replaces the permanent 1.6 game. Preserve the
+owner's existing fixture path edit and restore normal logs after capturing runs.
+One owned game runs at a time; never close normal games. Publication remains
+unassigned. The released 1.6 binary remains 0.4.2.
+
+The following records describe earlier 1.6 work and do not extend that authorization.
 Compatibility Phases 1 and [2](compatibility-phase-2.md) are complete and accepted
 for their bounded GOG correctness scope. The owner authorized the 25 September
 [overnight continuation](overnight-integration-20260925.md), including representative
-GOG performance comparisons and bounded integration improvements. Retain the
-accepted `codex/compatibility-phase-1` checkout and preserve unrelated edits.
+GOG performance comparisons and bounded integration improvements. That work used
+the accepted `codex/compatibility-phase-1` checkout.
 The owner subsequently authorized 0.4.1 publication after the specific Preview/Image Opt
 Windows checks; follow the specific scope in [release procedure](release.md). No further
 game launches, rebuild or platform/performance checks are assigned for publication.
