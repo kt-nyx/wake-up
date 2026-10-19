@@ -206,8 +206,13 @@ The game copy must already contain the matching game and official Data, with no
 `Mods` directory; the profile must not exist. The helper preserves original mod
 folder names so their saved settings still match. `--override` explicitly replaces
 the installed project package with the current candidate of the same package ID;
-it records deployed file hashes. Then add only the project's explicit test bridge
-and requested test configuration, record that difference, and run the owned
+it records deployed file hashes. `--override` replaces an existing selected ID;
+it does not add a candidate absent from the selected active list. For a new
+project whose candidate is absent from the personal active list, capture the
+selected base first, then explicitly add the candidate, its dependencies and its
+load position in that project's staging/request. Record those additions with the
+effective order and candidate identity. Then add only the project's explicit test
+bridge and requested test configuration, record that difference, and run the owned
 controller against this staged game/profile. Do not run a minimal-baseline staging
 command afterward that would replace the chosen collection.
 

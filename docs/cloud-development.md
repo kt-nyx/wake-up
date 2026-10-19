@@ -1,16 +1,21 @@
 # Wake-Up cloud development
 
 Wake-Up now has a dedicated private environment, `wake-up-dev-1.7`, for building
-and functional testing away from the owner's PC. The setup's real Linux test
-passed; publication and a fresh-chat restoration check are the final acceptance
-steps. This document will record that check when complete.
+and functional testing away from the owner's PC. The published baseline was
+restored into a fresh setup workspace on 19 October 2026 and passed a current-source build and a new live Linux functional check.
+The refreshed draft remains unpublished until owner review.
 
 ## Start work
 
-Create a new cloud chat and select **wake-up-dev-1.7**. Give it the Wake-Up task
-and ask it to read this document and AGENTS.md before working. The new chat should
-use its own prepared machine; local Windows remains available for other work.
-Keep a single owner for a shared build or fixture inside one chat.
+The verified browser access route is **Settings > Codex Cloud >
+wake-up-dev-1.7 > Actions > Edit**. It opened a fresh setup workspace from the
+published image. A generic `create_thread` WorkCloud creation request does not
+select a named environment; naming the environment in a prompt is insufficient.
+Normal desktop environment selection can be used when available, but that selector
+was not tested in this check. Give the new chat the Wake-Up task and ask it to
+read this document and AGENTS.md before working. Each chat uses its own prepared
+machine; local Windows remains available for other work. Keep a single owner for
+a shared build or fixture inside one chat.
 
 In the cloud, the source checkout is `/workspace/wake-up`. Each shell uses:
 
@@ -91,6 +96,43 @@ built candidate, then attach the test bridge and run the appropriate controller.
 Do not invoke minimal staging afterward and accidentally discard the collection.
 
 ## Accepted setup evidence and limits
+
+The fresh copy retained activation, installed tools, private references, the latest
+controller, canonical game, source checkout and prior acceptance evidence. The
+original setup chat's personal snapshot directory, created only after publication,
+was absent. This distinguishes restoration of the published image from reuse of
+that original chat's later filesystem.
+
+The fresh run tested source `9d346a088b6dc8ad3b41b37027bd9bb2d2a4232a` with
+Wake-Up DLL SHA-256
+`8a091c431ada4dc824d6ec8fc22b785a632b61d5001a32a3edc1a36318bc637b`.
+SDK 10.0.401 and PowerShell 7.5.4 passed exact reference guards and locked restores;
+the Release build had zero warnings/errors, 67 C# tests passed, and four packaging
+plus five snapshot tests passed. A newly staged isolated fixture reached Playing
+with three colonists, performed 29 indexed definition queries and 28,207 reused
+member lookups, advanced at least 600 ticks, saved at tick 653 and reloaded at tick
+654 into a new native game object, then exited normally with acknowledged status
+0. Existing fixtures and evidence were preserved. Detailed private acceptance is
+retained separately in `/workspace/setup/acceptance-fresh-copy.json`. The original
+`acceptance-latest.json` remains the earlier run. This later documentation commit
+does not change the tested source/DLL identity or require another runtime run.
+
+The canonical game's complete 2,911-file hash, size and mode verification passed.
+Only redundant transport caches were removed afterward: 22 raw archive parts,
+22 matching materialized part ZIPs and the reconstructed archive, totaling
+2,078,654,639 bytes. Tiny manifests/receipts, references, controller, installed
+games, fixtures/results, tool runtimes, NuGet and licenses remain. Current refresh
+and staging read the canonical game and payload manifest, so they need none of
+those removed transport bytes. The baseline has no personal mod collection.
+Historical extraction helpers require supported private re-transfer if needed.
+
+The editable repository list still normalizes the repository name to
+`kt-nyx/wake-up`, producing an observed Unknown repository UI label. One bounded
+attempt to restore registered ID `github-1360822003` through the existing `name`
+field was rejected by the connector's owner/repository schema pattern; readback
+confirmed no repository configuration change. This UI mapping issue is separate
+from successful managed Git access to the public repository. No alternate keys,
+permissions or APIs were introduced.
 
 On 19 October, source `1c1e48ed` built with zero warnings/errors and passed 67
 synthetic C# tests. The real Linux test admitted Wake-Up, performed 29 indexed
