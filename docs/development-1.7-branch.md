@@ -5,8 +5,12 @@ It is separate from the published 1.6 release on `main`. Publishing this source
 does not publish a Workshop package, GitHub release, release tag or installation.
 
 The current product is 0.5.0-preview.2. Its runtime and build checks admit the
-reviewed Windows 1.7.4982 rev1280 game and Harmony rc.3. It is not yet a qualified
-Linux cloud runtime. See [the compatibility review](compatibility-1.7.4982.md).
+reviewed 1.7.4982 rev1280 game and Harmony rc.3 on Windows or Linux x64 with
+the .NET 10 runtime. The latest Linux unstable build 26031547, depot 294103,
+manifest 4415223985052641865 has byte-identical Assembly-CSharp, UnityStubs and
+Waylith references to the Windows review. Exact identity and method checks remain
+unchanged. Linux live qualification is pending; admission alone is insufficient.
+See [the compatibility review](compatibility-1.7.4982.md).
 The staged candidate has offline checks; those do not establish current-game
 performance, graphics or gameplay compatibility.
 

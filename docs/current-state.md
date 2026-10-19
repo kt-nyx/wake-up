@@ -6,7 +6,9 @@ The owner authorized publishing the current 1.7 development source on the public
 `1.7` branch and implementing a dedicated Wake-Up cloud workflow. This source
 publication does not publish a runtime package or qualify Linux execution.
 See [development branch status](development-1.7-branch.md). The current product
-source is 0.5.0-preview.2 with exact Windows 1.7.4982/Harmony rc.3 admission.
+source is 0.5.0-preview.2 with exact 1.7.4982/Harmony rc.3 admission on Windows
+or Linux x64 under .NET 10. The Linux references are byte-identical; live Linux
+qualification remains pending.
 The dedicated cloud environment, current Linux target and fresh-chat acceptance
 are pending. The existing general cloud task's successful base-game/DLC smoke
 test does not establish Wake-Up compatibility or speed. Final Windows candidate
