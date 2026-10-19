@@ -1,5 +1,16 @@
 # Current state — 19 October 2026
 
+## Current cloud loading investigation
+
+The owner authorized autonomous cloud development, functional tests and matched
+performance measurements on 19 October. Public work starts from `6c5cc157` on
+`codex/1.7-loading-reduction`. The prepared current unstable game was independently
+corroborated and actual fresh game tests passed. The first members-only comparison
+has not established a useful benefit; native profiling and a bounded public-content
+collection are being prepared. See [the live investigation record](qualification-1.7-cloud-20261019.md).
+Historical offline restrictions below do not limit this cloud task. Windows
+verification, played installation and binary/tag/Workshop release remain local.
+
 ## Public development and cloud setup
 
 The owner authorized publishing the current 1.7 development source on the public
