@@ -10,37 +10,20 @@ namespace WakeUp.V17;
 // or migrate the 1.6 options that selected the retired pipelines and stores.
 public sealed class WakeUp17Mod : Mod
 {
-    private WakeUp17Settings? settings;
-    private RuntimeContext? context;
-    private string state = "Startup improvements have not been selected.";
-    private Vector2 scroll;
-    private float height = 700f;
+    private string state = "Startup optimizations are disabled: no reliable loading-time benefit is qualified for RimWorld 1.7.";
 
     public WakeUp17Mod(ModContentPack content) : base(content)
     {
+        // Preserve the existing settings schema and values. Even previously enabled
+        // profiles must use native loading until a useful feature is qualified.
         try
         {
-            settings = GetSettings<WakeUp17Settings>();
-            if (!settings.Enabled) { state = "Startup improvements are off for this launch."; return; }
-            if (PlayDataLoader.Loaded) { state = "Ordinary loading: startup has already finished."; return; }
+            _ = GetSettings<WakeUp17Settings>();
             RuntimeContract.RequireRuntime(typeof(Mod).Assembly);
-            context = new RuntimeContext(typeof(Mod).Assembly, message => Log.Message(message));
-            new SessionLifetime(context, () => PlayDataLoader.Loaded, () => LongEventHandler.AnyEventNowOrWaiting)
-                .Install(context.NamedMethod("Verse.Root_Entry", "Update"));
-            state = "Private 1.7 testing candidate. Selected improvements use their own compatibility checks.";
-            context.Log(state + " Reviewed game: " + RuntimeContract.GameLabel + ". No Prepatcher, texture cache or early loader is used.");
-            var definitions = new DefinitionSearches(context);
-            context.Install(DefinitionSearches.Feature, settings.Definitions, definitions.Install, definitions.Clear);
-            var types = new TypeNameSearches(context);
-            context.Install(TypeNameSearches.Feature, settings.TypeNames, types.Install, types.Clear);
-            var leaves = new LeafSearches(context);
-            context.Install(LeafSearches.Feature, settings.LeafClasses, leaves.Install, leaves.Clear);
-            var members = new MemberSearches(context, settings.LoadingMembers, settings.TranslationMembers);
-            context.Install(MemberSearches.Feature, settings.LoadingMembers || settings.TranslationMembers, members.Install, members.Clear);
+            Log.Message("[Wake-Up 1.7] " + state + " Native loading is used; no Wake-Up patches are installed.");
         }
         catch (Exception error)
         {
-            context?.CompleteStartup();
             state = "Ordinary loading: " + error.GetBaseException().Message;
             Log.Warning("[Wake-Up 1.7] " + state);
         }
@@ -49,31 +32,20 @@ public sealed class WakeUp17Mod : Mod
     public override string SettingsCategory() => "Wake-Up";
     public override void DoSettingsWindowContents(Rect inRect)
     {
-        settings ??= GetSettings<WakeUp17Settings>();
-        scroll = GUI.BeginScrollView(inRect, scroll, new Rect(0f, 0f, inRect.width - 20f, height));
         var list = new Listing_Standard { maxOneColumn = true };
-        list.Begin(new Rect(0f, 0f, inRect.width - 20f, height));
-        list.Label("Wake-Up 1.7 preview — restart RimWorld after changing these options.");
-        list.Label("This build is ready for game testing. Gameplay compatibility and faster loading have not yet been established.");
-        list.Gap();
-        list.CheckboxLabeled("Enable startup improvements", ref settings.Enabled);
-        list.CheckboxLabeled("Reuse definition and template searches", ref settings.Definitions);
-        list.CheckboxLabeled("Reuse code type-name searches", ref settings.TypeNames);
-        list.CheckboxLabeled("Reduce repeated leaf-class checks", ref settings.LeafClasses);
-        list.Label("Leaf classes have no more specialized classes beneath them. This option reduces repeated checks during startup and alert creation.");
-        list.CheckboxLabeled("Reuse loading member lookups", ref settings.LoadingMembers);
-        list.Label("Remembers where fields, properties and methods are found. Their actual reads, writes and callbacks still run normally.");
-        list.CheckboxLabeled("Reuse translation member lookups (optional)", ref settings.TranslationMembers);
-        list.Label("Default off. Reuses member lookup information within each translation package. Duplicate translation checks stay native.");
+        list.Begin(inRect);
+        list.Label("Wake-Up 1.7 development preview — startup optimizations disabled.");
+        list.Label("Repeated cloud comparisons did not establish a reliable loading-time improvement. RimWorld uses its native loading behavior.");
         list.Gap();
         list.Label(state);
-        list.Label(context?.Report ?? "No search features were installed.");
-        list.Label("RimWorld handles textures, background asset preparation and texture caching. This preview does not change those systems or require Prepatcher.");
-        list.End(); height = list.CurHeight + 20f;
-        GUI.EndScrollView();
+        list.Label("Existing preview preferences are preserved but do not activate search features. No Wake-Up startup, gameplay or deferred-loading patches are installed.");
+        list.Label("No loading-time improvement is claimed. Wake-Up is not needed for native RimWorld 1.7 loading.");
+        list.End();
     }
 }
 
+// Retained only for compatibility with existing preview settings. These values
+// are deliberately ignored by the inactive 1.7 mod; do not migrate 1.6 settings.
 public sealed class WakeUp17Settings : ModSettings
 {
     public bool Enabled = true;

@@ -9,9 +9,9 @@
   <modDependencies><li><packageId>brrainz.harmony</packageId><displayName>Harmony</displayName><steamWorkshopUrl>steam://url/CommunityFilePage/2009463077</steamWorkshopUrl></li></modDependencies>
   <loadAfter><li>brrainz.harmony</li></loadAfter>
   <incompatibleWith><li>zetrith.prepatcher</li><li>local.rimworldloadingoptimizer.op7validation</li><li>kt.nyx.startupfixes</li></incompatibleWith>
-  <description>Private Wake-Up 1.7 testing candidate. Reviewed for 1.7.4982 rev1280 and the recorded Harmony 3.0.0-rc.3 build; other builds retain ordinary loading. Does not require or support Prepatcher on 1.7.
+  <description>Wake-Up 1.7 development preview. Startup optimizations are disabled because repeated cloud comparisons did not establish a reliable loading-time benefit. Native RimWorld loading is used, including for profiles with previously enabled preview settings. No Wake-Up search or deferred-loading patches are installed.
 
-Reduces selected repeated definition, code type and member searches. Translation member reuse is optional and duplicate translation checking stays native. Each operation checks compatibility and retains ordinary loading when unsupported. Restart after changing settings.
+Exact build checks remain for the reviewed 1.7.4982 rev1280 and recorded Harmony 3.0.0-rc.3 build. Does not require or support Prepatcher on 1.7. Existing preview preferences are preserved without activating features.
 
-RimWorld keeps ownership of textures, asset preparation, caching, loading screens and background loading. Earlier loading before Wake-Up's mod constructor is not observed. This candidate has offline validation only; gameplay correctness and loading-time improvements require later in-game testing. Not authorized for publication.</description>
+No loading-time improvement is claimed. Final Windows verification, played installation and binary/tag/Workshop release remain local and owner-controlled. Not authorized for publication.</description>
 </ModMetaData>
