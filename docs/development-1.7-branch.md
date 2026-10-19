@@ -4,17 +4,20 @@ The `1.7` branch is the shared source for ongoing local and cloud development.
 It is separate from the published 1.6 release on `main`. Publishing this source
 does not publish a Workshop package, GitHub release, release tag or installation.
 
-The current product is 0.5.0-preview.2. Its runtime and build checks admit the
-reviewed 1.7.4982 rev1280 game and Harmony rc.3 on Windows or Linux x64 with
-the .NET 10 runtime. The latest Linux unstable build 26031547, depot 294103,
-manifest 4415223985052641865 has byte-identical Assembly-CSharp, UnityStubs and
-Waylith references to the Windows review. Exact identity and method checks remain
-unchanged. A bounded Linux functional test passed with real Wake-Up work,
-600+ ticks, save/reload and normal exit. See [cloud development](cloud-development.md)
-for evidence, startup instructions and the verified fresh-image access route.
-See [the compatibility review](compatibility-1.7.4982.md).
-The staged candidate has offline checks; those do not establish current-game
-performance, graphics or gameplay compatibility.
+The current product remains unpublished 0.5.0-preview.2 development source.
+The [19 October investigation](qualification-1.7-cloud-20261019.md) found no
+qualified loading-time improvement. `codex/1.7-loading-reduction` removes runtime
+activation of all search features and their settings toggles. Old preview values
+are retained without activating hooks. Native 1.7 loading is the recommendation.
+
+Exact runtime and build checks still admit only the reviewed 1.7.4982 rev1280
+game and Harmony rc.3 on Windows or Linux x64 with .NET 10. Linux unstable build
+26031547, depot 294103, manifest 4415223985052641865 has byte-identical
+Assembly-CSharp, UnityStubs and Waylith references to the Windows review. Earlier
+active-candidate checks remain tied to their original DLLs; see
+[cloud development](cloud-development.md) and
+[compatibility review](compatibility-1.7.4982.md). None establishes a current
+loading benefit or Windows/graphics/audio-playback qualification.
 
 Development follows the latest 1.7 build on Steam's `unstable` track while 1.7
 remains there, then the main release track when it becomes the intended 1.7

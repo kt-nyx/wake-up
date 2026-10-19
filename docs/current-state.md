@@ -2,13 +2,17 @@
 
 ## Current cloud loading investigation
 
-The owner authorized autonomous cloud development, functional tests and matched
-performance measurements on 19 October. Public work starts from `6c5cc157` on
-`codex/1.7-loading-reduction`. The prepared current unstable game was independently
-corroborated and actual fresh game tests passed. The first members-only comparison
-has not established a useful benefit; native profiling and a bounded public-content
-collection are being prepared. See [the live investigation record](qualification-1.7-cloud-20261019.md).
-Historical offline restrictions below do not limit this cloud task. Windows
+The 19 October cloud investigation found no reliable useful loading improvement
+on current unstable 1.7.4982 rev1280/build 26031547. Four balanced members-only
+pairs gave two wins and two losses; native English/French profiles and a bounded
+audio investigation did not justify another feature. Current development source
+on `codex/1.7-loading-reduction` disables all unqualified 1.7 search and lifetime
+patches, even with old enabled preferences. Use native 1.7 loading. Exact build
+checks and settings compatibility remain intact; released 1.6 is unchanged.
+See [the full measurements and decisions](qualification-1.7-cloud-20261019.md).
+
+The owner authorized cloud builds, functional tests and measurements for this
+task, superseding historical offline restrictions below. Final Windows
 verification, played installation and binary/tag/Workshop release remain local.
 
 ## Public development and cloud setup

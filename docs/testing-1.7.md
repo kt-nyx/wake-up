@@ -1,11 +1,18 @@
 # Wake-Up 1.7 testing handoff
 
+**Current development disposition (19 October):** all search features are disabled
+in `codex/1.7-loading-reduction`, including for existing enabled profiles. No
+reliable loading benefit was established. See the
+[current investigation](qualification-1.7-cloud-20261019.md). The active-feature
+behavior and dated assignments below describe earlier candidates. Build commands
+and exact reference requirements remain applicable.
+
 This private candidate removes the Prepatcher requirement for 1.7. It retains
 selected searches and leaves textures, persistent caches, asset preparation and
 loading screens to RimWorld. Offline checks establish build and synthetic behavior;
 in-game correctness and useful loading-time improvement remain separate questions.
 
-## Candidate behavior
+## Earlier active-candidate behavior
 
 Definition/template, Harmony type-name fallback, leaf-class and loading-member
 reuse are independently selectable and initially on. Translation member reuse is

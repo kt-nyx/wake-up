@@ -1,5 +1,11 @@
 # Wake-Up 1.7 implementation plan
 
+**Historical implementation plan.** The
+[19 October cloud investigation](qualification-1.7-cloud-20261019.md) found no
+qualified loading benefit. Current development source disables these search
+features for new and existing profiles; the original scope below is retained
+as history. Current cloud authorization superseded the original offline limit.
+
 Wake-Up 1.7 will avoid selected repeated searches without requiring Prepatcher.
 The first candidate keeps the released 1.6 runtime separate and leaves Waylith's
 asset preparation, texture storage and loading queues in charge. It is a private

@@ -1,6 +1,6 @@
 # Wake-Up: Loading Optimizations
 
-> **1.7 development branch:** current preview source is public here. This is not a binary release. Private cloud building, bounded live testing and source synchronization are verified; final Windows verification and release publication remain local. See [cloud instructions](docs/cloud-development.md) and [development branch status](docs/development-1.7-branch.md).
+> **1.7 development:** no reliable loading-time improvement was established. The unqualified preview features are disabled in current development source, including for existing enabled profiles. Use native 1.7 loading. See [measurements and decisions](docs/qualification-1.7-cloud-20261019.md). No binary release or played installation is included.
 
 Wake-Up avoids selected repeated loading work in RimWorld. **0.4.2** is available
 on [GitHub](https://github.com/kt-nyx/wake-up/releases/tag/v0.4.2) and
@@ -16,11 +16,12 @@ as do older gameplay/performance results. Linux/Deck remains outside the tested 
 The published 1.6 version requires Prepatcher; supported supplier mods remain optional. Benefits depend
 on the workload. Enabling every optional feature is not a performance preset.
 
-A separate **unpublished 1.7 preview** removes Prepatcher and retains only selected
-search improvements. It is prepared for later authorized game tests and is not
-gameplay- or performance-qualified. See the [implementation plan](docs/implementation-1.7.md)
-and [testing handoff](docs/testing-1.7.md). No official Workshop update is assigned
-before 1.7 reaches the main game branch and final validation/owner approval.
+The separate **unpublished 1.7 preview** requires no Prepatcher. Its search
+features failed to establish a useful loading benefit on the reviewed 1.7 stream
+and are disabled. Exact compatibility checks and legacy preferences are retained.
+The [implementation plan](docs/implementation-1.7.md) and
+[testing handoff](docs/testing-1.7.md) preserve earlier candidate history. Final
+Windows verification and binary/tag/Workshop release remain owner-controlled.
 
 - [User guide](docs/user-guide.md): installation, settings and limitations.
 - [Current state](docs/current-state.md): exact release and repository status.

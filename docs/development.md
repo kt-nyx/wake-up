@@ -2,8 +2,10 @@
 
 For public `1.7` development, follow [the branch status](development-1.7-branch.md)
 and the current user's task. The owner authorized a dedicated cloud development
-workflow on 19 October. Its setup and Linux qualification are pending; final
-Windows candidate verification and release publication remain local. The dated
+workflow on 19 October. Cloud setup and bounded live checks are complete. The
+[current loading investigation](qualification-1.7-cloud-20261019.md) found no
+qualified benefit and disabled the unqualified 1.7 features in development source.
+Final Windows verification and release remain local. The dated
 overnight instructions below are retained evidence, not a renewed assignment.
 
 Use the [current release baseline](current-state.md) and existing checkout.
