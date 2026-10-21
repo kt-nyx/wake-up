@@ -284,9 +284,24 @@ class SnapshotTests(unittest.TestCase):
         snapshot.write(clean / 'manifest.json', raw)
         original_manifest_bytes = (clean / 'manifest.json').read_bytes()
         parts, store = self.root / 'projected-parts', self.root / 'store'
-        packed = snapshot_store.pack(clean, parts, part_bytes=500)
+        from collections import Counter
+        from unittest.mock import patch
+        opened = Counter()
+        original_open = Path.open
+
+        def guarded_open(path, *args, **kwargs):
+            if path.is_relative_to(clean):
+                relative = path.relative_to(clean).as_posix()
+                self.assertFalse(relative.startswith('packages/test.custom/')
+                                 and snapshot.administrative_rule(relative.removeprefix('packages/test.custom/')))
+                opened[relative] += 1
+            return original_open(path, *args, **kwargs)
+
+        with patch.object(Path, 'open', guarded_open):
+            packed = snapshot_store.pack(clean, parts, part_bytes=500)
         self.assertNotEqual(packed['snapshotId'], raw['snapshotId'])
         projected = snapshot.read(parts / 'snapshot-manifest.json')
+        self.assertTrue(all(opened[row['path']] == 1 for row in projected['files']))
         self.assertEqual(projected['sourceRawCaptureId'], raw['snapshotId'])
         self.assertEqual(projected['activeOrder'], raw['activeOrder'])
         self.assertEqual(projected['omitted'], raw['omitted'])
@@ -325,6 +340,21 @@ class SnapshotTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, 'Credential-file candidate'):
                     snapshot.export_snapshot(self.source, self.request, self.root / ('reject-' + name))
             candidate.unlink()
+
+    def test_pack_checks_duplicate_bytes_before_emitting_final_outputs(self):
+        output = self.root / 'frozen'
+        snapshot.export_snapshot(self.source, self.request, output)
+        representative = output / 'packages/test.library/content.xml'
+        duplicate = output / 'packages/test.custom/content.xml'
+        self.assertEqual(snapshot.digest(representative), snapshot.digest(duplicate))
+        duplicate.write_bytes(b'X' * duplicate.stat().st_size)
+        parts = self.root / 'broken-parts'
+        with self.assertRaisesRegex(ValueError, 'Changed snapshot file: packages/test.custom/content.xml'):
+            snapshot_store.pack(output, parts, part_bytes=500)
+        self.assertEqual(representative.read_text(), 'latest bytes')
+        for name in ('snapshot-manifest.json', 'transfer-index.json', 'pack-receipt.json'):
+            self.assertFalse((parts / name).exists())
+        self.assertFalse(list(parts.glob('*-index.zip')))
 
 
     def test_store_rejects_noncanonical_paths_and_redirected_store(self):

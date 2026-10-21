@@ -18,7 +18,7 @@ import zipfile
 
 from datetime import datetime, timezone
 from mod_snapshot import (administrative_rule, digest, exclusion_record, files, no_link,
-                          read, reject_credential_file, require, select, verify_snapshot, write)
+                          read, reject_credential_file, require, select, write)
 
 
 def ordinary_path(path):
@@ -274,8 +274,12 @@ def runtime_manifest(manifest):
 
 def pack(snapshot, out, base=None, part_bytes=31 * 1024 * 1024, have_inventory=None):
     started = time.monotonic()
-    root, out = Path(snapshot).resolve(), Path(out).resolve()
-    manifest = runtime_manifest(validate(verify_snapshot(root)))
+    root, out = ordinary_path(snapshot).resolve(), ordinary_path(out).resolve()
+    raw = validate(read(root / 'manifest.json'))
+    listed = {row['path'] for row in raw['files']} | {'manifest.json'}
+    require({p.relative_to(root).as_posix() for p in files(root)} == listed,
+            'Snapshot contains missing or unlisted files')
+    manifest = runtime_manifest(raw)
     parent = validate(read(base)) if base else None
     rows = unique_rows(manifest)
     parent_rows = unique_rows(parent) if parent else {}
@@ -289,29 +293,60 @@ def pack(snapshot, out, base=None, part_bytes=31 * 1024 * 1024, have_inventory=N
     require(not out.exists() and not out.is_relative_to(root) and not root.is_relative_to(out), 'Use a fresh separate transfer directory')
     require(0 < part_bytes <= 31 * 1024 * 1024, 'Parts must fit the 32 MiB private attachment limit')
     out.mkdir(parents=True)
-    write(out / 'snapshot-manifest.json', manifest)
     index = dict(schema='rimworld-snapshot-store-transfer.v1', snapshotId=manifest['snapshotId'],
                  requiredParentSnapshotId=parent['snapshotId'] if parent else None, manifest=manifest,
                  payloadHashes=sorted(missing), reusedObjects=len(unique_rows(manifest)) - len(missing))
     if additional:
         index['additionalReuseHashes'] = sorted(additional)
+    stamps = {}
+
+    def check_source(row, sink=None):
+        path = root / row['path']
+        no_link(path)
+        before = path.stat()
+        require(before.st_size == row['bytes'], f'Changed snapshot file: {row["path"]}')
+        h, count = hashlib.sha256(), 0
+        with path.open('rb') as source:
+            while data := source.read(1024 * 1024):
+                count += len(data)
+                require(count <= row['bytes'], f'Changed snapshot file: {row["path"]}')
+                h.update(data)
+                if sink is not None:
+                    sink.write(data)
+        require(count == row['bytes'] and h.hexdigest() == row['sha256'],
+                f'Changed snapshot file: {row["path"]}')
+        stamps[path] = (before.st_size, before.st_mtime_ns)
+
     writer = PartWriter(out, manifest['snapshotId'], part_bytes)
+    emitted = set()
     with tarfile.open(fileobj=writer, mode='w|') as tar:
-        for key, row in sorted(missing.items()):
+        for row in manifest['files']:
+            key = row['sha256']
+            if key not in missing or key in emitted:
+                # Every duplicate path and reused object source is independently
+                # read/hash-checked, even if a representative was already valid.
+                check_source(row)
+                continue
             # One compressed object at a time; no second whole-collection archive.
             with tempfile.TemporaryFile() as compressed:
                 with gzip.GzipFile(fileobj=compressed, mode='wb', filename='', mtime=0, compresslevel=3) as sink:
-                    with (root / row['path']).open('rb') as source:
-                        shutil.copyfileobj(source, sink)
+                    check_source(row, sink)
                 length = compressed.tell()
                 compressed.seek(0)
                 info = tarfile.TarInfo('objects/' + key + '.gz')
                 info.size, info.mode = length, 0o644
                 tar.addfile(info, compressed)
+            emitted.add(key)
     writer.finish()
+    require(emitted == set(missing), 'Missing packed runtime objects')
+    require({p.relative_to(root).as_posix() for p in files(root)} == listed,
+            'Snapshot file membership changed during packing')
+    require(all((p.stat().st_size, p.stat().st_mtime_ns) == stamp for p, stamp in stamps.items()),
+            'Snapshot source changed during packing')
     index.update(parts=writer.parts, archiveBytes=writer.size, archiveSha256=writer.hash.hexdigest(),
                  payloadUncompressedBytes=sum(r['bytes'] for r in missing.values()),
                  resultingFileBytes=sum(r['bytes'] for r in manifest['files']))
+    write(out / 'snapshot-manifest.json', manifest)
     write(out / 'transfer-index.json', index)
     with zipfile.ZipFile(out / (manifest['snapshotId'] + '-index.zip'), 'x', zipfile.ZIP_DEFLATED) as z:
         z.write(out / 'transfer-index.json', 'transfer-index.json')

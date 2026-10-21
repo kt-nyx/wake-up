@@ -227,12 +227,21 @@ Create the complete first transfer:
 python cloud/rimworld/snapshot_store.py pack PRIVATE_CAPTURE --out PRIVATE_TRANSFER
 ```
 
-For a legacy raw capture containing administrative files, packing first verifies
-the entire original manifest/tree, then derives a complete runtime manifest with
-only the explicit administrative exclusions above. It records `sourceRawCaptureId`
+For a legacy raw capture containing administrative files, packing validates the
+original manifest identity, safe paths, exact listed file membership and no links,
+then derives a complete runtime manifest with only the explicit administrative
+exclusions above, before reading file contents. It records `sourceRawCaptureId`
 and per-package/path exclusions, recomputes `snapshotId`, and writes
 `snapshot-manifest.json` in the transfer output. Only runtime-manifest objects are
 packaged; no recopy/recapture is required and the raw tree/manifest stay unchanged.
+Every runtime source row is size/hash-checked once: a unique transferred object is
+checked while streaming into gzip, and each duplicate path or reused object source
+is independently read and checked. Administrative contents are not read. Exact
+membership/no-link and source-change checks remain mandatory. Final target
+manifest/index/receipt are emitted only after all runtime rows pass; partial part
+files from a failed pack are incomplete and must not be transferred as accepted.
+There is no standalone full-data verification pass before compression. Receive
+still verifies every reconstructed object and the complete target.
 Credential candidates outside excluded metadata still fail. Clean captures keep
 their exact identity. Use the printed runtime ID for receive/default selection;
 the legacy raw ID is local provenance only, never the default. For subsequent
