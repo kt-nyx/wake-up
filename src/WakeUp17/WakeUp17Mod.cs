@@ -14,30 +14,12 @@ public sealed class WakeUp17Mod : Mod
 
     public WakeUp17Mod(ModContentPack content) : base(content)
     {
+        // Preserve the existing settings schema and values. Even previously enabled
+        // profiles must use native loading until a useful feature is qualified.
         try
         {
-            var settings = GetSettings<WakeUp17Settings>();
+            _ = GetSettings<WakeUp17Settings>();
             RuntimeContract.RequireRuntime(typeof(Mod).Assembly);
-            if (settings.TranslationPredicate && !string.Equals(Prefs.LangFolderName, "English", StringComparison.Ordinal))
-            {
-                var context = new RuntimeContext(typeof(Mod).Assembly, m => Log.Message(m));
-                var feature = new TranslationPredicates(context);
-                context.Install(TranslationPredicates.Feature, true, feature.Install, feature.Clear);
-                if (!feature.Installed) { state = context.Report; return; }
-                try
-                {
-                    new SessionLifetime(context, () => PlayDataLoader.Loaded, () => LongEventHandler.AnyEventNowOrWaiting)
-                        .Install(context.NamedMethod("Verse.Root_Entry", "Update"));
-                }
-                catch
-                {
-                    try { context.CompleteStartup(); }
-                    finally { context.Unpatch("lifetime"); }
-                    throw;
-                }
-                state = "Experimental translation predicate selected. Loading-time benefit remains unqualified.";
-                return;
-            }
             Log.Message("[Wake-Up 1.7] " + state + " Native loading is used; no Wake-Up patches are installed.");
         }
         catch (Exception error)
@@ -52,13 +34,11 @@ public sealed class WakeUp17Mod : Mod
     {
         var list = new Listing_Standard { maxOneColumn = true };
         list.Begin(inRect);
-        list.Label("Wake-Up 1.7 development preview — experimental feature off by default.");
-        var settings = GetSettings<WakeUp17Settings>();
-        list.CheckboxLabeled("Experimental translation predicate (next startup; benefit unqualified)", ref settings.TranslationPredicate);
+        list.Label("Wake-Up 1.7 development preview — startup optimizations disabled.");
         list.Label("Repeated cloud comparisons did not establish a reliable loading-time improvement. RimWorld uses its native loading behavior.");
         list.Gap();
         list.Label(state);
-        list.Label("Existing preview preferences are preserved but do not activate retired search features. The experimental predicate is a separate option.");
+        list.Label("Existing preview preferences are preserved but do not activate search features. No Wake-Up startup, gameplay or deferred-loading patches are installed.");
         list.Label("No loading-time improvement is claimed. Wake-Up is not needed for native RimWorld 1.7 loading.");
         list.End();
     }
@@ -74,7 +54,6 @@ public sealed class WakeUp17Settings : ModSettings
     public bool LeafClasses = true;
     public bool LoadingMembers = true;
     public bool TranslationMembers;
-    public bool TranslationPredicate;
     public override void ExposeData()
     {
         Scribe_Values.Look(ref Enabled, "enabled17", true);
@@ -83,6 +62,5 @@ public sealed class WakeUp17Settings : ModSettings
         Scribe_Values.Look(ref LeafClasses, "leafClasses17", true);
         Scribe_Values.Look(ref LoadingMembers, "loadingMembers17", true);
         Scribe_Values.Look(ref TranslationMembers, "translationMembers17", false);
-        Scribe_Values.Look(ref TranslationPredicate, "translationPredicate17", false);
     }
 }
