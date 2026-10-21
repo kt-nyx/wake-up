@@ -140,13 +140,23 @@ def no_credentials(path):
                 f'Populated credential field in settings; provide a sanitized copy: {Path(path).name}')
 
 
-def export_snapshot(source, request, output):
+def export_snapshot(source, request, output, reuse_files=None):
     inv = inventory(source)
     order, added = select(inv, request)
     output = Path(output).resolve()
     roots = [Path(source[k]).resolve() for k in ('gameDir', 'workshopDir', 'profileDir')]
     require(all(output != p and not output.is_relative_to(p) and not p.is_relative_to(output) for p in roots),
             'Snapshot output must be separate from source game, Workshop and profile')
+    reuse = None
+    if reuse_files is not None:
+        reuse = Path(reuse_files).absolute()
+        for path in [*reversed(reuse.parents), reuse]:
+            no_link(path)
+        reuse = reuse.resolve()
+        require(reuse.is_dir(), 'Reuse files must name an existing copied snapshot tree')
+        require(all(reuse != p and not reuse.is_relative_to(p) and not p.is_relative_to(reuse)
+                    for p in roots + [output]),
+                'Reuse files must be separate from source game, Workshop, profile and output')
     require(not output.exists(), 'Use a fresh snapshot output directory')
     output.mkdir(parents=True)
     rows = []
@@ -159,7 +169,26 @@ def export_snapshot(source, request, output):
         before = src.stat()
         target = output / relative
         target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(src, target)
+        reused = False
+        if reuse is not None:
+            prior = reuse / relative
+            if prior.exists() or prior.is_symlink():
+                path = prior
+                while path != reuse:
+                    no_link(path)
+                    path = path.parent
+                # A prior ordinary copy has one link. Already-shared files fall
+                # back to copying, so no played-file hard link can be propagated.
+                if (prior.is_file() and prior.stat().st_nlink == 1 and not prior.samefile(src)
+                        and prior.stat().st_size == before.st_size):
+                    if digest(prior) == digest(src):
+                        try:
+                            os.link(prior, target)
+                            reused = True
+                        except OSError:
+                            pass  # Cross-device/unsupported hard links: ordinary copy.
+        if not reused:
+            shutil.copy2(src, target)
         h = digest(target)
         require(h == digest(src), f'Source changed during capture: {src}')
         stamps[src] = (before.st_size, before.st_mtime_ns)
@@ -334,6 +363,8 @@ def main():
     export.add_argument('--source', required=True)
     export.add_argument('--request', required=True)
     export.add_argument('--out', required=True)
+    export.add_argument('--reuse-files', metavar='DIRECTORY',
+                        help='Reuse hash-matching ordinary copies from a prior snapshot tree; never played files')
     verify = commands.add_parser('verify')
     verify.add_argument('snapshot')
     subset = commands.add_parser('subset')
@@ -352,7 +383,7 @@ def main():
         print(json.dumps(dict(active=len(result['activeOrder']), missing=result['missing'], ambiguous=list(result['ambiguous']))))
     else:
         if args.command == 'export':
-            result = export_snapshot(read(args.source), read(args.request), args.out)
+            result = export_snapshot(read(args.source), read(args.request), args.out, args.reuse_files)
         elif args.command == 'subset':
             result = subset_snapshot(args.snapshot, read(args.request), args.out)
         elif args.command == 'stage':

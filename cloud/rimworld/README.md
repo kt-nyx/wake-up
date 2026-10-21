@@ -141,6 +141,22 @@ python mod_snapshot.py verify snapshots/new-capture
 python transfer.py pack snapshots/new-capture --out transfers/new-capture
 ```
 
+If a capture fails its final source checks after copying files, preserve that
+incomplete tree and retry into a fresh output with updated capture context:
+
+```sh
+python cloud/rimworld/mod_snapshot.py export --source PRIVATE_SOURCE --request PRIVATE_REQUEST \
+  --out NEW_CAPTURE --reuse-files PREVIOUS_COPIED_TREE
+```
+
+Reuse/output must be separate from each other and the played game, Workshop and
+profile roots. Each matching prior ordinary copy is fully hash-compared with the
+current source before hardlink reuse; changed, already-shared or unavailable files
+are copied from current source. Unsupported hardlinks fall back to copying. Played
+files are never linked. The failed tree needs no manifest and is not modified by
+export; keep both snapshot trees unchanged because reused files share storage.
+Result/current-source hashes and all final capture consistency checks still apply.
+
 The exporter copies whole selected mod packages, including their normal version
 folders and `LoadFolders.xml`, so the game can choose the correct content. It
 preserves settings named for the selected package folders/IDs, and the shared

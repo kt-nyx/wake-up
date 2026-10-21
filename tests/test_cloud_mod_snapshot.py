@@ -87,6 +87,48 @@ class SnapshotTests(unittest.TestCase):
         self.assertFalse((child / 'packages/test.custom').exists())
         self.assertFalse((child / 'profile/Config/Mod_Custom_Settings.xml').exists())
 
+    def test_retry_reuses_only_unchanged_copies_and_isolates_played_files(self):
+        from unittest.mock import patch
+        prior = self.root / 'failed-copy'
+        snapshot.export_snapshot(self.source, self.request, prior)
+        (prior / 'manifest.json').unlink()  # Failed captures need no manifest.
+        changed = self.custom / 'content.xml'
+        changed.write_text('new content')
+        output = self.root / 'retry'
+        links = []
+        original_link = snapshot.os.link
+
+        def link(source, target):
+            links.append((Path(source), Path(target)))
+            return original_link(source, target)
+
+        with patch.object(snapshot.os, 'link', side_effect=link):
+            snapshot.export_snapshot(self.source, self.request, output, reuse_files=prior)
+        unchanged = 'packages/test.library/content.xml'
+        self.assertIn((prior / unchanged, output / unchanged), links)
+        self.assertTrue((prior / unchanged).samefile(output / unchanged))
+        self.assertFalse((self.workshop / '123/content.xml').samefile(output / unchanged))
+        relative = 'packages/test.custom/content.xml'
+        self.assertEqual((output / relative).read_text(), 'new content')
+        self.assertEqual((prior / relative).read_text(), 'latest bytes')
+        self.assertFalse((prior / relative).samefile(output / relative))
+        self.assertFalse(changed.samefile(output / relative))
+        (output / unchanged).write_text('snapshot-only edit')
+        self.assertEqual((self.workshop / '123/content.xml').read_text(), 'latest bytes')
+        changed.write_text('later played change')
+        self.assertEqual((output / relative).read_text(), 'new content')
+        for reuse in (self.game, self.workshop, self.profile, prior.parent):
+            with self.assertRaisesRegex(ValueError, 'separate'):
+                snapshot.export_snapshot(self.source, self.request, self.root / 'rejected', reuse_files=reuse)
+        fallback = self.root / 'fallback'
+        fallback_reuse = self.root / 'fallback-reuse'
+        shutil.copytree(prior, fallback_reuse)
+        with patch.object(snapshot.os, 'link', side_effect=OSError('unsupported')) as unsupported:
+            snapshot.export_snapshot(self.source, self.request, fallback, reuse_files=fallback_reuse)
+        self.assertTrue(unsupported.called)
+        self.assertEqual((fallback / relative).read_text(), 'later played change')
+        self.assertFalse((fallback / relative).samefile(changed))
+
     def test_missing_or_ambiguous_package_is_reported_without_silent_substitution(self):
         shutil.rmtree(self.workshop / '123')
         with self.assertRaisesRegex(ValueError, 'unavailable locally: test.library'):
