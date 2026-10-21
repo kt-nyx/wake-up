@@ -11,9 +11,10 @@ A source commit, saved configuration and published filesystem are separate actio
 Read AGENTS.md, this document and [the shared collection workflow](../cloud/rimworld/README.md).
 Inspect Git status before work and preserve dirty/untracked files. The personal
 collection tooling lane is `codex/personal-snapshot-environment-20261021`, derived
-from public `5a1073e6c1dc0b3afba8e98cc78311434fc03961`. Reviewed tooling checkpoints
-are `4262f7242b4bd0b00c3dc5a5753f090715ddaf73` and its Windows test portability
-follow-up `b516e33d2768eaf1edb98babd47a81d24498b448`. Follow the exact checkpoint
+from public `5a1073e6c1dc0b3afba8e98cc78311434fc03961`. The published tooling
+checkpoint is `847535c39ea5d9609321c06d04806f27daa4afe3`, including streamed
+source verification, administrative exclusions and retained-only capture checks.
+Follow the exact checkpoint
 recorded in the environment's startup instructions. Do not automatically switch
 to an older `1.7` branch, reset the checkout or merge private ancestry.
 
@@ -35,8 +36,9 @@ locked restore/build, 67 C# checks and four 1.7 packaging checks passed at
 `4262f724`; private results are under `/workspace/setup/personal-baseline-check-20261021/`.
 The built DLL identity is separate from the installed Wake-Up bytes in a captured
 collection. Do not substitute one for the other without an explicit recorded override.
-`/workspace/setup/refresh-environment.sh` now verifies the retained current base
-only; it does not acquire updates, build, stage or launch. For an assigned build:
+`/workspace/setup/refresh-environment.sh` verifies the retained current base,
+default compressed store and complete official Data; it does not acquire updates,
+build, stage or launch. For an assigned build:
 
 ```sh
 dotnet restore src/WakeUp17/WakeUp17.csproj --locked-mode
@@ -48,12 +50,27 @@ python -m unittest discover -s tests -p test_package_17_candidate.py
 
 ## Frozen personal collection
 
-The owner authorized retaining a full installed collection. Retention is pending
-until actual private bytes are received and verified. Consult
+The full installed collection was received, verified and published privately.
+An explicitly selected fresh ordinary chat verified actual retained store/game/Data
+bytes and staged the full collection with its captured project DLL unchanged.
+These successful retention and staging checks do not establish runtime compatibility:
+the full collection's startup attempt failed during play-data loading. It produced
+no ready state, confirmed loaded order or shutdown acknowledgement. A zero child
+exit status following owned-controller failure recovery is not a normal pass.
+The verified fresh receipt also records successful closed-subset file verification
+and controlled incremental receive, including its required parent and complete
+resulting target. The subset was not staged or launched; the test update did not
+replace the full default. No Linux-specific cause for the runtime failure is
+established. Private receipt:
+`/workspace/setup/fresh-personal-acceptance-20261021/receipts/fresh-acceptance.json`.
+Further private pointers belong in `/workspace/setup/personal-collection-handoff.md`.
+Do not publish collection membership, package IDs/order/settings, file hashes,
+failure logs or downloadable private bundle references. Consult
 `/workspace/setup/personal-collection-handoff.md` and
 `/workspace/setup/default-personal-snapshot.json` for private status and the default
-selector. An unset selector is a blocker, not an empty collection. Populate it
-only after complete verified receive; never infer restoration from a snapshot ID.
+selector and receipt scope. The original full default and compressed store remain
+preserved despite runtime failure. Set future defaults only after complete verified
+receive; never infer restoration or compatibility from a snapshot ID.
 No personal manifest contents or payload belong in Git.
 
 The compressed store is `/workspace/personal-snapshots`. Full manifests identify
@@ -116,12 +133,17 @@ objects plus the expanded fixture, file overhead and working space; keep at leas
 
 The prepared current-target startup controller is
 `/workspace/private-controller/startup-26087487`; read its README. It verifies the
-full 454-entry collection plus an explicitly recorded test-only bridge addition,
+full collection plus an explicitly recorded test-only bridge addition,
 actual loaded order, headless entry readiness, acknowledged shutdown and actual
-exit zero, under wall/CPU/RSS/disk limits. Preflight does not launch; a current
-explicit launch authorization and flag are required. It has not yet run this
-collection. Closed subsets can be staged/verified, but this controller currently
-requires the full collection. No further harness work is implied.
+exit zero as required acceptance conditions, under wall/CPU/RSS/disk limits.
+The fresh full-collection attempt failed before those conditions were met; do not
+repeat it automatically. Supplier-specific findings and installed-package behavior
+remain private; this failure does not establish a Linux-specific cause or qualify
+an active optimization. Preserve exact guards.
+Preflight does not launch; a current explicit launch authorization and flag are
+required. Closed subsets can be staged/verified, but this retained controller
+requires the full collection. The verified subset evidence covers derivation and
+files only; a subset check cannot qualify full-collection runtime behavior.
 
 Never invoke `/workspace/private-controller/latest-26031547/stage_fixture.py` or
 other historical minimal staging over a personal fixture. Preserve the installed
@@ -135,20 +157,26 @@ graphics/audio, Windows compatibility or speed.
 `/workspace/setup/acceptance-fresh-copy.json` remains historical, including
 `personalSnapshotsAbsent=true`. It records source `9d346a0`, historical build
 26031547 and its own DLL/fixture identities. Do not rewrite it to describe the
-personal baseline. A new dated acceptance receipt must record verified receive,
-default selection, official-data equality, tooling/game/controller identities and
-actual checks, then publication and independently observed fresh-chat retention.
-It supersedes the historical receipt only for its explicitly recorded scope.
-Pending checks must remain pending.
+personal baseline. The new editor acceptance records verified receive/default and
+official-data equality. The separate fresh receipt must record actual restored
+configuration/version, retention/staging, failed full runtime and any completed
+subset/incremental checks with their own scope. The fresh evidence bundle is
+hash-verified and retained privately; full failed fixtures stay in their original
+fresh chat, not in the baseline. Evidence-only subset/test manifests are not
+retained snapshots in another chat unless installed through the supported protocol.
+Preserve historical/editor receipts. Successful retention or
+staging supersedes neither a runtime failure nor missing evidence.
 
 The [later discovery campaign](discovery-1.7-20261021.md) was conducted in another
 chat. Its private snapshots, controllers, profiling artifacts and live-run results
 are absent from this restored environment. Fetching its source SHA does not
 restore those artifacts or transfer its runtime qualification.
 
-Publish only after verified bytes and coherent default/startup instructions are
-ready, using the supported environment workflow. Keep it Only me. Verify retention
-in a fresh chat explicitly selecting the published environment. Existing chats do
+The first personal-store publication and fresh retention/staging succeeded;
+full startup failed. Final documentation/handoff publication remains separate and
+owner-controlled. Keep it Only me. Check final file and
+configuration identities in a freshly selected chat; do not repeat full content
+hashing absent a concrete change or restore uncertainty. Existing chats do
 not update automatically; live processes and credentials are not restored by
 assumption. Final Windows installation and binary/tag/GitHub/Workshop releases
 remain separate owner-controlled work.
