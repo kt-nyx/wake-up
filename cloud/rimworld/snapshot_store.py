@@ -114,6 +114,46 @@ def verify(store, identity):
     return manifest
 
 
+def inventory(store):
+    """Advertise only decompressed, hash-verified objects in complete snapshots."""
+    snapshots = ordinary_path(Path(store) / 'snapshots')
+    require(snapshots.is_dir(), 'Missing retained snapshot directory')
+    identities, rows = [], {}
+    for directory in sorted(snapshots.iterdir()):
+        no_link(directory)
+        require(directory.is_dir(), 'Unexpected retained snapshot entry')
+        path = manifest_path(store, directory.name)
+        if not path.exists():
+            continue  # An interrupted receive has not retained a complete manifest.
+        manifest = validate(read(path))
+        require(manifest['snapshotId'] == directory.name, 'Wrong snapshot directory identity')
+        identities.append(directory.name)
+        for key, row in unique_rows(manifest).items():
+            require(key not in rows or rows[key]['bytes'] == row['bytes'], 'Conflicting retained object sizes')
+            rows[key] = row
+    for key, row in rows.items():
+        verify_object(object_path(store, key), row)
+    return dict(schema='rimworld-snapshot-store-inventory.v1', snapshotIds=identities,
+                objects=[dict(sha256=key, bytes=rows[key]['bytes']) for key in sorted(rows)])
+
+
+def inventory_rows(path):
+    value = read(path)
+    require(value.get('schema') == 'rimworld-snapshot-store-inventory.v1', 'Wrong store inventory schema')
+    identities = value['snapshotIds']
+    require(len(identities) == len(set(identities)) and all(
+        x.startswith('rw-') and len(x) == 19 and all(c in '0123456789abcdef' for c in x[3:])
+        for x in identities), 'Invalid inventory snapshot IDs')
+    rows = {}
+    for row in value['objects']:
+        key = row['sha256']
+        require(len(key) == 64 and all(c in '0123456789abcdef' for c in key)
+                and type(row['bytes']) is int and row['bytes'] >= 0 and key not in rows,
+                'Invalid or duplicate inventory object')
+        rows[key] = row
+    return rows
+
+
 def subset(store, identity, request):
     parent = verify(store, identity)
     require(request.get('sourceSnapshotId') == identity, 'Child request must name the exact parent snapshotId')
@@ -207,19 +247,28 @@ class PartReader:
                 'Wrong complete transfer archive')
 
 
-def pack(snapshot, out, base=None, part_bytes=31 * 1024 * 1024):
+def pack(snapshot, out, base=None, part_bytes=31 * 1024 * 1024, have_inventory=None):
     started = time.monotonic()
     root, out = Path(snapshot).resolve(), Path(out).resolve()
     manifest = validate(verify_snapshot(root))
     parent = validate(read(base)) if base else None
-    reusable = set(unique_rows(parent)) if parent else set()
-    missing = {k: row for k, row in unique_rows(manifest).items() if k not in reusable}
+    rows = unique_rows(manifest)
+    parent_rows = unique_rows(parent) if parent else {}
+    available = inventory_rows(have_inventory) if have_inventory else {}
+    for known in (parent_rows, available):
+        require(all(key not in rows or row['bytes'] == rows[key]['bytes'] for key, row in known.items()),
+                'Reusable object size conflicts with target')
+    additional = (set(available) & set(rows)) - set(parent_rows)
+    reusable = set(parent_rows) | additional
+    missing = {k: row for k, row in rows.items() if k not in reusable}
     require(not out.exists() and not out.is_relative_to(root) and not root.is_relative_to(out), 'Use a fresh separate transfer directory')
     require(0 < part_bytes <= 31 * 1024 * 1024, 'Parts must fit the 32 MiB private attachment limit')
     out.mkdir(parents=True)
     index = dict(schema='rimworld-snapshot-store-transfer.v1', snapshotId=manifest['snapshotId'],
                  requiredParentSnapshotId=parent['snapshotId'] if parent else None, manifest=manifest,
                  payloadHashes=sorted(missing), reusedObjects=len(unique_rows(manifest)) - len(missing))
+    if additional:
+        index['additionalReuseHashes'] = sorted(additional)
     writer = PartWriter(out, manifest['snapshotId'], part_bytes)
     with tarfile.open(fileobj=writer, mode='w|') as tar:
         for key, row in sorted(missing.items()):
@@ -242,6 +291,7 @@ def pack(snapshot, out, base=None, part_bytes=31 * 1024 * 1024):
         z.write(out / 'transfer-index.json', 'transfer-index.json')
     receipt = dict(snapshotId=manifest['snapshotId'], requiredParentSnapshotId=index['requiredParentSnapshotId'],
                    objectsTransferred=len(missing), objectsReused=index['reusedObjects'], parts=len(writer.parts),
+                   additionalObjectsReused=len(additional),
                    transferBytes=sum(r['zipBytes'] for r in writer.parts) + (out / (manifest['snapshotId'] + '-index.zip')).stat().st_size,
                    indexZipSha256=digest(out / (manifest['snapshotId'] + '-index.zip')), elapsedSeconds=time.monotonic()-started)
     write(out / 'pack-receipt.json', receipt)
@@ -259,7 +309,12 @@ def receive(index_path, parts, store):
     parent = verify(store, index['requiredParentSnapshotId']) if index['requiredParentSnapshotId'] else None
     rows = unique_rows(manifest)
     expected = set(index['payloadHashes'])
-    require(len(expected) == len(index['payloadHashes']) and expected == set(rows) - (set(unique_rows(parent)) if parent else set()),
+    parent_hashes = set(unique_rows(parent)) if parent else set()
+    additional_list = index.get('additionalReuseHashes', [])
+    additional = set(additional_list)
+    require(len(additional) == len(additional_list) and additional <= set(rows) - parent_hashes,
+            'Invalid additional reuse identities')
+    require(len(expected) == len(index['payloadHashes']) and expected == set(rows) - parent_hashes - additional,
             'Payload identities do not match the required parent')
     for key in set(rows) - expected:
         verify_object(object_path(store, key), rows[key])
@@ -304,6 +359,7 @@ def receive(index_path, parts, store):
         destination.chmod(0o444)
     receipt = dict(snapshotId=manifest['snapshotId'], requiredParentSnapshotId=index['requiredParentSnapshotId'],
                    filesVerified=len(manifest['files']), objectsTransferred=len(seen), objectsReused=len(rows)-len(seen),
+                   additionalObjectsReused=len(additional),
                    retainedObjectBytes=sum(object_path(store, key).stat().st_size for key in rows),
                    transferBytes=sum(r['zipBytes'] for r in index['parts']), elapsedSeconds=time.monotonic()-started)
     return receipt
@@ -393,12 +449,15 @@ def main():
     p.add_argument('snapshot')
     p.add_argument('--out', required=True)
     p.add_argument('--base-manifest')
-    for name in ('receive', 'verify', 'subset', 'stage', 'verify-stage'):
+    p.add_argument('--have-inventory')
+    for name in ('receive', 'verify', 'inventory', 'subset', 'stage', 'verify-stage'):
         p = commands.add_parser(name)
         p.add_argument('--store', required=True)
         if name == 'receive':
             p.add_argument('--index', required=True)
             p.add_argument('--parts', required=True)
+        elif name == 'inventory':
+            p.add_argument('--out', required=True)
         else:
             p.add_argument('--snapshot', required=True)
         if name == 'subset':
@@ -408,7 +467,12 @@ def main():
             p.add_argument('--profile', required=True)
     args = parser.parse_args()
     if args.command == 'pack':
-        result = pack(args.snapshot, args.out, args.base_manifest)
+        result = pack(args.snapshot, args.out, args.base_manifest, have_inventory=args.have_inventory)
+    elif args.command == 'inventory':
+        result = inventory(args.store)
+        write(args.out, result)
+        result = dict(snapshotIds=result['snapshotIds'], objectsVerified=len(result['objects']),
+                      inventorySha256=digest(args.out))
     elif args.command == 'receive':
         result = receive(args.index, args.parts, args.store)
     elif args.command == 'verify':

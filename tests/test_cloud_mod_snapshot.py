@@ -213,6 +213,51 @@ class SnapshotTests(unittest.TestCase):
             snapshot_store.receive(parts / 'transfer-index.json', parts, store)
         self.assertFalse(snapshot_store.manifest_path(store, manifest['snapshotId']).exists())
 
+    def test_store_inventory_reuses_removed_and_readded_content(self):
+        request = dict(self.request, selection=dict(mode='full', reason='Retain full collection'))
+        unique = self.workshop / '456/content.xml'
+        unique.write_text('unique removed and re-added package bytes')
+        original_config = (self.profile / 'Config/ModsConfig.xml').read_text()
+        first = self.root / 'first'
+        original = snapshot.export_snapshot(self.source, request, first)
+        store, parts = self.root / 'store', self.root / 'first-parts'
+        snapshot_store.pack(first, parts, part_bytes=500)
+        self.assertNotIn('additionalReuseHashes', snapshot.read(parts / 'transfer-index.json'))
+        snapshot_store.receive(parts / 'transfer-index.json', parts, store)
+        (self.profile / 'Config/ModsConfig.xml').write_text(original_config.replace('<li>test.unrelated</li>', ''))
+        second = self.root / 'second'
+        parent = snapshot.export_snapshot(self.source, request, second)
+        removed_parts = self.root / 'removed-parts'
+        snapshot_store.pack(second, removed_parts, first / 'manifest.json', part_bytes=500)
+        snapshot_store.receive(removed_parts / 'transfer-index.json', removed_parts, store)
+        inventory = snapshot_store.inventory(store)
+        self.assertEqual(set(inventory['snapshotIds']), {original['snapshotId'], parent['snapshotId']})
+        available = self.root / 'have.json'
+        snapshot.write(available, inventory)
+        (self.profile / 'Config/ModsConfig.xml').write_text(original_config)
+        third = self.root / 'third'
+        restored = snapshot.export_snapshot(self.source, request, third)
+        update = self.root / 'readd-parts'
+        receipt = snapshot_store.pack(third, update, second / 'manifest.json', part_bytes=500, have_inventory=available)
+        self.assertEqual(receipt['objectsTransferred'], 0)
+        index = snapshot.read(update / 'transfer-index.json')
+        self.assertEqual(index['payloadUncompressedBytes'], 0)
+        key = snapshot.digest(unique)
+        self.assertIn(key, index['additionalReuseHashes'])
+        retained = snapshot_store.object_path(store, key)
+        payload = retained.read_bytes()
+        retained.chmod(0o600)
+        retained.unlink()
+        with self.assertRaisesRegex(ValueError, 'Missing required payload'):
+            snapshot_store.receive(update / 'transfer-index.json', update, store)
+        self.assertFalse(snapshot_store.manifest_path(store, restored['snapshotId']).exists())
+        with self.assertRaisesRegex(ValueError, 'Missing required payload'):
+            snapshot_store.inventory(store)
+        retained.write_bytes(payload)
+        retained.chmod(0o444)
+        snapshot_store.receive(update / 'transfer-index.json', update, store)
+        snapshot_store.verify(store, restored['snapshotId'])
+
 
     def test_store_rejects_noncanonical_paths_and_redirected_store(self):
         import hashlib, json

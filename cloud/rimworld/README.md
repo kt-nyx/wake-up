@@ -250,6 +250,38 @@ until the new snapshot passes verification; label controlled test updates explic
 Republish the prepared filesystem to retain an accepted update for future chats.
 The PC can then go offline; it is not needed to reconstruct or stage retained content.
 
+To reuse content retained in any older complete snapshot, the destination exports
+a verified store inventory before the sender packs an update:
+
+```sh
+python cloud/rimworld/snapshot_store.py inventory --store /workspace/personal-snapshots \
+  --out PRIVATE_HAVE_INVENTORY.json
+```
+
+The command decompresses and SHA-256/size-checks every distinct object referenced
+by retained complete manifests. It records only snapshot IDs and hash/size pairs;
+it fails on missing/corrupt referenced content. Unreferenced objects and incomplete
+snapshot directories are not advertised. Filenames/timestamps do not prove reuse.
+Send the inventory and its printed SHA-256 to the capture owner through supported
+private attachments, then verify the attachment hash before using it:
+
+```sh
+python cloud/rimworld/snapshot_store.py pack NEW_CAPTURE --base-manifest PREVIOUS_CAPTURE/manifest.json \
+  --have-inventory PRIVATE_HAVE_INVENTORY.json --out NEW_TRANSFER
+```
+
+Packing reuses named-parent hashes plus matching inventory hashes/sizes, including
+content removed from the parent and later re-added. The parent remains mandatory
+when named. The optional index field `additionalReuseHashes` identifies target
+hashes outside that parent; absence means an empty list, so existing initial and
+parent-only transfers remain readable. The receiver validates the complete
+target/parent/additional-reuse/payload partition and independently checks every
+reused object against target hash/size. A stale inventory cannot make missing
+objects acceptable: receive fails without retaining the target manifest. Return
+the new index/parts and hashes through supported private attachments as usual.
+Zero payload retransmission still has small index/archive framing overhead. Keep
+inventory/index/receipts private; no credentials or synchronization service is used.
+
 Derive a smaller collection without copying shared content. The request uses the
 standard subset schema and names the exact parent `sourceSnapshotId`:
 
