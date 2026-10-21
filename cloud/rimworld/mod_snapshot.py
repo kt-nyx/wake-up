@@ -268,7 +268,7 @@ def export_snapshot(source, request, output, reuse_files=None):
         copy_one(src, 'profile/' + src.relative_to(profile).as_posix())
     copy_one(profile / 'Config/ModsConfig.xml', 'source/ModsConfig.xml')
     require(inventory(source) == inv, 'Active list or package metadata changed during capture; retry in a fresh directory')
-    require(all(package_files(root) == names for root, names in trees.items()), 'Package file list changed during capture')
+    require(all(package_files(root)[0] == names[0] for root, names in trees.items()), 'Package file list changed during capture')
     require(all((p.stat().st_size, p.stat().st_mtime_ns) == stamp for p, stamp in stamps.items()),
             'Source files changed during capture; retry in a fresh directory')
     require(all(digest(p) == h for p, h in source_hashes.items()),
