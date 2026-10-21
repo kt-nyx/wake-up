@@ -5,6 +5,9 @@ It is separate from the published 1.6 release on `main`. Publishing this source
 does not publish a Workshop package, GitHub release, release tag or installation.
 
 The current product remains unpublished 0.5.0-preview.2 development source.
+The [21 October fresh discovery task](discovery-1.7-20261021.md) verified a newer
+unstable target and reached a missing-game-input blocker before new live tests.
+It adds no feature or performance qualification.
 The [19 October investigation](qualification-1.7-cloud-20261019.md) found no
 qualified loading-time improvement. `codex/1.7-loading-reduction` removes runtime
 activation of all search features and their settings toggles. Old preview values
