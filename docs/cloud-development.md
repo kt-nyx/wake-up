@@ -1,185 +1,154 @@
 # Wake-Up cloud development
 
-Wake-Up now has a dedicated private environment, `wake-up-dev-1.7`, for building
-and functional testing away from the owner's PC. The published baseline was
-restored into a fresh setup workspace on 19 October 2026 and passed a current-source
-build and a new live Linux functional check. The smaller refreshed baseline is
-published, with current startup instructions and the reviewed public source pin.
+Use the private `wake-up-dev-1.7` environment and keep it **Only me**. Select it
+explicitly for a new chat. The verified Settings > Codex Cloud > Actions > Edit
+route opens an environment-edit draft; repeated Edit clicks may resume that draft.
+Keep one source/environment editor and one owner for any shared build or fixture.
+A source commit, saved configuration and published filesystem are separate actions.
 
-## Start work
+## Current source and retained inputs
 
-Check the intended current 1.7 stream/build before using the retained game or
-launch examples below. The prepared image and `refresh-environment.sh` retain
-build 26031547; they do not acquire current Steam updates. The
-[21 October target check](discovery-1.7-20261021.md) found a newer unstable build.
-The owner subsequently supplied its legal private refresh, verified and tested
-in this chat. These transfers do not update another chat's published image.
-Obtain and review the actual target before new current-game tests; preserve exact
-admission checks. The old controller examples below remain historical recipes.
+Read AGENTS.md, this document and [the shared collection workflow](../cloud/rimworld/README.md).
+Inspect Git status before work and preserve dirty/untracked files. The personal
+collection tooling lane is `codex/personal-snapshot-environment-20261021`, derived
+from public `5a1073e6c1dc0b3afba8e98cc78311434fc03961`. Reviewed tooling checkpoints
+are `4262f7242b4bd0b00c3dc5a5753f090715ddaf73` and its Windows test portability
+follow-up `b516e33d2768eaf1edb98babd47a81d24498b448`. Follow the exact checkpoint
+recorded in the environment's startup instructions. Do not automatically switch
+to an older `1.7` branch, reset the checkout or merge private ancestry.
 
-The verified browser access route is **Settings > Codex Cloud >
-wake-up-dev-1.7 > Actions > Edit**. It opened a fresh setup workspace from the
-published image. A generic `create_thread` WorkCloud creation request does not
-select a named environment; naming the environment in a prompt is insufficient.
-Normal desktop environment selection can be used when available, but that selector
-was not tested in this check. Give the new chat the Wake-Up task and ask it to
-read this document and AGENTS.md before working. **Edit opens an environment-edit
-draft.** It can serve as the cloud workspace, but ordinary source commits require
-no Save/Publish. Coordinate one editor per active draft; repeated Edit clicks are
-not proof of independent concurrent machines. Use explicit desktop environment
-selection for ordinary chats when available and verify their retained inputs.
-Local Windows remains available for other work. Keep a single owner for a shared
-build or fixture inside one chat.
-
-In the cloud, the source checkout is `/workspace/wake-up`. Each shell uses:
+The authoritative game identity is `/workspace/setup/current-game.json`, not an
+old example or source SHA. The currently prepared Linux base is **1.7.4984 rev1242**,
+unstable build **26087487**, depot **294103**, manifest **8009297283328867975**.
+All 1,709 base files were verified. The canonical base contains no DLC. It is a
+dated target, not a promise of future Steam currency.
 
 ```sh
 source /workspace/setup/activate.sh
-export WAKE_UP_17_GAME_DIR=/workspace/private-inputs/seed-20261019/windows-reference
-export WAKE_UP_17_HARMONY_DIR=/workspace/private-inputs/seed-20261019/harmony
 cd /workspace/wake-up
+export WAKE_UP_17_GAME_DIR="$(python -c 'import json; print(json.load(open("/workspace/setup/current-game.json"))["gamePath"])')"
+export WAKE_UP_17_HARMONY_DIR=/workspace/private-inputs/seed-20261019/harmony
 ```
 
-The public `1.7` branch is the source exchange between Windows and cloud. Inspect
-the checkout and fetch `origin 1.7`; in a clean new chat, start the task's `codex/`
-branch from the current public remote branch. Preserve dirty work in an ongoing
-chat. Push only authorized public branches. The local private development history
-must never be merged into or pushed over the public branch. Pull/review the public
-task branch locally for final Windows verification. Source synchronization is
-separate from publishing a binary or Workshop release.
-
-Use SDK 10.0.401, PowerShell 7.5.4, locked restores and the 1.7 project:
+Use SDK 10.0.401, PowerShell 7.5.4 and exact game/Harmony guards. Current-source
+locked restore/build, 67 C# checks and four 1.7 packaging checks passed at
+`4262f724`; private results are under `/workspace/setup/personal-baseline-check-20261021/`.
+The built DLL identity is separate from the installed Wake-Up bytes in a captured
+collection. Do not substitute one for the other without an explicit recorded override.
+`/workspace/setup/refresh-environment.sh` now verifies the retained current base
+only; it does not acquire updates, build, stage or launch. For an assigned build:
 
 ```sh
 dotnet restore src/WakeUp17/WakeUp17.csproj --locked-mode
 dotnet build src/WakeUp17/WakeUp17.csproj -c Release --no-restore
 dotnet restore tests/WakeUp17.Tests/WakeUp17.Tests.csproj --locked-mode
 dotnet test tests/WakeUp17.Tests/WakeUp17.Tests.csproj -c Release --no-restore
+python -m unittest discover -s tests -p test_package_17_candidate.py
 ```
 
-`/workspace/setup/refresh-environment.sh` is the retained full prerequisite/build
-recipe. It does not launch a game. Do not use the legacy 1.6 solution for this lane.
-Current exact reference checks apply on either build host. Keep game files,
-third-party mods, profiles, saves, caches and raw evidence outside Git.
+## Frozen personal collection
 
-## Minimal functional test
+The owner authorized retaining a full installed collection. Retention is pending
+until actual private bytes are received and verified. Consult
+`/workspace/setup/personal-collection-handoff.md` and
+`/workspace/setup/default-personal-snapshot.json` for private status and the default
+selector. An unset selector is a blocker, not an empty collection. Populate it
+only after complete verified receive; never infer restoration from a snapshot ID.
+No personal manifest contents or payload belong in Git.
 
-The private Linux game source is under
-`/workspace/rimworld-runtime/games/linux-unstable-1.7.4982-rev1280-build26031547/game`.
-The current controller is `/workspace/private-controller/latest-26031547`.
-Read its README before operating it; the historical seed handoff targets an older
-game and must not be replayed.
-
-When the assigned task includes live functional testing:
+The compressed store is `/workspace/personal-snapshots`. Full manifests identify
+all selected files/settings and order; immutable gzip objects are shared outside
+fixtures. Receive through supported private attachments, verifying the sender's
+index ZIP hash first. Incremental receive requires the exact retained parent and
+verifies the complete resulting snapshot. Keep all accepted objects/parents and
+index/receipts. Remove only newly materialized transport copies after success.
 
 ```sh
-python /workspace/private-controller/latest-26031547/stage_fixture.py --stage
-python /workspace/private-controller/latest-26031547/qualify.py \
-  --approve-live-game-launch --fixture <the-new-fixture-json-returned-above>
+python cloud/rimworld/snapshot_store.py receive --store /workspace/personal-snapshots \
+  --index PRIVATE_INDEX --parts PRIVATE_PARTS
+python cloud/rimworld/snapshot_store.py verify --store /workspace/personal-snapshots \
+  --snapshot VERIFIED_FULL_ID
 ```
 
-The fixture has exact Harmony, the current Wake-Up build, Core, all five DLCs and
-a test-only bridge. It uses a separate profile/cache/save/results tree under
-`.rlo-test-instance/1.7/` and launches the native Linux apphost. It proves actual
-Wake-Up work, a small colony, 600+ ticks, save/reload and normal exit. The bridge
-is test infrastructure and is never part of a release package. Preserve existing
-fixtures and failed evidence; do not reuse old results or terminate another game.
+A closed subset includes required dependencies and active official packages in
+original relative order. Its private request uses the standard test-request
+schema, `selection.mode=subset`, explicit package IDs/reason and exact
+`sourceSnapshotId`. Unresolved `investigate` is not executable.
 
-## Full, partial and delegated collections
+```sh
+python cloud/rimworld/snapshot_store.py subset --store /workspace/personal-snapshots \
+  --snapshot VERIFIED_FULL_ID --request PRIVATE_SUBSET_REQUEST
+python cloud/rimworld/snapshot_store.py verify --store /workspace/personal-snapshots \
+  --snapshot RETURNED_CHILD_ID
+```
 
-Follow the [shared baseline and mod snapshot workflow](../cloud/rimworld/README.md).
-Its scripts are in `cloud/rimworld/`. On the owner's PC, a ready copy and private
-source configuration live in the shared RimWorld `Cloud Development` directory.
-The ordinary Wake-Up baseline includes no personal mod collection or owner saves.
+## Fresh game, retained DLC and startup check
 
-For a larger campaign, have the local agent export the current active profile
-with `mod_snapshot.py`. Use `full`, an explicit `subset`, or an agent investigation
-that resolves to a documented subset. Required dependencies and active DLCs are
-included in stable source order. Transfer the immutable snapshot through supported
-private attachments/storage before the PC becomes unavailable. Future local
-Workshop/custom-mod updates require a new export; they do not appear automatically
-in a disconnected cloud chat.
+The private handoff gives the exact copy recipe: create a new fixture below
+`/workspace/wake-up/.rlo-test-instance/1.7/`, independently copy the canonical
+current base identified by current-game.json, then independently copy **only**
+Royalty, Ideology, Biotech, Anomaly and Odyssey from the retained historical
+`linux-unstable-1.7.4982-rev1280-build26031547/game/Data` tree. Do not copy its old
+Core, executable or libraries. Use no hard links to writable fixture files;
+copy-on-write cloning was unsupported in the measured fixture storage.
 
-Give a delegated agent the exact snapshot ID, accessible private bytes, candidate
-source revision, checks, limits and result destination. When it receives a full
-snapshot, it can derive a smaller child with the standard request schema without
-contacting the PC. Separate cloud chats need their own actual access to the files;
-ordinary subagents can use the parent's filesystem. Stage the selected snapshot
-into a fresh isolated game/profile, explicitly replace `kt.nyx.wakeup` with the
-built candidate, then attach the test bridge and run the appropriate controller.
-Do not invoke minimal staging afterward and accidentally discard the collection.
+Before staging, verify complete official package file sets/sizes/hashes against
+the private owner-capture evidence. All six packages (2,600 files) matched during
+preparation. Retained DLC remains owner-installed data with historical provenance;
+byte equality is not a refreshed official Linux DLC acquisition or full DLC
+compatibility qualification. Standard snapshot official-package metadata alone
+cannot prove those bytes. Preserve old games, DLC, fixtures and evidence.
 
-## Accepted setup evidence and limits
+After independently verifying the fresh base/Data, stage the selected full or
+closed-subset snapshot into its fresh game without Mods and a nonexistent profile:
 
-The fresh copy retained activation, installed tools, private references, the latest
-controller, canonical game, source checkout and prior acceptance evidence. The
-original setup chat's personal snapshot directory, created only after publication,
-was absent. This distinguishes restoration of the published image from reuse of
-that original chat's later filesystem.
+```sh
+python cloud/rimworld/snapshot_store.py stage --store /workspace/personal-snapshots \
+  --snapshot SELECTED_ID --game NEW_FIXTURE/game --profile NEW_FIXTURE/profile
+python cloud/rimworld/snapshot_store.py verify-stage --store /workspace/personal-snapshots \
+  --snapshot SELECTED_ID --game NEW_FIXTURE/game --profile NEW_FIXTURE/profile
+```
 
-The fresh run tested source `9d346a088b6dc8ad3b41b37027bd9bb2d2a4232a` with
-Wake-Up DLL SHA-256
-`8a091c431ada4dc824d6ec8fc22b785a632b61d5001a32a3edc1a36318bc637b`.
-SDK 10.0.401 and PowerShell 7.5.4 passed exact reference guards and locked restores;
-the Release build had zero warnings/errors, 67 C# tests passed, and four packaging
-plus five snapshot tests passed. A newly staged isolated fixture reached Playing
-with three colonists, performed 29 indexed definition queries and 28,207 reused
-member lookups, advanced at least 600 ticks, saved at tick 653 and reloaded at tick
-654 into a new native game object, then exited normally with acknowledged status
-0. Existing fixtures and evidence were preserved. Detailed private acceptance is
-retained separately in `/workspace/setup/acceptance-fresh-copy.json`. The original
-`acceptance-latest.json` remains the earlier run. This later documentation commit
-does not change the tested source/DLL identity or require another runtime run.
+Stage decompresses directly into independent writable files. Budget compressed
+objects plus the expanded fixture, file overhead and working space; keep at least
+4 GiB free. Read the private handoff before materializing parts in memory-backed
+`/tmp`; memory and disk budgets are separate. Do not join a second full archive.
 
-The canonical game's complete 2,911-file hash, size and mode verification passed.
-Only redundant transport caches were removed afterward: 22 raw archive parts,
-22 matching materialized part ZIPs and the reconstructed archive, totaling
-2,078,654,639 bytes. Tiny manifests/receipts, references, controller, installed
-games, fixtures/results, tool runtimes, NuGet and licenses remain. Current refresh
-and staging read the canonical game and payload manifest, so they need none of
-those removed transport bytes. The baseline has no personal mod collection.
-Historical extraction helpers require supported private re-transfer if needed.
+The prepared current-target startup controller is
+`/workspace/private-controller/startup-26087487`; read its README. It verifies the
+full 454-entry collection plus an explicitly recorded test-only bridge addition,
+actual loaded order, headless entry readiness, acknowledged shutdown and actual
+exit zero, under wall/CPU/RSS/disk limits. Preflight does not launch; a current
+explicit launch authorization and flag are required. It has not yet run this
+collection. Closed subsets can be staged/verified, but this controller currently
+requires the full collection. No further harness work is implied.
 
-The editable repository list still normalizes the repository name to
-`kt-nyx/wake-up`, producing an observed Unknown repository UI label. One bounded
-attempt to restore registered ID `github-1360822003` through the existing `name`
-field was rejected by the connector's owner/repository schema pattern; readback
-confirmed no repository configuration change. This UI mapping issue is separate
-from successful managed Git access to the public repository. No alternate keys,
-permissions or APIs were introduced.
+Never invoke `/workspace/private-controller/latest-26031547/stage_fixture.py` or
+other historical minimal staging over a personal fixture. Preserve the installed
+project package by default. Candidate replacement, bridge addition and effective
+order must be explicit and recorded separately. No normal Steam/game process may
+be stopped to obtain conditions. Startup/exit does not prove gameplay, saves,
+graphics/audio, Windows compatibility or speed.
 
-Managed cloud source writing also passed: the fresh cloud agent committed and
-pushed documentation-only branch `codex/cloud-workflow-validation` at
-`6b10be8fdc4670ad40e3c7c27d41508ed488cdbe`. The local agent fetched and reviewed
-that exact commit, checked its public ancestry and limited scope, and advanced
-public `1.7` to it. This verifies the cloud-to-Git-to-local path without a local
-build or copied credentials. Later documentation closeout does not change the
-qualified runtime source or binary above.
+## Acceptance, publication and missing evidence
 
-On 19 October, source `1c1e48ed` built with zero warnings/errors and passed 67
-synthetic C# tests. The real Linux test admitted Wake-Up, performed 29 indexed
-definition queries and 28,207 reused member lookups, then saved at tick 637,
-reloaded at tick 638 into a new game object retaining three colonists, and exited
-normally with acknowledged status 0. Detailed private evidence is retained in
-`/workspace/setup/acceptance-latest.json` and its referenced result directory.
+`/workspace/setup/acceptance-fresh-copy.json` remains historical, including
+`personalSnapshotsAbsent=true`. It records source `9d346a0`, historical build
+26031547 and its own DLL/fixture identities. Do not rewrite it to describe the
+personal baseline. A new dated acceptance receipt must record verified receive,
+default selection, official-data equality, tooling/game/controller identities and
+actual checks, then publication and independently observed fresh-chat retention.
+It supersedes the historical receipt only for its explicitly recorded scope.
+Pending checks must remain pending.
 
-The game is 1.7.4982 rev1280, unstable build 26031547, Linux depot 294103,
-manifest 4415223985052641865. All 1,709 base files matched the official depot;
-1,202 DLC data files were copied unchanged from the owner's installation. Exact
-game, UnityStubs and Waylith references match the reviewed Windows bytes. Runtime
-admission permits Windows/Linux x64 under .NET 10 while retaining the exact
-game/Harmony/method checks and Prepatcher exclusion.
+The [later discovery campaign](discovery-1.7-20261021.md) was conducted in another
+chat. Its private snapshots, controllers, profiling artifacts and live-run results
+are absent from this restored environment. Fetching its source SHA does not
+restore those artifacts or transfer its runtime qualification.
 
-These are dated build identities. Follow the latest 1.7 unstable build until main
-becomes the intended 1.7 stream. A changed game/Harmony needs review, refreshed
-exact references/contracts and a new prepared environment version. If the new
-source requires references the baseline lacks, stop for the actual update; do not
-weaken checks or silently qualify an old build as current.
-
-Type-name reuse correctly stayed native because the bundled runtime reported
-metadata updates enabled. Headless texture/UI warnings, absent-Steam-client
-warnings, DLC version labels on reload, ritual repairs and shutdown allocation
-diagnostics remain in the logs. The test establishes bounded functional cloud
-development, not graphics/audio, full DLC features, the full personal mod stack or
-measured speed. Final Windows verification and release remain local and under the
-owner's control; no binary, tag or Workshop publication accompanies setup.
+Publish only after verified bytes and coherent default/startup instructions are
+ready, using the supported environment workflow. Keep it Only me. Verify retention
+in a fresh chat explicitly selecting the published environment. Existing chats do
+not update automatically; live processes and credentials are not restored by
+assumption. Final Windows installation and binary/tag/GitHub/Workshop releases
+remain separate owner-controlled work.
