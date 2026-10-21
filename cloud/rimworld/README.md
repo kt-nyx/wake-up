@@ -56,7 +56,9 @@ available UI route when shown, but was not tested by this implementation.
    Waylith runtime additionally needed three LTTng packages from signed Debian
    metadata. Install only the prerequisites the actual game requires.
 6. Keep an immutable private game source and the minimal project dependencies.
-   Keep the mod collection out of the ordinary baseline. Build from the cloud
+   Keep the mod collection out of an ordinary baseline unless the owner explicitly
+   requests private retention. A personal baseline may retain the compressed
+   store below, with its default snapshot identified in startup instructions. Build from the cloud
    checkout with exact reference checks and the project's relevant tests. An
    SDK build alone does not prove that a Windows-targeted mod runs on Linux.
    Review platform checks, patching support and exact game references before
@@ -170,6 +172,105 @@ into one private parts directory first. Unpack verifies ZIP parts, the reconstru
 archive, safe paths, every snapshot file and the snapshot identity. Retain the
 source snapshot unchanged for the campaign. The tool does not authenticate, upload,
 pair sync software, launch a game or update the played installation.
+
+## Retain a personal collection and transfer updates efficiently
+
+A retained collection must include the installed files. A snapshot name or a list
+of Workshop IDs cannot restore those versions. When the owner authorizes personal
+retention, publish the private collection with the prepared environment and test
+it in a newly selected cloud chat. Keep the environment private. Existing chats
+retain their own files; saving configuration does not publish a filesystem.
+
+`snapshot_store.py` extends the immutable snapshot workflow. It compresses each
+distinct file once and names it by its uncompressed SHA-256 hash (a content-addressed
+store). Each snapshot keeps the complete standard manifest, including every file,
+package, selected setting and mod order. Shared content remains outside disposable
+fixtures. Whole mod packages and version folders are still selected together.
+
+Capture with `mod_snapshot.py inventory` and `export` as above. Select the actual
+current profile rather than reusing an old source configuration without checking.
+Resolve duplicate package IDs with explicit overrides. Export checks the source
+list, file membership, metadata and content hashes again at the end; an update
+during capture requires a new output directory. Do not stop Steam or a normal game.
+Record capture time and installed-only provenance; this does not acquire pending
+upstream Workshop versions. Keep selected settings credential-free and exclude saves.
+
+Create the complete first transfer:
+
+```sh
+python cloud/rimworld/snapshot_store.py pack PRIVATE_CAPTURE --out PRIVATE_TRANSFER
+```
+
+Transfer the printed index ZIP and all part ZIPs through supported private
+attachments. Each part is below 32 MiB. Verify the sender's `indexZipSha256` from
+`pack-receipt.json` before extracting `transfer-index.json`. The receiver streams
+parts without joining a second complete archive:
+
+```sh
+python cloud/rimworld/snapshot_store.py receive --index PRIVATE_TRANSFER/transfer-index.json \
+  --parts PRIVATE_TRANSFER --store /workspace/personal-snapshots
+python cloud/rimworld/snapshot_store.py verify --store /workspace/personal-snapshots --snapshot SNAPSHOT_ID
+```
+
+The store contains `snapshots/ID/manifest.json` and `objects/XX/SHA256.gz`. Publish
+both trees. Objects are verified by decompression and SHA-256; filenames, sizes and
+timestamps alone are never sufficient. A snapshot manifest is retained only after
+the complete resulting content has passed verification. Existing objects and
+snapshots are preserved; interrupted transfers may leave reusable objects, but
+cannot establish a successfully verified new snapshot.
+
+For an update, export a new complete capture, then:
+
+```sh
+python cloud/rimworld/snapshot_store.py pack NEW_CAPTURE --base-manifest PREVIOUS_CAPTURE/manifest.json --out NEW_TRANSFER
+```
+
+This transfers only unique content absent from the named parent manifest. It
+handles additions, removals, renames, settings and order changes through the complete
+target manifest. The receiver requires and fully verifies that parent; missing
+parents, parts or payloads fail clearly. Receive and verify as above. Never delete
+the parent to make an incremental transfer fit. Keep the original default selected
+until the new snapshot passes verification; label controlled test updates explicitly.
+Republish the prepared filesystem to retain an accepted update for future chats.
+The PC can then go offline; it is not needed to reconstruct or stage retained content.
+
+Derive a smaller collection without copying shared content. The request uses the
+standard subset schema and names the exact parent `sourceSnapshotId`:
+
+```sh
+python cloud/rimworld/snapshot_store.py subset --store /workspace/personal-snapshots \
+  --snapshot FULL_ID --request PRIVATE_SUBSET_REQUEST.json
+```
+
+Required dependencies are included, preserving original relative order and active
+DLCs. Verify the returned child ID, then stage either full or child into a fresh
+isolated game/profile:
+
+```sh
+python cloud/rimworld/snapshot_store.py stage --store /workspace/personal-snapshots \
+  --snapshot SELECTED_ID --game /workspace/wake-up/.rlo-test-instance/CASE/game \
+  --profile /workspace/wake-up/.rlo-test-instance/CASE/profile
+python cloud/rimworld/snapshot_store.py verify-stage --store /workspace/personal-snapshots \
+  --snapshot SELECTED_ID --game /workspace/wake-up/.rlo-test-instance/CASE/game \
+  --profile /workspace/wake-up/.rlo-test-instance/CASE/profile
+```
+
+Use a separately verified matching game and official Data, without Mods; the profile
+must not exist. Staging writes independent writable copies directly from compressed
+objects, avoiding a second expanded snapshot. It checks the exact assembly,
+official package metadata, full deployed mod file set, selected settings and order.
+It retains the installed project package unchanged. Any later candidate replacement
+or test bridge is an explicit recorded change with separate file identities.
+Never run a minimal stager afterward. A successful file check does not establish
+Linux compatibility: preserve startup failures and identify incompatible mods.
+
+Budget retained compressed objects plus a full independent fixture, game/DLC and
+working space before staging. The stager checks a conservative file allocation
+estimate plus a 4 GiB free-space reserve before creating output. `pack-receipt.json` records bytes and elapsed packing;
+receive prints retained object bytes and elapsed verification/reconstruction.
+Record upload/materialization times separately. Retained historical DLC is not a
+refreshed official DLC acquisition. Final Windows installation and binary/release
+publication remain separate owner decisions.
 
 ## Parent and delegated-agent handoff
 

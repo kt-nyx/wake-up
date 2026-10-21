@@ -9,6 +9,7 @@ TOOL = Path(__file__).resolve().parents[1] / 'cloud/rimworld'
 sys.path.insert(0, str(TOOL))
 import mod_snapshot as snapshot
 import transfer
+import snapshot_store
 
 
 class SnapshotTests(unittest.TestCase):
@@ -115,6 +116,97 @@ class SnapshotTests(unittest.TestCase):
         (output / 'packages/test.custom/content.xml').write_text('changed')
         with self.assertRaisesRegex(ValueError, 'Changed snapshot file'):
             snapshot.verify_snapshot(output)
+
+    def test_store_initial_incremental_subset_and_complete_staging(self):
+        first = self.root / 'first'
+        original = snapshot.export_snapshot(self.source, self.request, first)
+        store = self.root / 'retained-private-store'
+        parts = self.root / 'first-parts'
+        initial = snapshot_store.pack(first, parts, part_bytes=500)
+        snapshot_store.receive(parts / 'transfer-index.json', parts, store)
+        # Rename/remove/add package files, and change selected settings and order.
+        (self.custom / 'content.xml').rename(self.custom / 'renamed.xml')
+        (self.workshop / '123/content.xml').unlink()
+        (self.custom / 'new.xml').write_text('added bytes')
+        (self.profile / 'Config/Mod_Custom_Settings.xml').write_text('<settings><value>changed</value></settings>')
+        (self.profile / 'Config/ModsConfig.xml').write_text('<ModsConfigData><activeMods>' + ''.join(
+            f'<li>{p}</li>' for p in ['test.library', 'ludeon.rimworld', 'test.custom', 'test.unrelated']) + '</activeMods></ModsConfigData>')
+        second = self.root / 'second'
+        updated = snapshot.export_snapshot(self.source, self.request, second)
+        update_parts = self.root / 'update-parts'
+        delta = snapshot_store.pack(second, update_parts, first / 'manifest.json', part_bytes=500)
+        self.assertLess(delta['objectsTransferred'], initial['objectsTransferred'])
+        with self.assertRaisesRegex(ValueError, 'Missing required snapshot'):
+            snapshot_store.receive(update_parts / 'transfer-index.json', update_parts, self.root / 'empty-store')
+        snapshot_store.receive(update_parts / 'transfer-index.json', update_parts, store)
+        snapshot_store.verify(store, original['snapshotId'])
+        snapshot_store.verify(store, updated['snapshotId'])
+        child = snapshot_store.subset(store, updated['snapshotId'], dict(self.request,
+            sourceSnapshotId=updated['snapshotId']))
+        self.assertEqual(child['activeOrder'], ['test.library', 'ludeon.rimworld', 'test.custom'])
+        fixture = self.root / '.rlo-test-instance/store-case/game'
+        shutil.copytree(self.game / 'Data', fixture / 'Data')
+        shutil.copy2(self.game / 'Assembly-CSharp.dll', fixture / 'Assembly-CSharp.dll')
+        profile = fixture.parent / 'profile'
+        snapshot_store.stage(store, updated['snapshotId'], fixture, profile)
+        self.assertFalse((fixture / 'Mods/123/content.xml').exists())
+        self.assertFalse((fixture / 'Mods/Custom/content.xml').exists())
+        self.assertEqual((fixture / 'Mods/Custom/renamed.xml').read_text(), 'latest bytes')
+        self.assertEqual((fixture / 'Mods/Custom/new.xml').read_text(), 'added bytes')
+        with self.assertRaisesRegex(ValueError, 'fresh'):
+            snapshot_store.stage(store, updated['snapshotId'], fixture, profile)
+        (fixture / 'Mods/Custom/new.xml').write_text('corrupted')
+        with self.assertRaisesRegex(ValueError, 'Changed deployed file'):
+            snapshot_store.verify_stage(store, updated['snapshotId'], fixture, profile)
+
+    def test_store_missing_or_corrupt_payload_cannot_publish_snapshot(self):
+        source = self.root / 'source'
+        manifest = snapshot.export_snapshot(self.source, self.request, source)
+        parts = self.root / 'parts'
+        snapshot_store.pack(source, parts, part_bytes=500)
+        first_part = next(parts.glob('*-part*.zip'))
+        first_part.write_bytes(b'broken')
+        store = self.root / 'store'
+        with self.assertRaisesRegex(ValueError, 'Wrong ZIP part'):
+            snapshot_store.receive(parts / 'transfer-index.json', parts, store)
+        self.assertFalse(snapshot_store.manifest_path(store, manifest['snapshotId']).exists())
+
+
+    def test_store_rejects_noncanonical_paths_and_redirected_store(self):
+        import hashlib, json
+        output = self.root / 'frozen'
+        manifest = snapshot.export_snapshot(self.source, self.request, output)
+        manifest['files'][0]['path'] = 'packages//test.custom/content.xml'
+        body = {k: v for k, v in manifest.items() if k != 'snapshotId'}
+        manifest['snapshotId'] = 'rw-' + hashlib.sha256(json.dumps(body, sort_keys=True).encode()).hexdigest()[:16]
+        with self.assertRaisesRegex(ValueError, 'noncanonical'):
+            snapshot_store.validate(manifest)
+        real = self.root / 'real-store'
+        real.mkdir()
+        redirected = self.root / 'redirected-store'
+        redirected.symlink_to(real, target_is_directory=True)
+        with self.assertRaisesRegex(ValueError, 'Linked or redirected'):
+            snapshot_store.object_path(redirected, 'a' * 64)
+
+    def test_store_requires_declared_payload_and_exact_settings(self):
+        output = self.root / 'frozen'
+        manifest = snapshot.export_snapshot(self.source, self.request, output)
+        parts, store = self.root / 'parts', self.root / 'store'
+        snapshot_store.pack(output, parts, part_bytes=500)
+        snapshot_store.receive(parts / 'transfer-index.json', parts, store)
+        index = snapshot.read(parts / 'transfer-index.json')
+        index['payloadHashes'] = []
+        snapshot.write(parts / 'bad-index.json', index)
+        with self.assertRaisesRegex(ValueError, 'required parent'):
+            snapshot_store.receive(parts / 'bad-index.json', parts, store)
+        fixture = self.root / '.rlo-test-instance/store-case/game'
+        shutil.copytree(self.game / 'Data', fixture / 'Data')
+        shutil.copy2(self.game / 'Assembly-CSharp.dll', fixture / 'Assembly-CSharp.dll')
+        profile = fixture.parent / 'profile'
+        snapshot_store.stage(store, manifest['snapshotId'], fixture, profile)
+        (profile / 'Config/Unexpected.xml').write_text('<settings/>')
+        with self.assertRaisesRegex(ValueError, 'Unlisted deployed settings'):
+            snapshot_store.verify_stage(store, manifest['snapshotId'], fixture, profile)
 
 
 if __name__ == '__main__':

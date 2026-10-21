@@ -151,6 +151,7 @@ def export_snapshot(source, request, output):
     output.mkdir(parents=True)
     rows = []
     stamps = {}
+    source_hashes = {}
     trees = {}
 
     def copy_one(src, relative):
@@ -162,6 +163,7 @@ def export_snapshot(source, request, output):
         h = digest(target)
         require(h == digest(src), f'Source changed during capture: {src}')
         stamps[src] = (before.st_size, before.st_mtime_ns)
+        source_hashes[src] = h
         require(stamps[src] == (src.stat().st_size, src.stat().st_mtime_ns), f'Source changed: {src}')
         rows.append(dict(path=relative, bytes=target.stat().st_size, sha256=h))
 
@@ -197,12 +199,16 @@ def export_snapshot(source, request, output):
     require(all(files(root) == names for root, names in trees.items()), 'Package file list changed during capture')
     require(all((p.stat().st_size, p.stat().st_mtime_ns) == stamp for p, stamp in stamps.items()),
             'Source files changed during capture; retry in a fresh directory')
+    require(all(digest(p) == h for p, h in source_hashes.items()),
+            'Source bytes changed during capture; retry in a fresh directory')
     manifest = dict(schema='rimworld-mod-snapshot.v1', createdUtc=datetime.now(timezone.utc).isoformat(),
         gameVersion=inv['gameVersion'], gameAssemblySha256=inv['gameAssemblySha256'], request=request,
         activeOrder=order, sourceActiveOrder=inv['activeOrder'], dependenciesAdded=added,
         omitted=[x for x in inv['activeOrder'] if x not in order], packages=packages, files=rows,
         settingsPolicy='Selected package folder/name settings plus explicit extraSettings; no saves, logs, caches or Prefs.xml',
         sourceModsConfigSha256=inv['modsConfigSha256'])
+    if source.get('captureContext'):
+        manifest['captureContext'] = source['captureContext']
     identity = hashlib.sha256(json.dumps(manifest, sort_keys=True).encode()).hexdigest()[:16]
     manifest['snapshotId'] = 'rw-' + identity
     write(output / 'manifest.json', manifest)
