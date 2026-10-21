@@ -17,7 +17,8 @@ import xml.etree.ElementTree as ET
 import zipfile
 
 from datetime import datetime, timezone
-from mod_snapshot import digest, files, no_link, read, require, select, verify_snapshot, write
+from mod_snapshot import (administrative_rule, digest, exclusion_record, files, no_link,
+                          read, reject_credential_file, require, select, verify_snapshot, write)
 
 
 def ordinary_path(path):
@@ -247,10 +248,34 @@ class PartReader:
                 'Wrong complete transfer archive')
 
 
+def runtime_manifest(manifest):
+    """Project verified legacy raw captures without copying or changing their tree."""
+    retained, exclusions = [], {}
+    packages = {p['snapshotPath']: p for p in manifest['packages'] if p['kind'] != 'official'}
+    for row in manifest['files']:
+        prefix = row['path'].split('/', 2)
+        package = packages.get('/'.join(prefix[:2])) if len(prefix) == 3 else None
+        relative = row['path'][len(package['snapshotPath']) + 1:] if package else row['path']
+        rule = administrative_rule(relative) if package else None
+        if rule:
+            exclusions.setdefault(package['packageId'], []).append(dict(path=relative, bytes=row['bytes'], rule=rule))
+        else:
+            reject_credential_file(relative)
+            retained.append(row)
+    if not exclusions:
+        return manifest  # Clean standard captures keep their exact identity.
+    result = dict(manifest, files=retained, sourceRawCaptureId=manifest['snapshotId'])
+    result['administrativeExclusions'] = manifest.get('administrativeExclusions', []) + [
+        exclusion_record(pid, rows) for pid, rows in sorted(exclusions.items())]
+    result.pop('snapshotId')
+    result['snapshotId'] = 'rw-' + hashlib.sha256(json.dumps(result, sort_keys=True).encode()).hexdigest()[:16]
+    return validate(result)
+
+
 def pack(snapshot, out, base=None, part_bytes=31 * 1024 * 1024, have_inventory=None):
     started = time.monotonic()
     root, out = Path(snapshot).resolve(), Path(out).resolve()
-    manifest = validate(verify_snapshot(root))
+    manifest = runtime_manifest(validate(verify_snapshot(root)))
     parent = validate(read(base)) if base else None
     rows = unique_rows(manifest)
     parent_rows = unique_rows(parent) if parent else {}
@@ -264,6 +289,7 @@ def pack(snapshot, out, base=None, part_bytes=31 * 1024 * 1024, have_inventory=N
     require(not out.exists() and not out.is_relative_to(root) and not root.is_relative_to(out), 'Use a fresh separate transfer directory')
     require(0 < part_bytes <= 31 * 1024 * 1024, 'Parts must fit the 32 MiB private attachment limit')
     out.mkdir(parents=True)
+    write(out / 'snapshot-manifest.json', manifest)
     index = dict(schema='rimworld-snapshot-store-transfer.v1', snapshotId=manifest['snapshotId'],
                  requiredParentSnapshotId=parent['snapshotId'] if parent else None, manifest=manifest,
                  payloadHashes=sorted(missing), reusedObjects=len(unique_rows(manifest)) - len(missing))
@@ -305,6 +331,8 @@ def receive(index_path, parts, store):
     index = read(index_path)
     require(index.get('schema') == 'rimworld-snapshot-store-transfer.v1', 'Wrong store transfer schema')
     manifest = validate(index['manifest'])
+    require(runtime_manifest(manifest)['snapshotId'] == manifest['snapshotId'],
+            'Transfer includes administrative metadata; repack as a runtime projection')
     require(index['snapshotId'] == manifest['snapshotId'], 'Wrong target snapshot')
     parent = verify(store, index['requiredParentSnapshotId']) if index['requiredParentSnapshotId'] else None
     rows = unique_rows(manifest)

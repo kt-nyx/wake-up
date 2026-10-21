@@ -258,6 +258,74 @@ class SnapshotTests(unittest.TestCase):
         snapshot_store.receive(update / 'transfer-index.json', update, store)
         snapshot_store.verify(store, restored['snapshotId'])
 
+    def test_administrative_exclusions_and_legacy_runtime_projection(self):
+        import hashlib, json
+        (self.custom / '1.7').mkdir()
+        (self.custom / '1.7/runtime.xml').write_text('<runtime/>')
+        (self.custom / 'LoadFolders.xml').write_text('<loadFolders><v1.7><li>1.7</li></v1.7></loadFolders>')
+        clean = self.root / 'clean'
+        raw = snapshot.export_snapshot(self.source, self.request, clean)
+        self.assertEqual(snapshot_store.runtime_manifest(raw)['snapshotId'], raw['snapshotId'])
+        metadata = {'.git/config': 'credential-placeholder', '.git/worktrees/one/.env': 'private-placeholder',
+                    '.hg/hgrc': 'history-placeholder', '.svn/wc.db': 'history-placeholder',
+                    '.gitmodules': 'metadata-placeholder', '.gitconfig': 'metadata-placeholder'}
+        for relative, text in metadata.items():
+            path = self.custom / relative
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(text)
+            # Simulate the already-complete legacy raw snapshot without recapture.
+            target = clean / 'packages/test.custom' / relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(text)
+            raw['files'].append(dict(path='packages/test.custom/' + relative, bytes=target.stat().st_size,
+                                     sha256=snapshot.digest(target)))
+        raw.pop('snapshotId')
+        raw['snapshotId'] = 'rw-' + hashlib.sha256(json.dumps(raw, sort_keys=True).encode()).hexdigest()[:16]
+        snapshot.write(clean / 'manifest.json', raw)
+        original_manifest_bytes = (clean / 'manifest.json').read_bytes()
+        parts, store = self.root / 'projected-parts', self.root / 'store'
+        packed = snapshot_store.pack(clean, parts, part_bytes=500)
+        self.assertNotEqual(packed['snapshotId'], raw['snapshotId'])
+        projected = snapshot.read(parts / 'snapshot-manifest.json')
+        self.assertEqual(projected['sourceRawCaptureId'], raw['snapshotId'])
+        self.assertEqual(projected['activeOrder'], raw['activeOrder'])
+        self.assertEqual(projected['omitted'], raw['omitted'])
+        self.assertEqual(projected['dependenciesAdded'], raw['dependenciesAdded'])
+        excluded = projected['administrativeExclusions'][0]
+        self.assertEqual(excluded['packageId'], 'test.custom')
+        self.assertEqual(excluded['fileCount'], len(metadata))
+        self.assertEqual(excluded['bytes'], sum(len(text.encode()) for text in metadata.values()))
+        self.assertEqual({p['path'] for p in excluded['paths']}, set(metadata))
+        index = snapshot.read(parts / 'transfer-index.json')
+        metadata_hashes = {snapshot.digest(clean / 'packages/test.custom' / name) for name in metadata}
+        self.assertTrue(metadata_hashes.isdisjoint(index['payloadHashes']))
+        snapshot_store.receive(parts / 'transfer-index.json', parts, store)
+        received = snapshot_store.verify(store, packed['snapshotId'])
+        self.assertEqual(received, projected)
+        self.assertFalse(snapshot_store.manifest_path(store, raw['snapshotId']).exists())
+        self.assertEqual((clean / 'manifest.json').read_bytes(), original_manifest_bytes)
+        snapshot.verify_snapshot(clean)
+        output = self.root / 'filtered-export'
+        filtered = snapshot.export_snapshot(self.source, self.request, output)
+        self.assertFalse((output / 'packages/test.custom/.git').exists())
+        self.assertTrue((output / 'packages/test.custom/1.7/runtime.xml').is_file())
+        self.assertTrue((output / 'packages/test.custom/LoadFolders.xml').is_file())
+        self.assertEqual(filtered['administrativeExclusions'], projected['administrativeExclusions'])
+        fixture = self.root / '.rlo-test-instance/projected/game'
+        shutil.copytree(self.game / 'Data', fixture / 'Data')
+        shutil.copy2(self.game / 'Assembly-CSharp.dll', fixture / 'Assembly-CSharp.dll')
+        snapshot_store.stage(store, packed['snapshotId'], fixture, fixture.parent / 'profile')
+        self.assertFalse((fixture / 'Mods/Custom/.git').exists())
+        self.assertTrue((fixture / 'Mods/Custom/1.7/runtime.xml').is_file())
+        self.assertTrue((fixture / 'Mods/Custom/LoadFolders.xml').is_file())
+        for name in ('.env', 'account.config', 'loginusers.vdf', 'id_ed25519', 'private-key.pem'):
+            candidate = self.custom / name
+            candidate.write_text('credential-placeholder')
+            with self.subTest(credential=name):
+                with self.assertRaisesRegex(ValueError, 'Credential-file candidate'):
+                    snapshot.export_snapshot(self.source, self.request, self.root / ('reject-' + name))
+            candidate.unlink()
+
 
     def test_store_rejects_noncanonical_paths_and_redirected_store(self):
         import hashlib, json

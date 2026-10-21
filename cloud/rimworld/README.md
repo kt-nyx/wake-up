@@ -157,8 +157,18 @@ files are never linked. The failed tree needs no manifest and is not modified by
 export; keep both snapshot trees unchanged because reused files share storage.
 Result/current-source hashes and all final capture consistency checks still apply.
 
-The exporter copies whole selected mod packages, including their normal version
-folders and `LoadFolders.xml`, so the game can choose the correct content. It
+The exporter retains every selected package's runtime files, normal version
+folders, `LoadFolders.xml`, source/assets and licenses, so the game can choose
+the correct content. Package-specific discovery excludes only administrative
+components named `.git`, `.hg`, `.svn`, `.gitconfig` or `.gitmodules` (including
+worktree `.git` files). It records `administrativeExclusions` by package, with
+each relative path/rule/size and total file count/bytes. This is a file exclusion,
+not an omitted mod; active order/dependencies and the omitted-mod list are unchanged.
+Ordinary `files()` discovery and complete snapshot verification remain unfiltered.
+Credential-file candidates outside excluded metadata (`.env`/`.env.*`, account or
+Steam credential configs, SSH/private-key names) fail clearly; supply sanitized
+inputs rather than silently dropping runtime files. Filename checks are not a
+claim to detect every possible secret. The exporter
 preserves settings named for the selected package folders/IDs, and the shared
 HugsLib settings when selected. `extraSettings` permits explicitly named relative
 XML files when a mod stores settings elsewhere. Settings with recognized populated
@@ -216,6 +226,20 @@ Create the complete first transfer:
 ```sh
 python cloud/rimworld/snapshot_store.py pack PRIVATE_CAPTURE --out PRIVATE_TRANSFER
 ```
+
+For a legacy raw capture containing administrative files, packing first verifies
+the entire original manifest/tree, then derives a complete runtime manifest with
+only the explicit administrative exclusions above. It records `sourceRawCaptureId`
+and per-package/path exclusions, recomputes `snapshotId`, and writes
+`snapshot-manifest.json` in the transfer output. Only runtime-manifest objects are
+packaged; no recopy/recapture is required and the raw tree/manifest stay unchanged.
+Credential candidates outside excluded metadata still fail. Clean captures keep
+their exact identity. Use the printed runtime ID for receive/default selection;
+the legacy raw ID is local provenance only, never the default. For subsequent
+parent-based transfers use the accepted runtime `snapshot-manifest.json` as
+`--base-manifest`, not a rejected raw manifest. Receivers reject unprojected
+administrative payloads before writing store objects. Retain the runtime manifest
+with the index/receipts, privately; no personal metadata or histories belong in Git.
 
 Transfer the printed index ZIP and all part ZIPs through supported private
 attachments. Each part is below 32 MiB. Verify the sender's `indexZipSha256` from

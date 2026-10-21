@@ -52,6 +52,44 @@ def files(root):
     return sorted(result)
 
 
+def administrative_rule(relative):
+    """Package-only exclusions; ordinary file discovery/verification stays exact."""
+    for part in PurePosixPath(relative).parts:
+        if part.casefold() in {'.git', '.hg', '.svn', '.gitconfig', '.gitmodules'}:
+            return part.casefold()
+    return None
+
+
+def reject_credential_file(relative):
+    parts = [part.casefold() for part in PurePosixPath(relative).parts]
+    name = parts[-1]
+    private_key = (re.fullmatch(r'id_(rsa|dsa|ecdsa|ed25519)(?:[._-].*)?', name)
+                   and not name.endswith('.pub')) or re.fullmatch(r'private[._-]?key(?:[._-].*)?', name)
+    require(not (name == '.env' or name.startswith('.env.')
+                 or name in {'account.config', 'loginusers.vdf', 'config.vdf'}
+                 or '.ssh' in parts or private_key or name.endswith('.ppk')),
+            f'Credential-file candidate outside excluded administrative metadata: {relative}; provide sanitized inputs')
+
+
+def package_files(root):
+    retained, excluded = [], []
+    for path in files(root):
+        relative = path.relative_to(root).as_posix()
+        rule = administrative_rule(relative)
+        if rule:
+            excluded.append(dict(path=relative, bytes=path.stat().st_size, rule=rule))
+        else:
+            reject_credential_file(relative)
+            retained.append(path)
+    return retained, excluded
+
+
+def exclusion_record(package_id, rows):
+    return dict(packageId=package_id, rules=sorted({r['rule'] for r in rows}),
+                fileCount=len(rows), bytes=sum(r['bytes'] for r in rows),
+                paths=sorted(rows, key=lambda r: r['path']))
+
+
 def required_packages(metadata, version):
     specific = metadata.find(f'./modDependenciesByVersion/v{version}')
     nodes = specific.findall('./li/packageId') if specific is not None else metadata.findall('./modDependencies/li/packageId')
@@ -163,6 +201,7 @@ def export_snapshot(source, request, output, reuse_files=None):
     stamps = {}
     source_hashes = {}
     trees = {}
+    exclusions = []
 
     def copy_one(src, relative):
         no_link(src)
@@ -202,8 +241,11 @@ def export_snapshot(source, request, output, reuse_files=None):
         if package['kind'] != 'official':
             origin = Path(package['sourcePath'])
             package['snapshotPath'] = f'packages/{pid}'
-            trees[origin] = files(origin)
-            for src in trees[origin]:
+            selected, excluded = package_files(origin)
+            trees[origin] = (selected, excluded)
+            if excluded:
+                exclusions.append(exclusion_record(pid, excluded))
+            for src in selected:
                 copy_one(src, package['snapshotPath'] + '/' + src.relative_to(origin).as_posix())
         packages.append(package)
     profile = Path(source['profileDir'])
@@ -221,11 +263,12 @@ def export_snapshot(source, request, output, reuse_files=None):
         settings.add(profile / relative)
     for src in sorted(settings):
         require(src.resolve().is_relative_to(profile.resolve()), 'Settings escaped source profile')
+        reject_credential_file(src.relative_to(profile).as_posix())
         no_credentials(src)
         copy_one(src, 'profile/' + src.relative_to(profile).as_posix())
     copy_one(profile / 'Config/ModsConfig.xml', 'source/ModsConfig.xml')
     require(inventory(source) == inv, 'Active list or package metadata changed during capture; retry in a fresh directory')
-    require(all(files(root) == names for root, names in trees.items()), 'Package file list changed during capture')
+    require(all(package_files(root) == names for root, names in trees.items()), 'Package file list changed during capture')
     require(all((p.stat().st_size, p.stat().st_mtime_ns) == stamp for p, stamp in stamps.items()),
             'Source files changed during capture; retry in a fresh directory')
     require(all(digest(p) == h for p, h in source_hashes.items()),
@@ -238,6 +281,8 @@ def export_snapshot(source, request, output, reuse_files=None):
         sourceModsConfigSha256=inv['modsConfigSha256'])
     if source.get('captureContext'):
         manifest['captureContext'] = source['captureContext']
+    if exclusions:
+        manifest['administrativeExclusions'] = exclusions
     identity = hashlib.sha256(json.dumps(manifest, sort_keys=True).encode()).hexdigest()[:16]
     manifest['snapshotId'] = 'rw-' + identity
     write(output / 'manifest.json', manifest)
