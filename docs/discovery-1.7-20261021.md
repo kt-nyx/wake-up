@@ -39,6 +39,34 @@ deserializer and duplicate-target scans during translation application. Actual
 cost, activation, equivalent behavior and repeated matched performance remain
 to be measured. No new optimization is accepted at this checkpoint.
 
+## First measured prototype
+
+The pinned Core/VEF/Furniture/Plants French workload passed actual assembly,
+constructor/owned-definition, 600-tick, save/reload and normal-exit checks without
+ERROR lines. The linked-child-index probe covered all four new parser emitters:
+141,201 calls occupied only 0.0063 aggregate seconds including timestamp overhead.
+A larger explicitly retained-DLC/VEF/VPE/Furniture/Plants workload also passed;
+330,122 calls occupied 0.0268 seconds. An XML child index is unwarranted on these
+observations. The retained DLC files are unchanged owner-supplied data with old
+metadata; this is a scale/compatibility workload, not refreshed official DLC
+qualification or the personal full collection.
+
+Duplicate translation scans occupied 0.1165 seconds on the Core public workload
+and 0.4783 seconds on the larger workload. These original-loop diagnostics include
+timer overhead and do not establish a whole-load gain. A stateful index needs
+careful callback/mutation admission; the old enumerator-version argument remains
+invalid. The first prototype instead keeps live native enumeration and reorders
+pure field/string checks. It avoids key comparisons for inactive or nonmatching
+entries, retains the null-self short circuit and null-other exception, and keeps
+all native normalization, callbacks, first-match errors and field writes.
+
+The prototype has one exact-body guarded rewrite, releases its hooks at startup
+completion and defaults off (`translationPredicate17`). Existing true preview
+flags do not select it. English does not install it. Seventy synthetic tests
+pass, including the actual IL rewrite across order, alias, null, case-sensitive
+path and live mutation cases. No performance or live prototype qualification is
+claimed before the separate real-game comparisons.
+
 The 21 October discovery task reached a game-input blocker before new live
 profiling. No new loading feature or performance result is qualified. The task
 prioritizes vanilla's shared loading machinery; public mod collections will be
