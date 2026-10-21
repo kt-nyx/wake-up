@@ -184,9 +184,15 @@ class SnapshotTests(unittest.TestCase):
         real = self.root / 'real-store'
         real.mkdir()
         redirected = self.root / 'redirected-store'
-        redirected.symlink_to(real, target_is_directory=True)
-        with self.assertRaisesRegex(ValueError, 'Linked or redirected'):
-            snapshot_store.object_path(redirected, 'a' * 64)
+        with self.subTest('redirected store'):
+            try:
+                redirected.symlink_to(real, target_is_directory=True)
+            except OSError as error:
+                if getattr(error, 'winerror', None) == 1314:
+                    self.skipTest('Windows symlink creation requires privilege')
+                raise
+            with self.assertRaisesRegex(ValueError, 'Linked or redirected'):
+                snapshot_store.object_path(redirected, 'a' * 64)
 
     def test_store_requires_declared_payload_and_exact_settings(self):
         output = self.root / 'frozen'
