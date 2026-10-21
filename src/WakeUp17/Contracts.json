@@ -1,9 +1,9 @@
 {
-  "gameLabel": "1.7.4982 rev1280",
-  "gameMvid": "a46e6f45-b616-4261-bb63-a9471bf7402a",
-  "gameSha256": "69cf35594dcc55d1d77cae482887e880ec2d7c043e139d54d5c59b2dd2b940d4",
-  "unityStubsSha256": "207a76f55695d859691aef49818156725e2e6e94937cc6867b2e568b4be77ac6",
-  "waylithSha256": "30e52fca5f3d62d900fa5a8ac6848bd578dda7b8cdabf4961629b0fa56524b4c",
+  "gameLabel": "1.7.4984 rev1242",
+  "gameMvid": "484efdc5-765b-463c-a9cc-54a6131e38f0",
+  "gameSha256": "4b149ebe693bed7cd63535f69ccd5ec28d1622c43bdeae8855b158d4b958138d",
+  "unityStubsSha256": "809c66d76e64599f9244727121d9950b77e060f242138d466b3aa30f9f3d4dd2",
+  "waylithSha256": "c415529b91afd2ccd5bb5886686ecd00459ad0ea915519aaf9f37c759447226a",
   "harmonyMvid": "f89a6d42-3950-4658-a805-68a32790beea",
   "harmonySha256": "c8ef7856b2be3cf24b345c9b5c2f197f68fcf92649635064fce7b3ccc8f77cb0",
   "methods": {
@@ -177,7 +177,7 @@
     },
     "100723543": {
       "signature": "System.Boolean Verse.GenTypes/TypeCacheKey::Equals(Verse.GenTypes/TypeCacheKey)",
-      "ilSha256": "ad8a229a07fd7ab30cc07c3eeb3eada8d3cd94adced9ce9b610903c6cd3b0d63"
+      "ilSha256": "3d34abfeef2215feaa6673c011ae3e73a86380b86c53743c7b58a48f4cb53201"
     },
     "100723544": {
       "signature": "System.Boolean Verse.GenTypes/TypeCacheKey::Equals(System.Object)",
@@ -197,7 +197,7 @@
     },
     "100723548": {
       "signature": "System.Boolean Verse.GenTypes/<>c::<get_AllTypes>b__6_0(System.Type)",
-      "ilSha256": "47cd7ea556d32cff7c2066141b1ad8d233f2b76d17da254e1234371d85512ad6"
+      "ilSha256": "ef13358dec779c99f4ed9861a2702d055a582424ac7945d0544910ffcc42c209"
     },
     "100723549": {
       "signature": "System.Boolean Verse.GenTypes/<>c::<AllLeafSubclasses>b__18_0(System.Type)",
@@ -205,7 +205,7 @@
     },
     "100723550": {
       "signature": "System.Void Verse.GenTypes/<>c__8`1::.cctor()",
-      "ilSha256": "0ccfb7c4dcbefc622909914f3021b5e22b847fa8d6ecd1d4540bbb6a0d668e22"
+      "ilSha256": "81cda17b846ba0023c089cc7457afa7e89ab076b75b55317264464ce5295cf5b"
     },
     "100723551": {
       "signature": "System.Void Verse.GenTypes/<>c__8`1::.ctor()",
@@ -261,7 +261,7 @@
     },
     "100723564": {
       "signature": "System.Void Verse.GenTypes/<InstantiableDescendantsAndSelf>d__19::System.Collections.IEnumerator.Reset()",
-      "ilSha256": "f3a0eec952fbcdc20c356ca40a08010e697387b7563f4ca19b2c6963ca8e3c7c"
+      "ilSha256": "e037ad31257ca33cd17b47c37b4c2887c417b2a8f1dfe06f858809eb05668a2d"
     },
     "100723565": {
       "signature": "System.Object Verse.GenTypes/<InstantiableDescendantsAndSelf>d__19::System.Collections.IEnumerator.get_Current()",
@@ -285,7 +285,7 @@
     },
     "100723570": {
       "signature": "System.Boolean Verse.GenTypes/<get_AllActiveAssemblies>d__2::MoveNext()",
-      "ilSha256": "5da16a145e3b638a453c4d8c093892542e7525556667b0b7acb9752a02d0bc83"
+      "ilSha256": "df2b0873d43df3c57ff064346984fca7f0f7cec1740a48a4cae096b44136e50a"
     },
     "100723571": {
       "signature": "System.Void Verse.GenTypes/<get_AllActiveAssemblies>d__2::<>m__Finally1()",
@@ -297,7 +297,7 @@
     },
     "100723573": {
       "signature": "System.Void Verse.GenTypes/<get_AllActiveAssemblies>d__2::System.Collections.IEnumerator.Reset()",
-      "ilSha256": "f3a0eec952fbcdc20c356ca40a08010e697387b7563f4ca19b2c6963ca8e3c7c"
+      "ilSha256": "e037ad31257ca33cd17b47c37b4c2887c417b2a8f1dfe06f858809eb05668a2d"
     },
     "100723574": {
       "signature": "System.Object Verse.GenTypes/<get_AllActiveAssemblies>d__2::System.Collections.IEnumerator.get_Current()",
@@ -409,7 +409,7 @@
     },
     "100724758": {
       "signature": "System.Void Verse.DefInjectionPackage/<>c__DisplayClass19_0::<MissingInjections>b__0(System.String,System.String,System.Boolean,System.String,System.Collections.Generic.IEnumerable`1<System.String>,System.Boolean,System.Boolean,System.Reflection.FieldInfo,Verse.Def)",
-      "ilSha256": "b1bfd47d43c4d53ef01b0d12b6b4319bc3177b47740bf765d48d57753294f590"
+      "ilSha256": "ed9cd2400e64134e0e743ebf55b5dd2f3777f3a23cedafc47f4f870b02e2b7e3"
     },
     "100669718": {
       "signature": "System.Collections.Generic.List`1<Verse.ModContentPack> Verse.LoadedModManager::get_RunningModsListForReading()",
@@ -505,11 +505,11 @@
     },
     "100725608": {
       "signature": "System.Void Verse.LoadedModManager/<>c::<LoadModContent>b__13_0()",
-      "ilSha256": "0a9d632b1c901ae5f3ee1fcb6a7ee12ab9ed97833ea4ae2e40a0812ffb93c5d4"
+      "ilSha256": "c6613649e36bfe8c443997f3826dd3d043b4ecbab0495d15a1254e8bb325cf5d"
     },
     "100725609": {
       "signature": "System.Void Verse.LoadedModManager/<>c::<LoadModContent>b__13_1()",
-      "ilSha256": "a389aa7260c3b8aecb90833c632f636aa9ba3551b5ac8dd82b14e3eeeaf94b5c"
+      "ilSha256": "0281c69c0766883b91236c95f5c54d3e87fa8399d02ef0c833ba9056fc4fabb7"
     },
     "100725610": {
       "signature": "System.Collections.Generic.IEnumerable`1<Verse.PatchOperation> Verse.LoadedModManager/<>c::<ApplyPatches>b__17_0(Verse.ModContentPack)",
@@ -517,7 +517,7 @@
     },
     "100725611": {
       "signature": "System.Void Verse.LoadedModManager/<>c::<ParseAndProcessXML>b__19_1(System.ValueTuple`2<Verse.Def,Verse.Def>)",
-      "ilSha256": "e76e2b5b6c6349534d7be8a318b99f6ffa9e1d2bf87040ee84ffb4426eb59192"
+      "ilSha256": "f95779f761075b93f41d50fbc4aede57695ab444b0c9c52b4d9fa0e6d3f771a6"
     },
     "100725612": {
       "signature": "System.Void Verse.LoadedModManager/<>c__DisplayClass14_0::.ctor()",
@@ -525,7 +525,7 @@
     },
     "100725613": {
       "signature": "System.Boolean Verse.LoadedModManager/<>c__DisplayClass14_0::<CreateModClasses>b__0(Verse.ModContentPack)",
-      "ilSha256": "a4a15c0ab6993f75a1495cab5fd661ff0adab80ceaa30006d76670c54068f57d"
+      "ilSha256": "ffe2a04056725d0ff3310ab87baf7b03fabf9ca7210cbab1e1a2c84a958a0b7b"
     },
     "100725614": {
       "signature": "System.Void Verse.LoadedModManager/<>c__DisplayClass19_0::.ctor()",
@@ -533,7 +533,7 @@
     },
     "100725615": {
       "signature": "System.Void Verse.LoadedModManager/<>c__DisplayClass19_0::<ParseAndProcessXML>b__0()",
-      "ilSha256": "0ffcb1552662655fff5e26b63097a09552deffc6e8318b761e21fe47102ad1a6"
+      "ilSha256": "24423c7121e8a9b17e9c7b082881c0b3ceadb5ddf301312c1ff4cbaff17b4a9f"
     },
     "100725616": {
       "signature": "System.Void Verse.LoadedModManager/<>c__DisplayClass23_0::.ctor()",
@@ -541,7 +541,7 @@
     },
     "100725617": {
       "signature": "System.Boolean Verse.LoadedModManager/<>c__DisplayClass23_0::<GetMod>b__0(System.Collections.Generic.KeyValuePair`2<System.Type,Verse.Mod>)",
-      "ilSha256": "ca183ae15ffa4ff541962381f842739cc13fdbb9abed15966bc9c840f0c11750"
+      "ilSha256": "79bbedf0f282b6da82f38eeff43fc07dc24a9b5b7fff4800330ee633b9f28099"
     },
     "100669998": {
       "signature": "System.Boolean Verse.PatchOperation::Apply(System.Xml.XmlDocument)",
@@ -757,35 +757,35 @@
     },
     "100726712": {
       "signature": "System.Boolean Verse.DirectXmlCrossRefLoader/WantedRefForObject::TryResolve(Verse.FailMode)",
-      "ilSha256": "0e5d0f51dca4db93b520ad53a3427e58675389d4f85b8646531ab30d1d86a555"
+      "ilSha256": "db15dc0c1e344d7cbce145f4e9e51cb63a733d0ab5c7bceb49549aa04f4d3bbd"
     },
     "100726713": {
       "signature": "System.Void Verse.DirectXmlCrossRefLoader/WantedRefForList`1::.ctor(System.Object,System.Object)",
-      "ilSha256": "5a8db5ba06028bab863930be45b95b268037dd53ebe35d53f94f9621a59eba8f"
+      "ilSha256": "93f1bf210240132bf1d47475df379184e904b0e534890d70fcf86b62a17d1c01"
     },
     "100726714": {
       "signature": "System.Void Verse.DirectXmlCrossRefLoader/WantedRefForList`1::AddWantedListEntry(System.String,System.String,System.String)",
-      "ilSha256": "5ffa30f418606f6aa392db5e616c67ce4c8d5baa6b8422359dfc98e3571d106b"
+      "ilSha256": "45005609ae67f5f8e6b68dc9d20898975b406689059710240466a0ced7d82c54"
     },
     "100726715": {
       "signature": "System.Boolean Verse.DirectXmlCrossRefLoader/WantedRefForList`1::TryResolve(Verse.FailMode)",
-      "ilSha256": "c837ef46d8566fd00fde510eea5964ffb63de4d6a958c975f2248cc67cc51f81"
+      "ilSha256": "bc5df07dd63400f5c82401171a097d1f5f60304ffcb2bbb0e96c16765b814cd0"
     },
     "100726716": {
       "signature": "System.Void Verse.DirectXmlCrossRefLoader/WantedRefForDictionary`2::.ctor(System.Object,System.Object)",
-      "ilSha256": "65e35859bc986213029ce4cbff757368aaed2a0045d41f922de7959df1eab1fd"
+      "ilSha256": "d0947849495d2997c7a03593553d96faa0511c77c74972c7a61d17cd8517aab2"
     },
     "100726717": {
       "signature": "System.Void Verse.DirectXmlCrossRefLoader/WantedRefForDictionary`2::AddWantedDictEntry(System.Xml.XmlNode)",
-      "ilSha256": "f9927f9c8a08ff17d1551acfa6d268d3420bd5795fed0c8104efaa2f70d56ce7"
+      "ilSha256": "1cf090e847b3f2e92451723a7212cb4f42589527dcac1d54608f8f5b6de01c9c"
     },
     "100726718": {
       "signature": "System.Boolean Verse.DirectXmlCrossRefLoader/WantedRefForDictionary`2::TryResolve(Verse.FailMode)",
-      "ilSha256": "03a892b297aec98c6f66afba2db8381c62c4ca29fc4e5d7551140662154a5433"
+      "ilSha256": "58e9366693642b8d4cb7d6343d1ecb1cb4cd74b0d835454e83c8b2a06bbfb04b"
     },
     "100726719": {
       "signature": "System.Void Verse.DirectXmlCrossRefLoader/WantedRefForDictionary`2::Apply()",
-      "ilSha256": "65d0f5fe98e744881f60dc04b03f99a852189c6f0f8162e3eb02bad7e111356e"
+      "ilSha256": "94c5aa3f092593f7817ad17b871467f57e0d8ae4465d6b81c6103657cab920a3"
     },
     "100726720": {
       "signature": "System.Void Verse.DirectXmlCrossRefLoader/<>c__DisplayClass16_0::.ctor()",
@@ -793,11 +793,11 @@
     },
     "100726721": {
       "signature": "System.Void Verse.DirectXmlCrossRefLoader/<>c__DisplayClass16_0::<ResolveAllWantedCrossReferences>b__0(Verse.DirectXmlCrossRefLoader/WantedRef)",
-      "ilSha256": "1d5ef1115c41df21904d625bc20e8c9c81d34694029d783f1bc7f6262d443aec"
+      "ilSha256": "756bd2986aba459141519541d33a5e824a37d0c32633adcedbbff2f7b0aa6649"
     },
     "100726722": {
       "signature": "System.Boolean Verse.DirectXmlCrossRefLoader/<>c__DisplayClass16_0::<ResolveAllWantedCrossReferences>b__1(Verse.DirectXmlCrossRefLoader/WantedRef)",
-      "ilSha256": "92d6a207f02137f4db483ff9373543fcd16d7051ea77b62eb4eb956cfcb32082"
+      "ilSha256": "b237bb6c8d5987eb1dd07fa30acc309eae82dfb8769002089691dc16c2807b66"
     },
     "100673179": {
       "signature": "System.Reflection.FieldInfo Verse.XmlToObjectUtils::DoFieldSearch(System.Type,System.Xml.XmlNode,System.Xml.XmlNode)",
@@ -829,7 +829,7 @@
     },
     "100726783": {
       "signature": "System.Boolean Verse.XmlToObjectUtils/FieldAliasCache::Equals(Verse.XmlToObjectUtils/FieldAliasCache)",
-      "ilSha256": "0804f5bccf07f65c9f441d2c2ad2af543495d5f9caddabce78681b2dd3d7a8e7"
+      "ilSha256": "a0f763ec5b80b130cac3cba7b1bdf7d39bda86264e6697d010638465a36a9771"
     },
     "100726784": {
       "signature": "System.Int32 Verse.XmlToObjectUtils/FieldAliasCache::GetHashCode()",
@@ -837,23 +837,23 @@
     },
     "100709768": {
       "signature": "System.Single RimWorld.AlertsReadout::get_AlertsHeight()",
-      "ilSha256": "3b48a00e021180403c3fba0ac8c17e43735c78a3eac501e6b8b837ccda365ff6"
+      "ilSha256": "740f49aa70d0769906eb7ff6d9b394a1d6bef4eccc3e8395e2af15dae2e65730"
     },
     "100709769": {
       "signature": "System.Void RimWorld.AlertsReadout::.ctor()",
-      "ilSha256": "50f4b04e55ef51932ef2829eb7e0ffcd5539faf5c51cbfade010eca9c006b25b"
+      "ilSha256": "3ceffd929c2dc205d462d5054971e4db86762760e1a378dad57bd95a07f775e7"
     },
     "100709770": {
       "signature": "System.Void RimWorld.AlertsReadout::AlertsReadoutUpdate()",
-      "ilSha256": "4d5d52b17eb6b5106a8d5141cba10e1b487d55a92fdd2178c6230c78025b49c6"
+      "ilSha256": "e468bf39dc27b93390cffdf53b3cd8c9f7f2acbdde1dedb9e36b0676f070b583"
     },
     "100709771": {
       "signature": "System.Void RimWorld.AlertsReadout::CheckAddOrRemoveAlert(RimWorld.Alert,System.Boolean)",
-      "ilSha256": "1d940e9b192af4b028dd93566d2554f6bcc9fa35aeb1f5062465049d4b1ba4af"
+      "ilSha256": "90f44328cea5dbb37389e3a8b12ba3cf277327af084961e67d00fc43566f420a"
     },
     "100709772": {
       "signature": "System.Void RimWorld.AlertsReadout::AlertsReadoutOnGUI()",
-      "ilSha256": "a6e84c9ada85c37c6ff75a896c0668d2abdd5a1dcea544cd775af75c1f23192f"
+      "ilSha256": "0249c93fcb1de0eabfa270091936c934447e0697ed56ec8097a9bbc591043525"
     }
   }
 }

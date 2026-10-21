@@ -11,9 +11,11 @@ published, with current startup instructions and the reviewed public source pin.
 Check the intended current 1.7 stream/build before using the retained game or
 launch examples below. The prepared image and `refresh-environment.sh` retain
 build 26031547; they do not acquire current Steam updates. The
-[21 October target check](discovery-1.7-20261021.md) found a newer unstable build
-and no available legal payload in the restored environment. Obtain and review
-the actual target before new current-game tests; preserve exact admission checks.
+[21 October target check](discovery-1.7-20261021.md) found a newer unstable build.
+The owner subsequently supplied its legal private refresh, verified and tested
+in this chat. These transfers do not update another chat's published image.
+Obtain and review the actual target before new current-game tests; preserve exact
+admission checks. The old controller examples below remain historical recipes.
 
 The verified browser access route is **Settings > Codex Cloud >
 wake-up-dev-1.7 > Actions > Edit**. It opened a fresh setup workspace from the

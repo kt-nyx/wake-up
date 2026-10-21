@@ -1,5 +1,44 @@
 # Fresh loading discovery: target inputs required
 
+**Input blocker resolved later in this chat.** The owner supplied an authenticated
+official-depot refresh for build 26087487, version 1.7.4984 rev1242. The index and
+assembled bundle checksums matched; reconstruction individually verified all
+1,709 official base files, sizes and modes in a fresh directory. No DLC was
+carried forward. Current-target work continues below; the original blocker record
+is retained after it.
+
+## Current-target checkpoint
+
+Exact game and engine hashes are refreshed in `src/WakeUp17/Contracts.json` after
+static review. All 212 guarded game methods retain equivalent decoded bodies and
+signatures; 29 raw IL hashes change through metadata-token operands. The broader
+review compared 942 selected game methods. Engine changes include a native
+headless GPU-work skip and frame-rate/presentation handling; their effects belong
+to vanilla. Windows byte equality and execution are unverified on this target.
+
+A Core-only baseline with Harmony and the private bridge physically omitted
+Wake-Up and all DLC. It verified loaded assembly hashes, exact package order,
+three colonists, 600+ native ticks, save/reload into a changed Game object and
+acknowledged normal exit zero. Launch to second idle entry update was 5.244 s,
+new-game setup to first Playing 7.002 s, launch to Playing 12.250 s. OS caches
+were warm from verification/copy; application profiles/XDG caches were fresh.
+This single functional observation is not an acceleration comparison.
+
+A separate English native diagnostic also passed. Its startup LoadAllPlayData
+root was 2.552 s, including 0.898 s ParseAndProcessXML and 0.825 s definition
+construction for 6,669 nodes. A separate main-thread callback root was 1.546 s.
+These instrumented, overlapping parent/child observations are not additive
+saved-time budgets or acceptance timings. Native save/reload markers were added;
+neither run qualifies save-load speed. Both logs contain no ERROR lines; headless
+and native shutdown warnings remain. The historical bridge build has four
+nullable-flow warnings; the product builds with zero warnings/errors and all 67
+synthetic checks pass against the current exact reference catalog.
+
+Fresh bounded questions are linked child-list indexing in the new shared
+deserializer and duplicate-target scans during translation application. Actual
+cost, activation, equivalent behavior and repeated matched performance remain
+to be measured. No new optimization is accepted at this checkpoint.
+
 The 21 October discovery task reached a game-input blocker before new live
 profiling. No new loading feature or performance result is qualified. The task
 prioritizes vanilla's shared loading machinery; public mod collections will be
