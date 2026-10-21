@@ -165,8 +165,16 @@ Prototype/bridge binaries, failed samples, controllers, exact snapshots and
 receipts are preserved privately. No game/mod payload, save or private source
 ancestry is committed publicly.
 
-The final inactive-source build/functional verification is recorded in the
-closeout checkpoint. No useful feature is awaiting an approval disguised as a
+The final inactive source at **e248db413d49c300f926b2546753847e50e5b665**
+built with zero warnings/errors and passed 67 C# checks plus four packaging
+checks. Its DLL SHA-256 is
+`02c8e2085308af337b5bb7ad89dc96fbc3915af86be2ccbe0da92a035507c64b`.
+A final French real-game check set all old and withdrawn experimental preferences
+true: no hooks activated, all 26,569 actual translation values/bookkeeping matched
+the absent control, and native simulation/save/load/normal exit passed. Fixture
+packages were moved back outside Mods and the resource diagnostic bridge restored.
+`final-native-verification.json`, `restoration.json` and `EVIDENCE-INDEX.json`
+record this closeout. No useful feature is awaiting an approval disguised as a
 promising label. Larger arbitrary collections, other languages, current Windows,
 visible menus, graphics, actual audio playback, focus and played-save coverage
 remain unqualified. This bounded negative result does not prove no future shared
@@ -175,7 +183,9 @@ No Windows installation, binary/tag/Workshop release or environment publication
 was performed.
 
 Plan balance/reset readings, task-attributed tokens and reliable account-wide
-usage deltas were unavailable. `usage.json` records observed game-process wall
-usage, including diagnostic failures, without subscription-cost conversions or
+usage deltas were unavailable. `usage.json` records **19 owned game processes**
+(18 passed, one retained failed observer diagnostic), totaling **687.868 process
+wall seconds**, including startup, simulation, observations, save/load and exit.
+It makes no subscription-cost conversions or
 invented attribution. Preparation/review/waiting occurred in the chat but cannot
 be converted into a plan reading.
